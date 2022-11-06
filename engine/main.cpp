@@ -112,14 +112,35 @@ void renderTwoVAO()
 
   float timeValue = SDL_GetTicks() / 1000.0f;
   float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+  // float x = (sin(timeValue) / 2.0f) + 0.5f;
+  // float y = (cos(timeValue) / 2.0f) + 0.5f;
+
+  timeValue = timeValue + (sin(timeValue) / 2.0f) + 0.5f; // units per second
+
+  float x_max = 0.75f;
+  float x_min = -0.5f;
+  float x_diff = x_max - x_min;
+
+  float x = (fmod(timeValue, 2 * x_diff) < x_diff ? x_min + fmod(timeValue, x_diff) : x_max - fmod(timeValue, x_diff));
+
+  float y_max = 0.5f;
+  float y_min = -1.0f;
+  float y_diff = y_max - y_min;
+
+  float y = (fmod(timeValue, 2 * y_diff) < y_diff ? y_min + fmod(timeValue, y_diff) : y_max - fmod(timeValue, y_diff));
+
+  // float y = (fmod(timeValue, 2.0f) <= 1.0f ? -fmod(timeValue, 1.0f) : 1.0f - fmod(timeValue, 1.0f));
+  printf("x: %f, y: %f\n", x, y);
 
   shader_Use(&g_shaders[0]);
   shader_Set4f(&g_shaders[0], "ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+  shader_Set3f(&g_shaders[0], "ourPosition", x, y, 0.0f);
 
   glBindVertexArray(g_vao);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
   shader_Use(&g_shaders[1]);
+  shader_Set3f(&g_shaders[1], "ourPosition", x, y, 0.0f);
   glBindVertexArray(g_vao1);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 }
