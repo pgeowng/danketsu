@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <cmath>
 
+#include "shader.h"
+
 #define internal static
 #define local_persist static
 #define global_variable static
@@ -14,7 +16,6 @@ int g_screenHeight = 480;
 SDL_Window *g_window;
 SDL_GLContext g_ctx;
 
-GLuint g_shaderProgram = 0;
 GLint g_vertexPos2DLocation = -1;
 GLuint g_vao = 0;
 GLuint g_vbo = 0;
@@ -23,53 +24,7 @@ GLuint g_ebo = 0;
 GLuint g_vao1 = 0;
 GLuint g_vbo1 = 0;
 
-GLuint g_shaderPrograms[2] = {0, 0};
-
-internal void printProgramLog(GLuint program)
-{
-  if (!glIsProgram(program))
-  {
-    printf("print program log failed: %d isn't program\n", program);
-    return;
-  }
-
-  int infoLogLength = 0;
-  int maxLength = infoLogLength;
-
-  glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-
-  char *infoLog = new char[maxLength];
-  glGetProgramInfoLog(program, maxLength, &infoLogLength, infoLog);
-  if (infoLogLength > 0)
-  {
-    printf("%s\n", infoLog);
-  }
-
-  delete[] infoLog;
-}
-
-internal void printShaderLog(GLuint shader)
-{
-  if (!glIsShader(shader))
-  {
-    printf("print shader log failed: %d isn't shader\n", shader);
-    return;
-  }
-
-  int infoLogLength = 0;
-  int maxLength = infoLogLength;
-
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-
-  char *infoLog = new char[maxLength];
-  glGetShaderInfoLog(shader, maxLength, &infoLogLength, infoLog);
-  if (infoLogLength > 0)
-  {
-    printf("%s\n", infoLog);
-  }
-
-  delete[] infoLog;
-}
+shader_s g_shaders[2] = {{0}, {0}};
 
 void initTwoVAO()
 {
@@ -157,14 +112,14 @@ void renderTwoVAO()
 
   float timeValue = SDL_GetTicks() / 1000.0f;
   float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-  int vertexColorLocation = glGetUniformLocation(g_shaderPrograms[0], "ourColor");
-  glUseProgram(g_shaderPrograms[0]);
-  glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+  shader_Use(&g_shaders[0]);
+  shader_Set4f(&g_shaders[0], "ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
   glBindVertexArray(g_vao);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
-  glUseProgram(g_shaderPrograms[1]);
+  shader_Use(&g_shaders[1]);
   glBindVertexArray(g_vao1);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -174,8 +129,6 @@ internal void render()
   glViewport(0, 0, g_screenWidth, g_screenHeight);
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-
-  glUseProgram(g_shaderProgram);
 
   renderTwoVAO();
   // glBindVertexArray(g_vao);
@@ -201,180 +154,25 @@ internal void render()
   // glUseProgram(NULL);
 }
 
-const char *triangleVertexShaderSource = R"EOL(
-  #version 330 core
-
-  layout (location = 0) in vec3 aPos;
-  layout (location = 1) in vec3 aColor;
-
-  out vec4 vertexColor;
-
-  void main()
-  {
-      gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-      vertexColor = vec4(aColor, 1.0);
-  }
-)EOL";
-
-const char *triangleFragmentShaderSource = R"EOL(
-  #version 330 core
-
-  in vec4 vertexColor;
-  out vec4 FragColor;
-
-  uniform vec4 ourColor;
-
-  void main()
-  {
-      FragColor = ourColor;
-  }
-)EOL";
-
-const char *colorfulFragmentShaderSource = R"EOL(
-  #version 330 core
-
-in vec4 vertexColor;
-  out vec4 FragColor;
-
-  void main()
-  {
-    FragColor = vertexColor;
-  }
-)EOL";
-
-internal bool initGL()
-{
-  GLint ok = GL_FALSE;
-
-  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &triangleVertexShaderSource, NULL);
-  glCompileShader(vertexShader);
-
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &ok);
-  if (ok != GL_TRUE)
-  {
-    printf("compile vertex shader failed: %d\n", vertexShader);
-    printShaderLog(vertexShader);
-    return false;
-  }
-
-  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &triangleFragmentShaderSource, NULL);
-  glCompileShader(fragmentShader);
-
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &ok);
-  if (ok != GL_TRUE)
-  {
-    printf("compile fragment shader failed: %d\n", fragmentShader);
-    printShaderLog(fragmentShader);
-    return false;
-  }
-
-  g_shaderProgram = glCreateProgram();
-  glAttachShader(g_shaderProgram, vertexShader);
-  glAttachShader(g_shaderProgram, fragmentShader);
-  glLinkProgram(g_shaderProgram);
-
-  glGetProgramiv(g_shaderProgram, GL_LINK_STATUS, &ok);
-  if (ok != GL_TRUE)
-  {
-    printf("link shader program failed: %d\n", g_shaderProgram);
-    printProgramLog(g_shaderProgram);
-    return false;
-  }
-
-  // TODO: in case of error, delete shaders
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
-  glUseProgram(g_shaderProgram);
-
-  glPolygonMode(GL_FRONT_LEFT, GL_LINE);
-
-  return true;
-}
-
 internal bool initTwoShaders()
 {
-  GLint ok = GL_FALSE;
 
-  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  bool ok = false;
+  ok = shader_New(&g_shaders[0], "./engine/shaders/hello.vert", "./engine/shaders/hello.frag");
+  if (!ok)
   {
-    glShaderSource(vertexShader, 1, &triangleVertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &ok);
-    if (ok != GL_TRUE)
-    {
-      printf("compile vertex shader failed: %d\n", vertexShader);
-      printShaderLog(vertexShader);
-      return false;
-    }
+    printf("failed to create shader program 0");
+    return ok;
   }
 
-  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  ok = shader_New(&g_shaders[1], "./engine/shaders/hello.vert", "./engine/shaders/colorful.frag");
+  if (!ok)
   {
-    glShaderSource(fragmentShader, 1, &triangleFragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &ok);
-    if (ok != GL_TRUE)
-    {
-      printf("compile fragment shader failed: %d\n", fragmentShader);
-      printShaderLog(fragmentShader);
-      return false;
-    }
+    printf("failed to create shader program 1");
+    return ok;
   }
 
-  GLuint colorfulFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  {
-    glShaderSource(colorfulFragmentShader, 1, &colorfulFragmentShaderSource, NULL);
-    glCompileShader(colorfulFragmentShader);
-
-    glGetShaderiv(colorfulFragmentShader, GL_COMPILE_STATUS, &ok);
-    if (ok != GL_TRUE)
-    {
-      printf("compile fragment shader failed: %d\n", colorfulFragmentShader);
-      printShaderLog(colorfulFragmentShader);
-      return false;
-    }
-  }
-
-  {
-    g_shaderPrograms[0] = glCreateProgram();
-    glAttachShader(g_shaderPrograms[0], vertexShader);
-    glAttachShader(g_shaderPrograms[0], fragmentShader);
-    glLinkProgram(g_shaderPrograms[0]);
-
-    glGetProgramiv(g_shaderPrograms[0], GL_LINK_STATUS, &ok);
-    if (ok != GL_TRUE)
-    {
-      printf("link shader program failed: %d\n", g_shaderPrograms[0]);
-      printProgramLog(g_shaderPrograms[0]);
-      return false;
-    }
-  }
-
-  {
-    g_shaderPrograms[1] = glCreateProgram();
-    glAttachShader(g_shaderPrograms[1], vertexShader);
-    glAttachShader(g_shaderPrograms[1], colorfulFragmentShader);
-    glLinkProgram(g_shaderPrograms[1]);
-
-    glGetProgramiv(g_shaderPrograms[1], GL_LINK_STATUS, &ok);
-    if (ok != GL_TRUE)
-    {
-      printf("link shader program failed: %d\n", g_shaderPrograms[1]);
-      printProgramLog(g_shaderPrograms[1]);
-      return false;
-    }
-  }
-
-  // TODO: in case of error, delete shaders
-  glDeleteShader(vertexShader);
-  glDeleteShader(fragmentShader);
-  glDeleteShader(colorfulFragmentShader);
-
-  //  glPolygonMode(GL_FRONT_LEFT, GL_LINE);
+  glPolygonMode(GL_FRONT_LEFT, GL_LINE);
 
   return true;
 }
@@ -521,8 +319,11 @@ internal void clean()
   glDeleteVertexArrays(1, &g_vao);
   glDeleteBuffers(1, &g_vbo);
   glDeleteBuffers(1, &g_vbo1);
-  glDeleteProgram(g_shaderProgram);
 
+  shader_Delete(&g_shaders[0]);
+  shader_Delete(&g_shaders[1]);
+
+  SDL_GL_DeleteContext(g_ctx);
   SDL_DestroyWindow(g_window);
   SDL_Quit();
 }
