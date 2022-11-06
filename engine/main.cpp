@@ -6,6 +6,8 @@
 #include <cmath>
 
 #include "shader.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb/stb_image.h"
 
 #define internal static
 #define local_persist static
@@ -25,6 +27,7 @@ GLuint g_vao1 = 0;
 GLuint g_vbo1 = 0;
 
 shader_s g_shaders[2] = {{0}, {0}};
+GLuint g_tex[2] = {0, 0};
 
 void initTwoVAO()
 {
@@ -38,6 +41,9 @@ void initTwoVAO()
       0.0f,
       0.0f,
 
+      -0.5f,
+      0.0f,
+
       // first top left
       -.5f,
       0.5f,
@@ -47,24 +53,33 @@ void initTwoVAO()
       1.0f,
       0.0f,
 
+      0.0f,
+      2.0f,
+
       // first bottom right
-      -.25f,
+      .25f,
       0.0f,
       0.0f,
 
       0.0f,
       0.0f,
-      1.0f};
+      1.0f,
+
+      2.0f,
+      0.0f};
 
   float triangle2[] = {
       // second top left
-      0.0f,
+      -0.5f,
       0.5f,
       0.0f,
 
       1.0f,
       0.0f,
       0.0f,
+
+      0.0f,
+      2.0f,
 
       // second top right
       .25f,
@@ -75,6 +90,9 @@ void initTwoVAO()
       1.0f,
       0.0f,
 
+      2.0f,
+      2.0f,
+
       // second bottom right
       .25f,
       0.0f,
@@ -82,7 +100,10 @@ void initTwoVAO()
 
       0.0f,
       0.0f,
-      1.0f};
+      1.0f,
+
+      2.0f,
+      -.5f};
 
   glGenVertexArrays(1, &g_vao);
   glBindVertexArray(g_vao);
@@ -90,10 +111,12 @@ void initTwoVAO()
   glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(triangle1), triangle1, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 
   glGenVertexArrays(1, &g_vao1);
   glBindVertexArray(g_vao1);
@@ -101,10 +124,12 @@ void initTwoVAO()
   glBindBuffer(GL_ARRAY_BUFFER, g_vbo1);
   glBufferData(GL_ARRAY_BUFFER, sizeof(triangle2), triangle2, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 }
 
 void renderTwoVAO()
@@ -135,12 +160,19 @@ void renderTwoVAO()
   shader_Use(&g_shaders[0]);
   shader_Set4f(&g_shaders[0], "ourColor", 0.0f, greenValue, 0.0f, 1.0f);
   shader_Set3f(&g_shaders[0], "ourPosition", x, y, 0.0f);
+  // can be done only once
+  shader_Set1i(&g_shaders[0], "tex1", 0);
+  shader_Set1i(&g_shaders[0], "tex2", 1);
 
   glBindVertexArray(g_vao);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
   shader_Use(&g_shaders[1]);
   shader_Set3f(&g_shaders[1], "ourPosition", x, y, 0.0f);
+  // can be done only once
+  shader_Set1i(&g_shaders[1], "tex1", 0);
+  shader_Set1i(&g_shaders[1], "tex2", 1);
+
   glBindVertexArray(g_vao1);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 }
@@ -196,6 +228,64 @@ internal bool initTwoShaders()
   glPolygonMode(GL_FRONT_LEFT, GL_LINE);
 
   return true;
+}
+
+internal bool
+initTexture()
+{
+  {
+    // load and generate the texture
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load("./assets/wall.jpg", &width, &height, &nrChannels, 0);
+    if (!data)
+    {
+      printf("Failed to load texture");
+      return false;
+    }
+
+    glGenTextures(1, &g_tex[0]);
+    glBindTexture(GL_TEXTURE_2D, g_tex[0]);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    float borderColor[] = {1.0f, 0.2f, 0.45f, 0.5f};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+  }
+  {
+    // load and generate the texture
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load("./assets/awesomeface.png", &width, &height, &nrChannels, 0);
+    if (!data)
+    {
+      printf("Failed to load texture");
+      return false;
+    }
+
+    glGenTextures(1, &g_tex[1]);
+    glBindTexture(GL_TEXTURE_2D, g_tex[1]);
+
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+  }
 }
 
 void triangleExampleVBO()
@@ -330,6 +420,20 @@ init()
   int nrAttributes;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
   printf("Maximum nr of vertex attributes supported: %d", nrAttributes);
+
+  if (!initTexture())
+  {
+    printf("init texture failed\n");
+    return false;
+  }
+
+  // has to be done once
+  // need activated program
+  // shader_Use(&g_shaders[0]);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, g_tex[0]);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, g_tex[1]);
 
   return true;
 }

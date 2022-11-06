@@ -172,4 +172,10 @@ void shader_Set3f(shader_s *shader_s, const char *name, float x, float y, float 
   glUniform3f(location, x, y, z);
 }
 
+void shader_Set1i(shader_s *shader_s, const char *name, int x)
+{
+  GLint location = glGetUniformLocation(shader_s->program, name);
+  glUniform1i(location, x);
+}
+
 #endif
