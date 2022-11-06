@@ -13,8 +13,9 @@ int g_screenHeight = 480;
 SDL_Window *g_window;
 SDL_GLContext g_ctx;
 
-GLuint g_programID = 0;
+GLuint g_shaderProgram = 0;
 GLint g_vertexPos2DLocation = -1;
+GLuint g_vao = 0;
 GLuint g_vbo = 0;
 GLuint g_ibo = 0;
 
@@ -69,9 +70,14 @@ internal void render()
   glViewport(0, 0, g_screenWidth, g_screenHeight);
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+
+  glUseProgram(g_shaderProgram);
+  glBindVertexArray(g_vao);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+
   SDL_GL_SwapWindow(g_window);
 
-  // glUseProgram(g_programID);
+  // glUseProgram(g_shaderProgram);
   // glEnableVertexAttribArray(g_vertexPos2DLocation);
 
   // glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
@@ -85,56 +91,75 @@ internal void render()
   // glUseProgram(NULL);
 }
 
+const char *triangleVertexShaderSource = R"EOL(
+  #version 330 core
+
+  layout (location = 0) in vec3 aPos;
+
+  void main()
+  {
+      gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+  }
+)EOL";
+
+const char *triangleFragmentShaderSource = R"EOL(
+  #version 330 core
+
+  out vec4 FragColor;
+
+  void main()
+  {
+      FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+  }
+)EOL";
+
 internal bool initGL()
 {
+  GLint ok = GL_FALSE;
 
-  // g_programID = glCreateProgram();
-  // GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  // const GLchar *vertex_shader_source[] = {
-  //     "#version 140\nin vec2 LVertexPos2D; void main() {gl_Position = vec4();}"};
+  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vertexShader, 1, &triangleVertexShaderSource, NULL);
+  glCompileShader(vertexShader);
 
-  // glShaderSource(vertexShader, 1, vertex_shader_source, NULL);
-  // glCompileShader(vertexShader);
+  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &ok);
+  if (ok != GL_TRUE)
+  {
+    printf("compile vertex shader failed: %d\n", vertexShader);
+    printShaderLog(vertexShader);
+    return false;
+  }
 
-  // GLint vertexShaderCompiled = GL_FALSE;
-  // glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexShaderCompiled);
-  // if (vertexShaderCompiled != GL_TRUE)
-  // {
-  //   printf("compile vertex shader failed: %d\n", vertexShader);
-  //   printShaderLog(vertexShader);
-  //   return false;
-  // }
+  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(fragmentShader, 1, &triangleFragmentShaderSource, NULL);
+  glCompileShader(fragmentShader);
 
-  // glAttachShader(g_programID, vertexShader);
-  // GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  // const GLchar *fragment_shader_source[] = {
-  //     "#version 140\nout vec4 LFragment; void main() {LFragment = vec4(1.0, 1.0, 1.0, 1.0);}"};
+  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &ok);
+  if (ok != GL_TRUE)
+  {
+    printf("compile fragment shader failed: %d\n", fragmentShader);
+    printShaderLog(fragmentShader);
+    return false;
+  }
 
-  // glShaderSource(fragmentShader, 1, fragment_shader_source, NULL);
-  // glCompileShader(fragmentShader);
+  g_shaderProgram = glCreateProgram();
+  glAttachShader(g_shaderProgram, vertexShader);
+  glAttachShader(g_shaderProgram, fragmentShader);
+  glLinkProgram(g_shaderProgram);
 
-  // GLint fragment_shader_compiled = GL_FALSE;
-  // glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragment_shader_compiled);
-  // if (fragment_shader_compiled != GL_TRUE)
-  // {
-  //   printf("compile fragment shader failed: %d\n", fragmentShader);
-  //   printShaderLog(fragmentShader);
-  //   return false;
-  // }
+  glGetProgramiv(g_shaderProgram, GL_LINK_STATUS, &ok);
+  if (ok != GL_TRUE)
+  {
+    printf("link shader program failed: %d\n", g_shaderProgram);
+    printProgramLog(g_shaderProgram);
+    return false;
+  }
 
-  // glAttachShader(g_programID, fragmentShader);
-  // glLinkProgram(g_programID);
+  // TODO: in case of error, delete shaders
+  glDeleteShader(vertexShader);
+  glDeleteShader(fragmentShader);
+  glUseProgram(g_shaderProgram);
 
-  // GLint programSuccess = GL_TRUE;
-  // glGetProgramiv(g_programID, GL_LINK_STATUS, &programSuccess);
-  // if (programSuccess != GL_TRUE)
-  // {
-  //   printf("link shader program failed: %d\n", g_programID);
-  //   printProgramLog(g_programID);
-  //   return false;
-  // }
-
-  // g_vertexPos2DLocation = glGetAttribLocation(g_programID, "LVertexPos2D");
+  // g_vertexPos2DLocation = glGetAttribLocation(g_shaderProgram, "LVertexPos2D");
   // if (g_vertexPos2DLocation == -1)
   // {
   //   printf("get LVertexPos2D failed\n");
@@ -173,21 +198,26 @@ internal bool initGL()
 void triangleExampleVBO()
 {
   float vertices[] = {
-    -.5f,
-    .5f,
-    0.f,
+      -.5f,
+      -.5f,
+      0.f,
 
-    .5f,
-    -.5f,
-    0.f,
+      .5f,
+      -.5f,
+      0.f,
 
-    0.0f,
-    .5f,
-    0.f
-  };
+      0.0f,
+      .5f,
+      0.f};
 
+  glGenVertexArrays(1, &g_vao);
+  glBindVertexArray(g_vao);
   glGenBuffers(1, &g_vbo);
-  glBind
+  glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(0);
 }
 
 internal bool
@@ -244,6 +274,8 @@ init()
     return false;
   }
 
+  triangleExampleVBO();
+
   return true;
 }
 
@@ -253,7 +285,7 @@ internal void clean()
   SDL_Quit();
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 
   bool ok = init();
@@ -280,4 +312,6 @@ int main()
   }
 
   clean();
+
+  return 0;
 }
