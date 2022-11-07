@@ -7,7 +7,11 @@
 
 #include "shader.h"
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+#include <stb_image.h>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #define internal static
 #define local_persist static
@@ -140,7 +144,7 @@ void renderTwoVAO()
   // float x = (sin(timeValue) / 2.0f) + 0.5f;
   // float y = (cos(timeValue) / 2.0f) + 0.5f;
 
-  timeValue = timeValue + (sin(timeValue) / 2.0f) + 0.5f; // units per second
+  // timeValue = timeValue + (sin(timeValue) / 2.0f) + 0.5f; // units per second
 
   float x_max = 0.75f;
   float x_min = -0.5f;
@@ -155,7 +159,11 @@ void renderTwoVAO()
   float y = (fmod(timeValue, 2 * y_diff) < y_diff ? y_min + fmod(timeValue, y_diff) : y_max - fmod(timeValue, y_diff));
 
   // float y = (fmod(timeValue, 2.0f) <= 1.0f ? -fmod(timeValue, 1.0f) : 1.0f - fmod(timeValue, 1.0f));
-  printf("x: %f, y: %f\n", x, y);
+  // printf("x: %f, y: %f\n", x, y);
+
+  glm::mat4 trans = glm::mat4(1.0f);
+  trans = glm::rotate(trans, glm::radians(timeValue * 50), glm::vec3(0, 0, 1));
+  // trans = glm::scale(trans, glm::vec3(sin(timeValue), cos(timeValue), .75f));
 
   shader_Use(&g_shaders[0]);
   shader_Set4f(&g_shaders[0], "ourColor", 0.0f, greenValue, 0.0f, 1.0f);
@@ -163,6 +171,7 @@ void renderTwoVAO()
   // can be done only once
   shader_Set1i(&g_shaders[0], "tex1", 0);
   shader_Set1i(&g_shaders[0], "tex2", 1);
+  shader_SetMatrix4fv(&g_shaders[0], "transform", glm::value_ptr(trans));
 
   glBindVertexArray(g_vao);
   glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -172,9 +181,69 @@ void renderTwoVAO()
   // can be done only once
   shader_Set1i(&g_shaders[1], "tex1", 0);
   shader_Set1i(&g_shaders[1], "tex2", 1);
+  shader_SetMatrix4fv(&g_shaders[1], "transform", glm::value_ptr(trans));
 
   glBindVertexArray(g_vao1);
   glDrawArrays(GL_TRIANGLES, 0, 3);
+
+  {
+    // good transform order: on the right
+    glm::mat4 trans = glm::mat4(1.0f);
+    // trans = glm::translate(trans, glm::vec3(0.75f, 0.f, 0.0f));
+    trans = glm::rotate(trans, glm::radians(timeValue * 50), glm::vec3(0, 0, 1));
+    // trans = glm::scale(trans, glm::vec3(fmod(timeValue, 1.f) + 0.5, fmod(timeValue, 1.f) + 0.5, fmod(timeValue, 1.f) + 0.5));
+    // trans = glm::rotate(trans, glm::radians(timeValue * 50), glm::vec3(0, 0, 1));
+    shader_Use(&g_shaders[0]);
+    shader_Set4f(&g_shaders[0], "ourColor", 1.0f, 1.f, 1.0f, 1.0f);
+    shader_Set3f(&g_shaders[0], "ourPosition", 0.f, 0.f, 0.0f);
+    // can be done only once
+    shader_Set1i(&g_shaders[0], "tex1", 0);
+    shader_Set1i(&g_shaders[0], "tex2", 1);
+    shader_SetMatrix4fv(&g_shaders[0], "transform", glm::value_ptr(trans));
+
+    glBindVertexArray(g_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    shader_Use(&g_shaders[1]);
+    shader_Set3f(&g_shaders[1], "ourPosition", 0.f, 0.f, 0.0f);
+    // can be done only once
+    shader_Set1i(&g_shaders[1], "tex1", 0);
+    shader_Set1i(&g_shaders[1], "tex2", 1);
+    shader_SetMatrix4fv(&g_shaders[1], "transform", glm::value_ptr(trans));
+
+    glBindVertexArray(g_vao1);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+  }
+  {
+    // bad transform order: rotate around the wrong point
+    glm::mat4 trans = glm::mat4(1.0f);
+    // trans = glm::scale(trans, glm::vec3(fmod(timeValue, 1.f) + 0.5, fmod(timeValue, 1.f) + 0.5, fmod(timeValue, 1.f) + 0.5));
+    // second rotate around pivot point
+    trans = glm::rotate(trans, glm::radians(timeValue * 20), glm::vec3(0, 0, 1));
+    // first translate
+    trans = glm::translate(trans, glm::vec3(-0.75f, 0.f, 0.0f));
+    // trans = glm::rotate(trans, glm::radians(timeValue * 50), glm::vec3(0, 0, 1));
+    shader_Use(&g_shaders[0]);
+    shader_Set4f(&g_shaders[0], "ourColor", 1.0f, 1.f, 1.0f, 1.0f);
+    shader_Set3f(&g_shaders[0], "ourPosition", 0.f, 0.f, 0.0f);
+    // can be done only once
+    shader_Set1i(&g_shaders[0], "tex1", 0);
+    shader_Set1i(&g_shaders[0], "tex2", 1);
+    shader_SetMatrix4fv(&g_shaders[0], "transform", glm::value_ptr(trans));
+
+    glBindVertexArray(g_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    shader_Use(&g_shaders[1]);
+    shader_Set3f(&g_shaders[1], "ourPosition", 0.f, 0.f, 0.0f);
+    // can be done only once
+    shader_Set1i(&g_shaders[1], "tex1", 0);
+    shader_Set1i(&g_shaders[1], "tex2", 1);
+    shader_SetMatrix4fv(&g_shaders[1], "transform", glm::value_ptr(trans));
+
+    glBindVertexArray(g_vao1);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+  }
 }
 
 internal void render()

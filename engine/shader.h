@@ -178,4 +178,10 @@ void shader_Set1i(shader_s *shader_s, const char *name, int x)
   glUniform1i(location, x);
 }
 
+void shader_SetMatrix4fv(shader_s *shader_s, const char *name, const float *matrix)
+{
+  GLint location = glGetUniformLocation(shader_s->program, name);
+  glUniformMatrix4fv(location, 1, GL_FALSE, matrix);
+}
+
 #endif
