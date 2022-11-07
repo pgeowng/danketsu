@@ -1,8 +1,10 @@
-pwd
-CXX="g++"
-CFLAGS="-fdiagnostics-color=always -g"
-LDLIBS="-lSDL2 -lGLEW -lGL"
-
-CPPFILES="../engine/main.cpp"
-
-$CXX $CFLAGS $LDLIBS $CPPFILES -o '../build/main'
+g++ \
+    -fdiagnostics-color=always \
+    -g \
+    -I./external/stb \
+    -I./external/glm \
+    -lSDL2 \
+    -lGLEW \
+    -lGL \
+    ./engine/main.cpp \
+    -o ./build/main

@@ -355,6 +355,8 @@ initTexture()
 
     stbi_image_free(data);
   }
+
+  return true;
 }
 
 void triangleExampleVBO()
@@ -488,7 +490,7 @@ init()
 
   int nrAttributes;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-  printf("Maximum nr of vertex attributes supported: %d", nrAttributes);
+  printf("Maximum nr of vertex attributes supported: %d\n", nrAttributes);
 
   if (!initTexture())
   {
