@@ -204,8 +204,17 @@ void renderCube()
   model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
   glm::mat4 view = glm::mat4(1.0f);
-  view = glm::translate(view, glm::vec3(0, 0, -3.0f));
-  view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
+  // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
+  // view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
+
+  const float radius = 10.0f;
+  float camX = sin(timeValue) * radius;
+  float camZ = cos(timeValue) * radius;
+  view = glm::lookAt(
+    glm::vec3(camX, 0.0f, camZ),
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 1.0f, 0.0f)
+  );
 
   glm::mat4 projection = glm::mat4(1.0f);
   projection = glm::perspective(glm::radians(45.0f), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
@@ -349,6 +358,16 @@ void initTwoVAO()
 
 void renderTwoVAO()
 {
+
+  glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+  glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+
+  // actually reversed direction vector by convention
+  // glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+  // glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+  // glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+
 
   float timeValue = SDL_GetTicks() / 1000.0f;
   float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
