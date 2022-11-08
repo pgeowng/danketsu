@@ -33,6 +33,20 @@ GLuint g_vbo1 = 0;
 shader_s g_shaders[2] = {{0}, {0}};
 GLuint g_tex[2] = {0, 0};
 
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float cameraSpeed = 1.0;
+int moveForward = 0;
+int moveRight = 0;
+int moveLeft = 0;
+int moveBack = 0;
+
+float pitch = 0;
+float yaw = -90.0f;
+float mouseSensitivity = 0.03;
+float zoom = 0;
+
 void initCube()
 {
   float vertices[] = {
@@ -112,7 +126,7 @@ void initCube()
       0.0f, 1.0f,
 
       0.5f, -0.5f, 0.5f,
-      1.0f, 1.01f,
+      1.0f, 1.0f,
 
       0.5, -0.5f, -0.5f,
       1.0f, 0.0f
@@ -195,9 +209,12 @@ void initCube()
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces, GL_STATIC_DRAW);
 }
 
+float prevTime = 0;
 void renderCube()
 {
   float timeValue = SDL_GetTicks() / 1000.0f;
+  float delta = timeValue - prevTime;
+  prevTime = timeValue;
 
   glm::mat4 model = glm::mat4(1.0f);
   model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -207,17 +224,49 @@ void renderCube()
   // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
   // view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
 
-  const float radius = 10.0f;
-  float camX = sin(timeValue) * radius;
-  float camZ = cos(timeValue) * radius;
-  view = glm::lookAt(
-    glm::vec3(camX, 0.0f, camZ),
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f)
-  );
+  // const float radius = 10.0f;
+  // float camX = sin(timeValue) * radius;
+  // float camZ = cos(timeValue) * radius;
+  // view = glm::lookAt(
+  //   glm::vec3(camX, 0.0f, camZ),
+  //   glm::vec3(0.0f, 0.0f, 0.0f),
+  //   glm::vec3(0.0f, 1.0f, 0.0f)
+  // );
+
+  glm::vec3 lookDirection(
+    cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+    sin(glm::radians(pitch)),
+    sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+    );
+
+
+  glm::vec3 moveDirection = glm::vec3(0.0f);
+  //  moveDirection = glm::normalize(glm::vec3((moveRight - moveLeft), 0.0f, -(moveForward - moveBack)));
+  int right = moveRight - moveLeft;
+  int backward = moveBack - moveForward;
+
+  // prevent zero vector normalization
+
+
+
+  moveDirection += glm::cross(lookDirection, cameraUp) * float(moveRight - moveLeft);
+  moveDirection += lookDirection * float(moveForward - moveBack);
+  if (right != 0 && backward != 0) {
+    moveDirection = glm::normalize(moveDirection);
+  }
+
+  // printf("dir: %f %f %f\n", moveDirection.x, moveDirection.y, moveDirection.z);
+
+  moveDirection *= cameraSpeed * delta;
+  // printf("pos: %f %f %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
+
+
+  cameraPos += moveDirection;
+
+  view = glm::lookAt(cameraPos, cameraPos + lookDirection, cameraUp);
 
   glm::mat4 projection = glm::mat4(1.0f);
-  projection = glm::perspective(glm::radians(45.0f), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
+  projection = glm::perspective(glm::radians(45.0f + zoom), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
 
 
   glUseProgram(g_shaders[1].program);
@@ -707,6 +756,8 @@ init()
     return false;
   }
 
+  SDL_SetRelativeMouseMode(SDL_TRUE);
+
   g_ctx = SDL_GL_CreateContext(g_window);
   if (g_ctx == NULL)
   {
@@ -722,7 +773,7 @@ init()
     return false;
   }
 
-  if (SDL_GL_SetSwapInterval(1) < 0)
+  if (SDL_GL_SetSwapInterval(0) < 0)
   {
     printf("sdl gl set swap interval: %s\n", SDL_GetError());
     return false;
@@ -798,11 +849,61 @@ int main(int argc, char *argv[])
       }
 
       switch (e.type) {
-        case SDL_WINDOWEVENT:
+        case SDL_WINDOWEVENT: {
         if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
           g_screenWidth = e.window.data1;
           g_screenHeight = e.window.data2;
         }
+        break;
+        }
+        case SDL_KEYDOWN:
+        case SDL_KEYUP: {
+          float forward = 0;
+          float right = 0;
+          int pressed = e.key.state == SDL_PRESSED ;
+          switch (e.key.keysym.sym) {
+            case SDLK_w: {
+              moveForward = pressed;
+              break;
+            }
+            case SDLK_a: {
+              moveLeft = pressed;
+              break;
+            };
+            case SDLK_s: {
+              moveBack = pressed;
+              break;
+            }
+            case SDLK_d: {
+              moveRight = pressed;
+              break;
+            }
+          }
+          break;
+        }
+        case SDL_MOUSEMOTION:
+        {
+          yaw += e.motion.xrel * mouseSensitivity;
+          pitch += -e.motion.yrel * mouseSensitivity;
+
+          if (pitch > 89.0f) {
+            pitch = 89.0f;
+          }
+          if (pitch < -89.0f) {
+            pitch = -89.0f;
+          }
+
+          printf("pitch: %f\n", pitch);
+          printf("yaw: %f\n", yaw);
+
+          break;
+        }
+
+        case SDL_MOUSEWHEEL: {
+          zoom += e.wheel.y;
+          break;
+        }
+
       }
     }
 
