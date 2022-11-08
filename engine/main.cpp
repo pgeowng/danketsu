@@ -17,8 +17,8 @@
 #define local_persist static
 #define global_variable static
 
-int g_screenWidth = 640;
-int g_screenHeight = 480;
+int g_screenWidth = 1000;
+int g_screenHeight = 600;
 SDL_Window *g_window;
 SDL_GLContext g_ctx;
 
@@ -33,40 +33,232 @@ GLuint g_vbo1 = 0;
 shader_s g_shaders[2] = {{0}, {0}};
 GLuint g_tex[2] = {0, 0};
 
+void initCube()
+{
+  float vertices[] = {
+      // front
+      -0.5f, -0.5f, -0.5f,
+      0.0f, 0.0f,
+
+
+      -0.5f, 0.5f, -0.5f, // Front Left Top
+      0.0f, 1.0f,         // Texture
+
+      0.5f, 0.5f, -0.5f, // Front Right Top
+      1.0f, 1.0f,        // Texture
+
+      0.5f, -0.5f, -0.5f, // Front Right Bottom
+      1.0f, 0.0f,        // Texture
+
+
+      // right
+      0.5f, -0.5f, -0.5f,
+      0.0f, 0.0f,
+
+      0.5f, 0.5f, -0.5f,
+      1.0f, 0.0f,
+
+      0.5f, 0.5f, 0.5f,
+      1.0f, 1.0f,
+
+      0.5f, -0.5f, 0.5f,
+      0.0f, 1.0f,
+
+      // back
+      0.5f, -0.5f, 0.5f,
+      0.0f, 0.0f,
+
+      0.5f, 0.5f, 0.5f,
+      0.0f, 1.0f,
+
+      -0.5f, 0.5f, 0.5f,
+      1.0f, 1.0f,
+
+      -0.5f, -0.5f, 0.5f,
+      1.0f, 0.0f,
+
+      // left
+      -0.5f, -0.5f, 0.5f,
+      0.0f, 0.0f,
+
+      -0.5f, 0.5f, 0.5f,
+      0.0f, 1.0f,
+
+      -0.5f, 0.5f, -0.5f,
+      1.0f, 1.0f,
+
+      -0.5f, -0.5f, -0.5f,
+      1.0f, 0.0f,
+
+      // top
+
+      -0.5f, 0.5f, -0.5f,
+      0.0f, 0.0f,
+
+      -0.5, 0.5f, 0.5f,
+      0.0f, 1.0f,
+
+      0.5f, 0.5f, 0.5f,
+      1.0f, 1.01f,
+
+      0.5, 0.5f, -0.5f,
+      1.0f, 0.0f,
+
+// bottom
+      -0.5f, -0.5f, -0.5f,
+      0.0f, 0.0f,
+
+      -0.5, -0.5f, 0.5f,
+      0.0f, 1.0f,
+
+      0.5f, -0.5f, 0.5f,
+      1.0f, 1.01f,
+
+      0.5, -0.5f, -0.5f,
+      1.0f, 0.0f
+
+
+
+
+
+
+      // -0.5f, -0.5f, 0.5f, // Back Left Bottom
+      // 1.0f, 1.0f, 1.0f,   // Color
+      // 1.0f, 1.0f,         // Texture
+
+      // -0.5f, 0.5f, 0.5f, // Back Left Top
+      // 1.0f, 1.0f, 1.0f,  // Color
+      // 1.0f, 0.0f,        // Texture
+
+      // 0.5f, 0.5f, 0.5f, // Back Right Top
+      // 1.0f, 1.0f, 1.0f, // Color
+      // 0.0f, 0.0f,       // Texture
+
+      // 0.5f, -0.5f, 0.5f, // Back Right Bottom
+      // 1.0f, 1.0f, 1.0f, // Color
+      // 0.0f, 1.0f,       // Texture
+  };
+
+  unsigned int faces[] = {
+      0, 1, 2, // Front
+
+      2, 3, 0,
+
+      4,5,6,
+      6,7,4,
+
+      8,9,10,
+      10,11,8,
+
+      12,13,14,
+      14,15,12,
+
+      16, 17, 18,
+      18, 19, 16,
+
+      20, 21, 22,
+      22, 23, 20,
+
+
+
+
+
+  //     // 4, 5, 6, // Back
+  //     // 6, 7,4,
+
+  //     // 0, 1, 5, // Left
+  //     // 5, 4, 0,
+
+  //     // 3, 2, 6, // Right
+  //     // 6, 7, 3,
+
+  //     // 1, 2, 6, // Top
+  //     // 6, 5, 1,
+
+  //     // 0, 3, 7, // Bottom
+  //     // 7, 4, 0,
+  };
+
+  glGenVertexArrays(1, &g_vao);
+  glBindVertexArray(g_vao);
+  glGenBuffers(1, &g_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(2);
+
+  glGenBuffers(1, &g_ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces, GL_STATIC_DRAW);
+}
+
+void renderCube()
+{
+  float timeValue = SDL_GetTicks() / 1000.0f;
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
+  model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+  glm::mat4 view = glm::mat4(1.0f);
+  view = glm::translate(view, glm::vec3(0, 0, -3.0f));
+
+  glm::mat4 projection = glm::mat4(1.0f);
+  projection = glm::perspective(glm::radians(45.0f), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
+
+
+  glUseProgram(g_shaders[1].program);
+
+  shader_Set1i(&g_shaders[1], "tex1", 0);
+  shader_Set1i(&g_shaders[1], "tex2", 1);
+  shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
+  shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(view));
+  shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(projection));
+
+
+  glBindVertexArray(g_vao);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
+  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+  // glDrawArrays(GL_TRIANGLES, 0, 36);
+}
 void initTwoVAO()
 {
-  float triangle1[] = {
+  float triangle1[] =
+  {
       // first bottom left
-      -.5f,
-      0.0f,
+      -1.0f,
+      -1.0f,
       0.0f,
 
       1.0f,
-      0.0f,
-      0.0f,
+      1.0f,
+      1.0f,
 
-      -0.5f,
+      0.0f,
       0.0f,
 
       // first top left
-      -.5f,
-      0.5f,
-      0.0f,
-
-      0.0f,
+      -1.0f,
       1.0f,
       0.0f,
+
+      1.0f,
+      1.0f,
+      1.0f,
 
       0.0f,
       2.0f,
 
       // first bottom right
-      .25f,
-      0.0f,
+      1.0f,
+      -1.0f,
       0.0f,
 
-      0.0f,
-      0.0f,
+      1.0f,
+      1.0f,
       1.0f,
 
       2.0f,
@@ -74,40 +266,40 @@ void initTwoVAO()
 
   float triangle2[] = {
       // second top left
-      -0.5f,
-      0.5f,
+      -1.0f,
+      1.0f,
       0.0f,
 
       1.0f,
-      0.0f,
-      0.0f,
+      1.0f,
+      1.0f,
 
       0.0f,
       2.0f,
 
       // second top right
-      .25f,
-      0.5f,
-      0.0f,
-
-      0.0f,
+      1.0f,
       1.0f,
       0.0f,
+
+      1.0f,
+      1.0f,
+      1.0f,
 
       2.0f,
       2.0f,
 
       // second bottom right
-      .25f,
-      0.0f,
+      1.0f,
+      -1.0f,
       0.0f,
 
-      0.0f,
-      0.0f,
+      1.0f,
+      1.0f,
       1.0f,
 
       2.0f,
-      -.5f};
+      0.0f};
 
   glGenVertexArrays(1, &g_vao);
   glBindVertexArray(g_vao);
@@ -161,6 +353,15 @@ void renderTwoVAO()
   // float y = (fmod(timeValue, 2.0f) <= 1.0f ? -fmod(timeValue, 1.0f) : 1.0f - fmod(timeValue, 1.0f));
   // printf("x: %f, y: %f\n", x, y);
 
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+  glm::mat4 view = glm::mat4(1.0f);
+  view = glm::translate(view, glm::vec3(0, 0, -3.0f));
+
+  glm::mat4 projection = glm::mat4(1.0f);
+  projection = glm::perspective(glm::radians(45.0f), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
+
   glm::mat4 trans = glm::mat4(1.0f);
   trans = glm::rotate(trans, glm::radians(timeValue * 50), glm::vec3(0, 0, 1));
   // trans = glm::scale(trans, glm::vec3(sin(timeValue), cos(timeValue), .75f));
@@ -173,6 +374,10 @@ void renderTwoVAO()
   shader_Set1i(&g_shaders[0], "tex2", 1);
   shader_SetMatrix4fv(&g_shaders[0], "transform", glm::value_ptr(trans));
 
+  shader_SetMatrix4fv(&g_shaders[0], "model", glm::value_ptr(model));
+  shader_SetMatrix4fv(&g_shaders[0], "view", glm::value_ptr(view));
+  shader_SetMatrix4fv(&g_shaders[0], "projection", glm::value_ptr(projection));
+
   glBindVertexArray(g_vao);
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -182,6 +387,10 @@ void renderTwoVAO()
   shader_Set1i(&g_shaders[1], "tex1", 0);
   shader_Set1i(&g_shaders[1], "tex2", 1);
   shader_SetMatrix4fv(&g_shaders[1], "transform", glm::value_ptr(trans));
+
+  shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
+  shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(view));
+  shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(projection));
 
   glBindVertexArray(g_vao1);
   glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -249,10 +458,11 @@ void renderTwoVAO()
 internal void render()
 {
   glViewport(0, 0, g_screenWidth, g_screenHeight);
-  glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClearColor(0.15625f,0.15625f,0.15625f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-  renderTwoVAO();
+  // renderTwoVAO();
+  renderCube();
   // glBindVertexArray(g_vao);
 
   // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
@@ -294,7 +504,7 @@ internal bool initTwoShaders()
     return ok;
   }
 
-  glPolygonMode(GL_FRONT_LEFT, GL_LINE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   return true;
 }
@@ -486,12 +696,15 @@ init()
     return false;
   }
 
-  initTwoVAO();
+  glEnable(GL_DEPTH_TEST);
+
+  // initTwoVAO();
+  initCube();
 
   int nrAttributes;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
   printf("Maximum nr of vertex attributes supported: %d\n", nrAttributes);
-
+;
   if (!initTexture())
   {
     printf("init texture failed\n");
