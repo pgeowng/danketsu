@@ -205,6 +205,7 @@ void renderCube()
 
   glm::mat4 view = glm::mat4(1.0f);
   view = glm::translate(view, glm::vec3(0, 0, -3.0f));
+  view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
 
   glm::mat4 projection = glm::mat4(1.0f);
   projection = glm::perspective(glm::radians(45.0f), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
@@ -222,6 +223,24 @@ void renderCube()
   glBindVertexArray(g_vao);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
   glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+  glm::vec3 positions[] = {
+    glm::vec3(0.2f, -0.2f, 1.0f),
+    glm::vec3(-0.4f, 0.4f, 0.5f),
+    glm::vec3(0.0f, 0.0f, 1.5f),
+    glm::vec3(0.89f, 0.5f, 2.0f),
+  };
+
+  for (int i = 0; i < 3; i++ ) {
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, positions[i]);
+    model = glm::rotate(model, glm::radians(timeValue * 25 * (i+1)), positions[i]);
+
+    shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
+    glBindVertexArray(g_vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+  }
   // glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 void initTwoVAO()
@@ -661,7 +680,7 @@ init()
       SDL_WINDOWPOS_CENTERED,
       g_screenWidth,
       g_screenHeight,
-      SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+      SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
   if (g_window == NULL)
   {
@@ -757,6 +776,14 @@ int main(int argc, char *argv[])
       if (e.type == SDL_QUIT)
       {
         windowShouldClose = true;
+      }
+
+      switch (e.type) {
+        case SDL_WINDOWEVENT:
+        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+          g_screenWidth = e.window.data1;
+          g_screenHeight = e.window.data2;
+        }
       }
     }
 
