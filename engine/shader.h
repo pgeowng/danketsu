@@ -155,9 +155,9 @@ void shader_Delete(shader_s *shader_s)
   glDeleteProgram(shader_s->program);
 }
 
-void shader_Use(shader_s *shader_s)
+void shader_Use(shader_s *shader)
 {
-  glUseProgram(shader_s->program);
+  glUseProgram(shader->program);
 }
 
 void shader_Set4f(shader_s *shader_s, const char *name, float x, float y, float z, float w)

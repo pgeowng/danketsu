@@ -14,6 +14,7 @@
 
 #include "shader.h"
 #include "flycamera.h"
+#include "../app/hello.h"
 
 #define internal static
 #define local_persist static
@@ -37,215 +38,62 @@ GLuint g_tex[2] = {0, 0};
 
 flycamera_s g_camera = {};
 
-void initCube()
-{
-  float vertices[] = {
-      // front
-      -0.5f, -0.5f, -0.5f,
-      0.0f, 0.0f,
-
-      -0.5f, 0.5f, -0.5f, // Front Left Top
-      0.0f, 1.0f,         // Texture
-
-      0.5f, 0.5f, -0.5f, // Front Right Top
-      1.0f, 1.0f,        // Texture
-
-      0.5f, -0.5f, -0.5f, // Front Right Bottom
-      1.0f, 0.0f,         // Texture
-
-      // right
-      0.5f, -0.5f, -0.5f,
-      0.0f, 0.0f,
-
-      0.5f, 0.5f, -0.5f,
-      1.0f, 0.0f,
-
-      0.5f, 0.5f, 0.5f,
-      1.0f, 1.0f,
-
-      0.5f, -0.5f, 0.5f,
-      0.0f, 1.0f,
-
-      // back
-      0.5f, -0.5f, 0.5f,
-      0.0f, 0.0f,
-
-      0.5f, 0.5f, 0.5f,
-      0.0f, 1.0f,
-
-      -0.5f, 0.5f, 0.5f,
-      1.0f, 1.0f,
-
-      -0.5f, -0.5f, 0.5f,
-      1.0f, 0.0f,
-
-      // left
-      -0.5f, -0.5f, 0.5f,
-      0.0f, 0.0f,
-
-      -0.5f, 0.5f, 0.5f,
-      0.0f, 1.0f,
-
-      -0.5f, 0.5f, -0.5f,
-      1.0f, 1.0f,
-
-      -0.5f, -0.5f, -0.5f,
-      1.0f, 0.0f,
-
-      // top
-
-      -0.5f, 0.5f, -0.5f,
-      0.0f, 0.0f,
-
-      -0.5, 0.5f, 0.5f,
-      0.0f, 1.0f,
-
-      0.5f, 0.5f, 0.5f,
-      1.0f, 1.01f,
-
-      0.5, 0.5f, -0.5f,
-      1.0f, 0.0f,
-
-      // bottom
-      -0.5f, -0.5f, -0.5f,
-      0.0f, 0.0f,
-
-      -0.5, -0.5f, 0.5f,
-      0.0f, 1.0f,
-
-      0.5f, -0.5f, 0.5f,
-      1.0f, 1.0f,
-
-      0.5, -0.5f, -0.5f,
-      1.0f, 0.0f
-
-      // -0.5f, -0.5f, 0.5f, // Back Left Bottom
-      // 1.0f, 1.0f, 1.0f,   // Color
-      // 1.0f, 1.0f,         // Texture
-
-      // -0.5f, 0.5f, 0.5f, // Back Left Top
-      // 1.0f, 1.0f, 1.0f,  // Color
-      // 1.0f, 0.0f,        // Texture
-
-      // 0.5f, 0.5f, 0.5f, // Back Right Top
-      // 1.0f, 1.0f, 1.0f, // Color
-      // 0.0f, 0.0f,       // Texture
-
-      // 0.5f, -0.5f, 0.5f, // Back Right Bottom
-      // 1.0f, 1.0f, 1.0f, // Color
-      // 0.0f, 1.0f,       // Texture
-  };
-
-  unsigned int faces[] = {
-      0, 1, 2, // Front
-
-      2, 3, 0,
-
-      4, 5, 6,
-      6, 7, 4,
-
-      8, 9, 10,
-      10, 11, 8,
-
-      12, 13, 14,
-      14, 15, 12,
-
-      16, 17, 18,
-      18, 19, 16,
-
-      20, 21, 22,
-      22, 23, 20,
-
-      //     // 4, 5, 6, // Back
-      //     // 6, 7,4,
-
-      //     // 0, 1, 5, // Left
-      //     // 5, 4, 0,
-
-      //     // 3, 2, 6, // Right
-      //     // 6, 7, 3,
-
-      //     // 1, 2, 6, // Top
-      //     // 6, 5, 1,
-
-      //     // 0, 3, 7, // Bottom
-      //     // 7, 4, 0,
-  };
-
-  glGenVertexArrays(1, &g_vao);
-  glBindVertexArray(g_vao);
-  glGenBuffers(1, &g_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-
-  glGenBuffers(1, &g_ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces, GL_STATIC_DRAW);
-}
-
 float prevTime = 0;
-void renderCube()
-{
 
-  float timeValue = SDL_GetTicks() / 1000.0f;
-  float delta = timeValue - prevTime;
-  prevTime = timeValue;
+cubes g_cubes = {};
+// void renderCube(delta float)
+// {
 
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
-  model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+//   glm::mat4 model = glm::mat4(1.0f);
+//   model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
+//   model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-  // glm::mat4 view = glm::mat4(1.0f); // TODO:REMOVE
-  // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
-  // view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
+//   // glm::mat4 view = glm::mat4(1.0f); // TODO:REMOVE
+//   // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
+//   // view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
 
-  // const float radius = 10.0f;
-  // float camX = sin(timeValue) * radius;
-  // float camZ = cos(timeValue) * radius;
-  // view = glm::lookAt(
-  //   glm::vec3(camX, 0.0f, camZ),
-  //   glm::vec3(0.0f, 0.0f, 0.0f),
-  //   glm::vec3(0.0f, 1.0f, 0.0f)
-  // );
+//   // const float radius = 10.0f;
+//   // float camX = sin(timeValue) * radius;
+//   // float camZ = cos(timeValue) * radius;
+//   // view = glm::lookAt(
+//   //   glm::vec3(camX, 0.0f, camZ),
+//   //   glm::vec3(0.0f, 0.0f, 0.0f),
+//   //   glm::vec3(0.0f, 1.0f, 0.0f)
+//   // );
 
-  flycamera_update(&g_camera, delta);
+//   flycamera_update(&g_camera, delta);
 
-  glUseProgram(g_shaders[1].program);
-  shader_Set1i(&g_shaders[1], "tex1", 0);
-  shader_Set1i(&g_shaders[1], "tex2", 1);
-  shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
-  shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(flycamera_get_view_matrix(&g_camera)));
-  shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(flycamera_get_projection_matrix(&g_camera)));
+//   glUseProgram(g_shaders[1].program);
+//   shader_Set1i(&g_shaders[1], "tex1", 0);
+//   shader_Set1i(&g_shaders[1], "tex2", 1);
+//   shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
+//   shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(flycamera_get_view_matrix(&g_camera)));
+//   shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(flycamera_get_projection_matrix(&g_camera)));
 
-  glBindVertexArray(g_vao);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+//   glBindVertexArray(g_vao);
+//   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
+//   glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
-  glm::vec3 positions[] = {
-      glm::vec3(0.2f, -0.2f, 1.0f),
-      glm::vec3(-0.4f, 0.4f, 0.5f),
-      glm::vec3(0.0f, 0.0f, 1.5f),
-      glm::vec3(0.89f, 0.5f, 2.0f),
-  };
+//   glm::vec3 positions[] = {
+//       glm::vec3(0.2f, -0.2f, 1.0f),
+//       glm::vec3(-0.4f, 0.4f, 0.5f),
+//       glm::vec3(0.0f, 0.0f, 1.5f),
+//       glm::vec3(0.89f, 0.5f, 2.0f),
+//   };
 
-  for (int i = 0; i < 3; i++)
-  {
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, positions[i]);
-    model = glm::rotate(model, glm::radians(timeValue * 25 * (i + 1)), positions[i]);
+//   for (int i = 0; i < 3; i++)
+//   {
+//     glm::mat4 model = glm::mat4(1.0f);
+//     model = glm::translate(model, positions[i]);
+//     model = glm::rotate(model, glm::radians(timeValue * 25 * (i + 1)), positions[i]);
 
-    shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
-    glBindVertexArray(g_vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-  }
-  // glDrawArrays(GL_TRIANGLES, 0, 36);
-}
+//     shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
+//     glBindVertexArray(g_vao);
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
+//     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+//   }
+//   // glDrawArrays(GL_TRIANGLES, 0, 36);
+// }
 void initTwoVAO()
 {
   float triangle1[] =
@@ -487,20 +335,25 @@ void renderTwoVAO()
 
 internal void render()
 {
+  float timeValue = SDL_GetTicks() / 1000.0f;
+  float delta = timeValue - prevTime;
+  prevTime = timeValue;
+
   glViewport(0, 0, g_screenWidth, g_screenHeight);
   glClearColor(0.15625f, 0.15625f, 0.15625f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // renderTwoVAO();
-  renderCube();
-  // glBindVertexArray(g_vao);
+  cubes_render()
 
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-  // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+      // glBindVertexArray(g_vao);
 
-  // glDrawArrays(GL_TRIANGLES, 0, 8);
+      // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
+      // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-  SDL_GL_SwapWindow(g_window);
+      // glDrawArrays(GL_TRIANGLES, 0, 8);
+
+      SDL_GL_SwapWindow(g_window);
 
   // glUseProgram(g_shaderProgram);
   // glEnableVertexAttribArray(g_vertexPos2DLocation);
@@ -731,7 +584,8 @@ init()
   glEnable(GL_DEPTH_TEST);
 
   // initTwoVAO();
-  initCube();
+  cube_demo_init(&g_vao, &g_vbo, &g_ebo);
+
   flycamera_init(&g_camera);
 
   int nrAttributes;
