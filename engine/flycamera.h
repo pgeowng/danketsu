@@ -28,10 +28,13 @@ struct flycamera_s
     float aspect;
     float near;
     float far;
+
+    bool fps;
 };
 
-void flycamera_init(flycamera_s *camera, float fov = 45.0f, float aspect = 16.0 / 9.0, float near = 0.1f, float far = 100.0f)
+void flycamera_init(flycamera_s *camera, bool fps = true, float fov = 45.0f, float aspect = 16.0 / 9.0, float near = 0.1f, float far = 100.0f)
 {
+    camera->fps = fps;
     camera->fov = fov;
     camera->aspect = aspect;
     camera->near = near;
@@ -71,8 +74,17 @@ void flycamera_update(flycamera_s *camera, float deltaTime)
 {
     glm::vec3 velocity(0.0f);
 
-    velocity += glm::cross(camera->front, camera->up) * camera->move_dir.x;
-    velocity += camera->front * camera->move_dir.z;
+    glm::vec3 front = camera->front;
+    if (camera->fps)
+    {
+        front.y = 0.0f;
+    }
+
+    // right vector
+    velocity += glm::cross(front, camera->up) * camera->move_dir.x;
+
+    // forward vector
+    velocity += front * camera->move_dir.z;
 
     // prevent zero vector normalization
     if (glm::length(velocity) > 0.0f)
