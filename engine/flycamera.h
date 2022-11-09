@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "matrix.h"
 
 struct flycamera_s
 {
@@ -101,7 +102,7 @@ glm::mat4 flycamera_get_view_matrix(flycamera_s *camera)
         sin(glm::radians(camera->pitch)),
         sin(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)));
 
-    return glm::lookAt(camera->position, camera->position + camera->front, camera->up);
+    return matrix_look_at(camera->position, camera->position + camera->front, camera->up);
 }
 
 glm::mat4 flycamera_get_projection_matrix(flycamera_s *camera)
