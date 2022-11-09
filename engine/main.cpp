@@ -5,13 +5,15 @@
 #include <stdio.h>
 #include <cmath>
 
-#include "shader.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "shader.h"
+#include "flycamera.h"
 
 #define internal static
 #define local_persist static
@@ -33,19 +35,7 @@ GLuint g_vbo1 = 0;
 shader_s g_shaders[2] = {{0}, {0}};
 GLuint g_tex[2] = {0, 0};
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float cameraSpeed = 1.0;
-int moveForward = 0;
-int moveRight = 0;
-int moveLeft = 0;
-int moveBack = 0;
-
-float pitch = 0;
-float yaw = -90.0f;
-float mouseSensitivity = 0.03;
-float zoom = 0;
+flycamera_s g_camera = {};
 
 void initCube()
 {
@@ -54,7 +44,6 @@ void initCube()
       -0.5f, -0.5f, -0.5f,
       0.0f, 0.0f,
 
-
       -0.5f, 0.5f, -0.5f, // Front Left Top
       0.0f, 1.0f,         // Texture
 
@@ -62,8 +51,7 @@ void initCube()
       1.0f, 1.0f,        // Texture
 
       0.5f, -0.5f, -0.5f, // Front Right Bottom
-      1.0f, 0.0f,        // Texture
-
+      1.0f, 0.0f,         // Texture
 
       // right
       0.5f, -0.5f, -0.5f,
@@ -118,7 +106,7 @@ void initCube()
       0.5, 0.5f, -0.5f,
       1.0f, 0.0f,
 
-// bottom
+      // bottom
       -0.5f, -0.5f, -0.5f,
       0.0f, 0.0f,
 
@@ -130,11 +118,6 @@ void initCube()
 
       0.5, -0.5f, -0.5f,
       1.0f, 0.0f
-
-
-
-
-
 
       // -0.5f, -0.5f, 0.5f, // Back Left Bottom
       // 1.0f, 1.0f, 1.0f,   // Color
@@ -158,14 +141,14 @@ void initCube()
 
       2, 3, 0,
 
-      4,5,6,
-      6,7,4,
+      4, 5, 6,
+      6, 7, 4,
 
-      8,9,10,
-      10,11,8,
+      8, 9, 10,
+      10, 11, 8,
 
-      12,13,14,
-      14,15,12,
+      12, 13, 14,
+      14, 15, 12,
 
       16, 17, 18,
       18, 19, 16,
@@ -173,24 +156,20 @@ void initCube()
       20, 21, 22,
       22, 23, 20,
 
+      //     // 4, 5, 6, // Back
+      //     // 6, 7,4,
 
+      //     // 0, 1, 5, // Left
+      //     // 5, 4, 0,
 
+      //     // 3, 2, 6, // Right
+      //     // 6, 7, 3,
 
+      //     // 1, 2, 6, // Top
+      //     // 6, 5, 1,
 
-  //     // 4, 5, 6, // Back
-  //     // 6, 7,4,
-
-  //     // 0, 1, 5, // Left
-  //     // 5, 4, 0,
-
-  //     // 3, 2, 6, // Right
-  //     // 6, 7, 3,
-
-  //     // 1, 2, 6, // Top
-  //     // 6, 5, 1,
-
-  //     // 0, 3, 7, // Bottom
-  //     // 7, 4, 0,
+      //     // 0, 3, 7, // Bottom
+      //     // 7, 4, 0,
   };
 
   glGenVertexArrays(1, &g_vao);
@@ -212,6 +191,7 @@ void initCube()
 float prevTime = 0;
 void renderCube()
 {
+
   float timeValue = SDL_GetTicks() / 1000.0f;
   float delta = timeValue - prevTime;
   prevTime = timeValue;
@@ -220,7 +200,7 @@ void renderCube()
   model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
   model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-  glm::mat4 view = glm::mat4(1.0f);
+  // glm::mat4 view = glm::mat4(1.0f); // TODO:REMOVE
   // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
   // view = glm::rotate(view, glm::radians(10 * timeValue), glm::vec3(0.0, 1.0, 1.0));
 
@@ -233,66 +213,31 @@ void renderCube()
   //   glm::vec3(0.0f, 1.0f, 0.0f)
   // );
 
-  glm::vec3 lookDirection(
-    cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
-    sin(glm::radians(pitch)),
-    sin(glm::radians(yaw)) * cos(glm::radians(pitch))
-    );
-
-
-  glm::vec3 moveDirection = glm::vec3(0.0f);
-  //  moveDirection = glm::normalize(glm::vec3((moveRight - moveLeft), 0.0f, -(moveForward - moveBack)));
-  int right = moveRight - moveLeft;
-  int backward = moveBack - moveForward;
-
-  // prevent zero vector normalization
-
-
-
-  moveDirection += glm::cross(lookDirection, cameraUp) * float(moveRight - moveLeft);
-  moveDirection += lookDirection * float(moveForward - moveBack);
-  if (right != 0 && backward != 0) {
-    moveDirection = glm::normalize(moveDirection);
-  }
-
-  // printf("dir: %f %f %f\n", moveDirection.x, moveDirection.y, moveDirection.z);
-
-  moveDirection *= cameraSpeed * delta;
-  // printf("pos: %f %f %f\n", cameraPos.x, cameraPos.y, cameraPos.z);
-
-
-  cameraPos += moveDirection;
-
-  view = glm::lookAt(cameraPos, cameraPos + lookDirection, cameraUp);
-
-  glm::mat4 projection = glm::mat4(1.0f);
-  projection = glm::perspective(glm::radians(45.0f + zoom), (float)g_screenWidth / (float)g_screenHeight, 0.1f, 100.0f);
-
+  flycamera_update(&g_camera, delta);
 
   glUseProgram(g_shaders[1].program);
-
   shader_Set1i(&g_shaders[1], "tex1", 0);
   shader_Set1i(&g_shaders[1], "tex2", 1);
   shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
-  shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(view));
-  shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(projection));
-
+  shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(flycamera_get_view_matrix(&g_camera)));
+  shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(flycamera_get_projection_matrix(&g_camera)));
 
   glBindVertexArray(g_vao);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
   glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
   glm::vec3 positions[] = {
-    glm::vec3(0.2f, -0.2f, 1.0f),
-    glm::vec3(-0.4f, 0.4f, 0.5f),
-    glm::vec3(0.0f, 0.0f, 1.5f),
-    glm::vec3(0.89f, 0.5f, 2.0f),
+      glm::vec3(0.2f, -0.2f, 1.0f),
+      glm::vec3(-0.4f, 0.4f, 0.5f),
+      glm::vec3(0.0f, 0.0f, 1.5f),
+      glm::vec3(0.89f, 0.5f, 2.0f),
   };
 
-  for (int i = 0; i < 3; i++ ) {
+  for (int i = 0; i < 3; i++)
+  {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, positions[i]);
-    model = glm::rotate(model, glm::radians(timeValue * 25 * (i+1)), positions[i]);
+    model = glm::rotate(model, glm::radians(timeValue * 25 * (i + 1)), positions[i]);
 
     shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
     glBindVertexArray(g_vao);
@@ -304,42 +249,42 @@ void renderCube()
 void initTwoVAO()
 {
   float triangle1[] =
-  {
-      // first bottom left
-      -1.0f,
-      -1.0f,
-      0.0f,
+      {
+          // first bottom left
+          -1.0f,
+          -1.0f,
+          0.0f,
 
-      1.0f,
-      1.0f,
-      1.0f,
+          1.0f,
+          1.0f,
+          1.0f,
 
-      0.0f,
-      0.0f,
+          0.0f,
+          0.0f,
 
-      // first top left
-      -1.0f,
-      1.0f,
-      0.0f,
+          // first top left
+          -1.0f,
+          1.0f,
+          0.0f,
 
-      1.0f,
-      1.0f,
-      1.0f,
+          1.0f,
+          1.0f,
+          1.0f,
 
-      0.0f,
-      2.0f,
+          0.0f,
+          2.0f,
 
-      // first bottom right
-      1.0f,
-      -1.0f,
-      0.0f,
+          // first bottom right
+          1.0f,
+          -1.0f,
+          0.0f,
 
-      1.0f,
-      1.0f,
-      1.0f,
+          1.0f,
+          1.0f,
+          1.0f,
 
-      2.0f,
-      0.0f};
+          2.0f,
+          0.0f};
 
   float triangle2[] = {
       // second top left
@@ -415,8 +360,6 @@ void renderTwoVAO()
   // glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
   // glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
   // glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-
-
 
   float timeValue = SDL_GetTicks() / 1000.0f;
   float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
@@ -545,8 +488,8 @@ void renderTwoVAO()
 internal void render()
 {
   glViewport(0, 0, g_screenWidth, g_screenHeight);
-  glClearColor(0.15625f,0.15625f,0.15625f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  glClearColor(0.15625f, 0.15625f, 0.15625f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // renderTwoVAO();
   renderCube();
@@ -789,11 +732,12 @@ init()
 
   // initTwoVAO();
   initCube();
+  flycamera_init(&g_camera);
 
   int nrAttributes;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
   printf("Maximum nr of vertex attributes supported: %d\n", nrAttributes);
-;
+  ;
   if (!initTexture())
   {
     printf("init texture failed\n");
@@ -837,6 +781,11 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  int input_move_forward = 0;
+  int input_move_right = 0;
+  int input_move_left = 0;
+  int input_move_back = 0;
+
   SDL_Event e;
   bool windowShouldClose = false;
   while (!windowShouldClose)
@@ -848,62 +797,61 @@ int main(int argc, char *argv[])
         windowShouldClose = true;
       }
 
-      switch (e.type) {
-        case SDL_WINDOWEVENT: {
-        if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+      switch (e.type)
+      {
+      case SDL_WINDOWEVENT:
+      {
+        if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+        {
           g_screenWidth = e.window.data1;
           g_screenHeight = e.window.data2;
         }
         break;
-        }
-        case SDL_KEYDOWN:
-        case SDL_KEYUP: {
-          float forward = 0;
-          float right = 0;
-          int pressed = e.key.state == SDL_PRESSED ;
-          switch (e.key.keysym.sym) {
-            case SDLK_w: {
-              moveForward = pressed;
-              break;
-            }
-            case SDLK_a: {
-              moveLeft = pressed;
-              break;
-            };
-            case SDLK_s: {
-              moveBack = pressed;
-              break;
-            }
-            case SDLK_d: {
-              moveRight = pressed;
-              break;
-            }
-          }
-          break;
-        }
-        case SDL_MOUSEMOTION:
+      }
+      case SDL_KEYDOWN:
+      case SDL_KEYUP:
+      {
+        float forward = 0;
+        float right = 0;
+        int pressed = e.key.state == SDL_PRESSED;
+        switch (e.key.keysym.sym)
         {
-          yaw += e.motion.xrel * mouseSensitivity;
-          pitch += -e.motion.yrel * mouseSensitivity;
-
-          if (pitch > 89.0f) {
-            pitch = 89.0f;
-          }
-          if (pitch < -89.0f) {
-            pitch = -89.0f;
-          }
-
-          printf("pitch: %f\n", pitch);
-          printf("yaw: %f\n", yaw);
-
+        case SDLK_w:
+        {
+          input_move_forward = pressed;
           break;
         }
-
-        case SDL_MOUSEWHEEL: {
-          zoom += e.wheel.y;
+        case SDLK_a:
+        {
+          input_move_left = pressed;
+          break;
+        };
+        case SDLK_s:
+        {
+          input_move_back = pressed;
           break;
         }
+        case SDLK_d:
+        {
+          input_move_right = pressed;
+          break;
+        }
+        }
 
+        flycamera_process_movement(&g_camera, input_move_forward - input_move_back, input_move_right - input_move_left);
+        break;
+      }
+      case SDL_MOUSEMOTION:
+      {
+        flycamera_process_mouse_movement(&g_camera, e.motion.xrel, e.motion.yrel);
+        break;
+      }
+
+      case SDL_MOUSEWHEEL:
+      {
+        flycamera_process_mouse_scroll(&g_camera, e.wheel.y);
+        break;
+      }
       }
     }
 
