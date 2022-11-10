@@ -14,8 +14,9 @@
 
 #include "shader.h"
 #include "flycamera.h"
-#include "../app/hello/hello.h"
-// #include "../app/light/light.h"
+
+// #include "../app/hello/hello.h"
+#include "../app/light/light.h"
 
 #define internal static
 #define local_persist static
