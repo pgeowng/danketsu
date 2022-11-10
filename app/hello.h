@@ -11,14 +11,21 @@ struct cubes
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
-    flycamera_s camera;
-    shader_s shader;
+    flycamera_s camera = {};
+    shader_s shader = {};
 };
 
-void cubes_init(cubes *demo)
+bool cubes_init(cubes *demo)
 {
+    bool ok = false;
     flycamera_init(&demo->camera);
-    shader_New(&demo->shader, "shaders/cubes.vert", "shaders/cubes.frag");
+    ok = shader_New(&demo->shader, "./engine/shaders/hello.vert", "./engine/shaders/hello.frag");
+    if (!ok)
+    {
+        printf("shader new failed");
+        return ok;
+    }
+
     float vertices[] = {
         // front
         -0.5f, -0.5f, -0.5f,
@@ -166,7 +173,10 @@ void cubes_init(cubes *demo)
     glGenBuffers(1, &demo->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, demo->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces, GL_STATIC_DRAW);
+
+    return ok;
 }
+
 
 void cubes_render(cubes *demo, float delta)
 {

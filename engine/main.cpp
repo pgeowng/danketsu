@@ -41,12 +41,9 @@ flycamera_s g_camera = {};
 float prevTime = 0;
 
 cubes g_cubes = {};
-// void renderCube(delta float)
-// {
 
-//   glm::mat4 model = glm::mat4(1.0f);
-//   model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
-//   model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+SDL_bool g_relative_mouse_mode = SDL_FALSE;
+
 
 //   // glm::mat4 view = glm::mat4(1.0f); // TODO:REMOVE
 //   // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
@@ -61,37 +58,8 @@ cubes g_cubes = {};
 //   //   glm::vec3(0.0f, 1.0f, 0.0f)
 //   // );
 
-//   flycamera_update(&g_camera, delta);
 
-//   glUseProgram(g_shaders[1].program);
-//   shader_Set1i(&g_shaders[1], "tex1", 0);
-//   shader_Set1i(&g_shaders[1], "tex2", 1);
-//   shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
-//   shader_SetMatrix4fv(&g_shaders[1], "view", glm::value_ptr(flycamera_get_view_matrix(&g_camera)));
-//   shader_SetMatrix4fv(&g_shaders[1], "projection", glm::value_ptr(flycamera_get_projection_matrix(&g_camera)));
 
-//   glBindVertexArray(g_vao);
-//   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-//   glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-//   glm::vec3 positions[] = {
-//       glm::vec3(0.2f, -0.2f, 1.0f),
-//       glm::vec3(-0.4f, 0.4f, 0.5f),
-//       glm::vec3(0.0f, 0.0f, 1.5f),
-//       glm::vec3(0.89f, 0.5f, 2.0f),
-//   };
-
-//   for (int i = 0; i < 3; i++)
-//   {
-//     glm::mat4 model = glm::mat4(1.0f);
-//     model = glm::translate(model, positions[i]);
-//     model = glm::rotate(model, glm::radians(timeValue * 25 * (i + 1)), positions[i]);
-
-//     shader_SetMatrix4fv(&g_shaders[1], "model", glm::value_ptr(model));
-//     glBindVertexArray(g_vao);
-//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-//     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-//   }
 //   // glDrawArrays(GL_TRIANGLES, 0, 36);
 // }
 void initTwoVAO()
@@ -339,12 +307,11 @@ internal void render()
   float delta = timeValue - prevTime;
   prevTime = timeValue;
 
-  glViewport(0, 0, g_screenWidth, g_screenHeight);
   glClearColor(0.15625f, 0.15625f, 0.15625f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // renderTwoVAO();
-  cubes_render()
+  cubes_render(&g_cubes, delta);
 
       // glBindVertexArray(g_vao);
 
@@ -353,7 +320,7 @@ internal void render()
 
       // glDrawArrays(GL_TRIANGLES, 0, 8);
 
-      SDL_GL_SwapWindow(g_window);
+  SDL_GL_SwapWindow(g_window);
 
   // glUseProgram(g_shaderProgram);
   // glEnableVertexAttribArray(g_vertexPos2DLocation);
@@ -367,29 +334,6 @@ internal void render()
   // glDisableVertexAttribArray(g_vertexPos2DLocation);
 
   // glUseProgram(NULL);
-}
-
-internal bool initTwoShaders()
-{
-
-  bool ok = false;
-  ok = shader_New(&g_shaders[0], "./engine/shaders/hello.vert", "./engine/shaders/hello.frag");
-  if (!ok)
-  {
-    printf("failed to create shader program 0");
-    return ok;
-  }
-
-  ok = shader_New(&g_shaders[1], "./engine/shaders/hello.vert", "./engine/shaders/colorful.frag");
-  if (!ok)
-  {
-    printf("failed to create shader program 1");
-    return ok;
-  }
-
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-  return true;
 }
 
 internal bool
@@ -552,7 +496,7 @@ init()
     return false;
   }
 
-  SDL_SetRelativeMouseMode(SDL_TRUE);
+  SDL_SetRelativeMouseMode(g_relative_mouse_mode);
 
   g_ctx = SDL_GL_CreateContext(g_window);
   if (g_ctx == NULL)
@@ -575,23 +519,21 @@ init()
     return false;
   }
 
-  if (!initTwoShaders())
-  {
-    printf("init gl failed\n");
-    return false;
-  }
 
   glEnable(GL_DEPTH_TEST);
 
   // initTwoVAO();
-  cube_demo_init(&g_vao, &g_vbo, &g_ebo);
+  if (!cubes_init(&g_cubes)) {
+    printf("cubes init failed\n");
+    return false;
+  }
 
-  flycamera_init(&g_camera);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   int nrAttributes;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
   printf("Maximum nr of vertex attributes supported: %d\n", nrAttributes);
-  ;
+
   if (!initTexture())
   {
     printf("init texture failed\n");
@@ -640,25 +582,28 @@ int main(int argc, char *argv[])
   int input_move_left = 0;
   int input_move_back = 0;
 
+  flycamera_s* cam = &g_cubes.camera;
+
   SDL_Event e;
   bool windowShouldClose = false;
   while (!windowShouldClose)
   {
     while (SDL_PollEvent(&e) != 0)
     {
-      if (e.type == SDL_QUIT)
-      {
-        windowShouldClose = true;
-      }
-
       switch (e.type)
       {
+      case SDL_QUIT:
+        windowShouldClose = true;
+        break;
       case SDL_WINDOWEVENT:
       {
         if (e.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           g_screenWidth = e.window.data1;
           g_screenHeight = e.window.data2;
+          glViewport(0, 0, g_screenWidth, g_screenHeight);
+          // is it good to do this here?
+          cam->aspect = (float)g_screenWidth / (float)g_screenHeight;
         }
         break;
       }
@@ -690,20 +635,32 @@ int main(int argc, char *argv[])
           input_move_right = pressed;
           break;
         }
+        case SDLK_ESCAPE:
+        {
+          if (!pressed) {
+          g_relative_mouse_mode = (g_relative_mouse_mode == SDL_TRUE) ? SDL_FALSE : SDL_TRUE;
+          int ok = SDL_SetRelativeMouseMode(g_relative_mouse_mode);
+          if (!ok) {
+            printf("sdl set relative mouse mode failed: %s\n", SDL_GetError());
+          }
+          }
+          break;
+        }
         }
 
-        flycamera_process_movement(&g_camera, input_move_forward - input_move_back, input_move_right - input_move_left);
+        flycamera_process_movement(cam, input_move_forward - input_move_back, input_move_right - input_move_left);
         break;
       }
+
       case SDL_MOUSEMOTION:
       {
-        flycamera_process_mouse_movement(&g_camera, e.motion.xrel, e.motion.yrel);
+        flycamera_process_mouse_movement(cam, e.motion.xrel, e.motion.yrel);
         break;
       }
 
       case SDL_MOUSEWHEEL:
       {
-        flycamera_process_mouse_scroll(&g_camera, e.wheel.y);
+        flycamera_process_mouse_scroll(cam, e.wheel.y);
         break;
       }
       }

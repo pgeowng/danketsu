@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "debug.h"
 
 glm::mat4 matrix_look_at(glm::vec3 position, glm::vec3 target, glm::vec3 world_up)
 {
@@ -24,6 +25,7 @@ glm::mat4 matrix_look_at(glm::vec3 position, glm::vec3 target, glm::vec3 world_u
 
     // and apply basis vectors of camera to the matrix
     result = glm::mat4(glm::transpose(glm::mat3(hor, ver, dir))) * result;
+
 
     // in result we have the transformation, that moves the world to the camera origin
     // and rotates it to the direction of the camera

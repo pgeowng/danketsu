@@ -17,14 +17,44 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/external/**",
-                "${workspaceFolder}/external/SDL2-2.24.2/x86_64-w64-mingw32/include/**"
+                "${workspaceFolder}/external/**"
             ],
             "defines": [],
-            "compilerPath": "C:/TDM-GCC-64/bin/gcc.exe",
+            "compilerPath": "/usr/bin/g++",
             "cStandard": "c17",
             "cppStandard": "c++14",
             "intelliSenseMode": "linux-clang-x64"
+        },{
+          "name": "Win323",
+          "intelliSenseMode": "clang-x64",
+          "includePath": [
+            "${workspaceFolder}",
+            "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include/c++",
+            "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include/c++/x86_64-w64-mingw32",
+            "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include/c++/backward",
+            "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include",
+            "C:/TDM-GCC-64/x86_64-w64-mingw32/include",
+            "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include-fixed"
+          ],
+          "defines": [
+            "_DEBUG",
+            "UNICODE",
+            "__GNUC__=7",
+            "__cdecl=__attribute__((__cdecl__))"
+          ],
+          "browse": {
+            "path": [
+              "${workspaceFolder}",
+              "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include/c++",
+              "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include/c++/x86_64-w64-mingw32",
+              "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include/c++/backward",
+              "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include",
+              "C:/TDM-GCC-64/x86_64-w64-mingw32/include",
+              "C:/TDM-GCC-64/lib/gcc/x86_64-w64-mingw32/5.1.0/include-fixed"
+            ]
+          }
+        //   "limitSymbolsToIncludedHeaders": true,
+        //   "databaseFilename": ""
         }
     ],
     "version": 4
