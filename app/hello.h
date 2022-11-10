@@ -194,6 +194,7 @@ void cubes_render(cubes *demo, float delta)
     shader_Set1i(&demo->shader, "tex2", 1);
     shader_SetMatrix4fv(&demo->shader, "model", glm::value_ptr(model));
     shader_SetMatrix4fv(&demo->shader, "view", glm::value_ptr(flycamera_get_view_matrix(&demo->camera)));
+    // shader_SetMatrix4fv(&demo->shader, "view", glm::value_ptr(flycamera_get_weird_view_matrix(&demo->camera)));
     shader_SetMatrix4fv(&demo->shader, "projection", glm::value_ptr(flycamera_get_projection_matrix(&demo->camera)));
 
     glBindVertexArray(demo->vao);

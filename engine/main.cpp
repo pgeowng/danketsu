@@ -640,7 +640,7 @@ int main(int argc, char *argv[])
           if (!pressed) {
           g_relative_mouse_mode = (g_relative_mouse_mode == SDL_TRUE) ? SDL_FALSE : SDL_TRUE;
           int ok = SDL_SetRelativeMouseMode(g_relative_mouse_mode);
-          if (!ok) {
+          if (ok) {
             printf("sdl set relative mouse mode failed: %s\n", SDL_GetError());
           }
           }

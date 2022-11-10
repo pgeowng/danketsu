@@ -112,4 +112,15 @@ glm::mat4 flycamera_get_projection_matrix(flycamera_s *camera)
     return glm::perspective(glm::radians(camera->fov + camera->zoom), camera->aspect, camera->near, camera->far);
 };
 
+// fast jumping camera rotating around a point with easing
+glm::mat4 flycamera_get_weird_view_matrix(flycamera_s *camera)
+{
+    float time = SDL_GetTicks() / 1000.0f;
+    time = abs(fmod(time, 2.0f) -1.0f);
+    // time = time < 0.5f ? (1.0f - sqrt(1.0f - time * time)) : (sqrt(1.0f - (time - 1.0f) * (time - 1.0f)));
+    time = fmod(time, 1.0f);
+    glm::vec3 pos = glm::vec3(0.0f, 0.0f, 1.0f);
+    return matrix_look_at( pos + glm::vec3(cos(time), 0, abs(sin(time))), pos,  camera->up);
+}
+
 #endif
