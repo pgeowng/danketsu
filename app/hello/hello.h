@@ -2,11 +2,13 @@
 #define HELLO_H
 
 #include <GL/glew.h>
-#include "../engine/shader.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include "shader.h"
+#include "flycamera.h"
 
-struct cubes
+struct app_s
 {
     GLuint vao;
     GLuint vbo;
@@ -15,11 +17,11 @@ struct cubes
     shader_s shader = {};
 };
 
-bool cubes_init(cubes *demo)
+bool app_init(app_s *app)
 {
     bool ok = false;
-    flycamera_init(&demo->camera);
-    ok = shader_New(&demo->shader, "./engine/shaders/hello.vert", "./engine/shaders/hello.frag");
+    flycamera_init(&app->camera);
+    ok = shader_New(&app->shader, "./app/hello/hello.vert", "./app/hello/hello.frag");
     if (!ok)
     {
         printf("shader new failed");
@@ -159,10 +161,10 @@ bool cubes_init(cubes *demo)
         //     // 7, 4, 0,
     };
 
-    glGenVertexArrays(1, &demo->vao);
-    glBindVertexArray(demo->vao);
-    glGenBuffers(1, &demo->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, demo->vbo);
+    glGenVertexArrays(1, &app->vao);
+    glBindVertexArray(app->vao);
+    glGenBuffers(1, &app->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
@@ -170,15 +172,15 @@ bool cubes_init(cubes *demo)
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    glGenBuffers(1, &demo->ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, demo->ebo);
+    glGenBuffers(1, &app->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces, GL_STATIC_DRAW);
 
     return ok;
 }
 
 
-void cubes_render(cubes *demo, float delta)
+void app_update(app_s *app, float delta)
 {
     static float timeValue = 0.0f;
     timeValue += delta;
@@ -187,18 +189,18 @@ void cubes_render(cubes *demo, float delta)
     model = glm::rotate(model, glm::radians(20.0f * timeValue), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    flycamera_update(&demo->camera, delta);
+    flycamera_update(&app->camera, delta);
 
-    shader_Use(&demo->shader);
-    shader_Set1i(&demo->shader, "tex1", 0);
-    shader_Set1i(&demo->shader, "tex2", 1);
-    shader_SetMatrix4fv(&demo->shader, "model", glm::value_ptr(model));
-    shader_SetMatrix4fv(&demo->shader, "view", glm::value_ptr(flycamera_get_view_matrix(&demo->camera)));
-    // shader_SetMatrix4fv(&demo->shader, "view", glm::value_ptr(flycamera_get_weird_view_matrix(&demo->camera)));
-    shader_SetMatrix4fv(&demo->shader, "projection", glm::value_ptr(flycamera_get_projection_matrix(&demo->camera)));
+    shader_Use(&app->shader);
+    shader_Set1i(&app->shader, "tex1", 0);
+    shader_Set1i(&app->shader, "tex2", 1);
+    shader_SetMatrix4fv(&app->shader, "model", glm::value_ptr(model));
+    shader_SetMatrix4fv(&app->shader, "view", glm::value_ptr(flycamera_get_view_matrix(&app->camera)));
+    // shader_SetMatrix4fv(&app->shader, "view", glm::value_ptr(flycamera_get_weird_view_matrix(&app->camera)));
+    shader_SetMatrix4fv(&app->shader, "projection", glm::value_ptr(flycamera_get_projection_matrix(&app->camera)));
 
-    glBindVertexArray(demo->vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, demo->ebo);
+    glBindVertexArray(app->vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->ebo);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
     glm::vec3 positions[] = {
@@ -214,9 +216,9 @@ void cubes_render(cubes *demo, float delta)
         model = glm::translate(model, positions[i]);
         model = glm::rotate(model, glm::radians(timeValue * 25 * (i + 1)), positions[i]);
 
-        shader_SetMatrix4fv(&demo->shader, "model", glm::value_ptr(model));
-        glBindVertexArray(demo->vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, demo->ebo);
+        shader_SetMatrix4fv(&app->shader, "model", glm::value_ptr(model));
+        glBindVertexArray(app->vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->ebo);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     }
 }

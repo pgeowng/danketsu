@@ -14,7 +14,8 @@
 
 #include "shader.h"
 #include "flycamera.h"
-#include "../app/hello.h"
+#include "../app/hello/hello.h"
+// #include "../app/light/light.h"
 
 #define internal static
 #define local_persist static
@@ -40,7 +41,7 @@ flycamera_s g_camera = {};
 
 float prevTime = 0;
 
-cubes g_cubes = {};
+app_s g_app = {};
 
 SDL_bool g_relative_mouse_mode = SDL_FALSE;
 
@@ -311,7 +312,7 @@ internal void render()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // renderTwoVAO();
-  cubes_render(&g_cubes, delta);
+  app_update(&g_app, delta);
 
       // glBindVertexArray(g_vao);
 
@@ -523,7 +524,7 @@ init()
   glEnable(GL_DEPTH_TEST);
 
   // initTwoVAO();
-  if (!cubes_init(&g_cubes)) {
+  if (!app_init(&g_app)) {
     printf("cubes init failed\n");
     return false;
   }
@@ -582,7 +583,7 @@ int main(int argc, char *argv[])
   int input_move_left = 0;
   int input_move_back = 0;
 
-  flycamera_s* cam = &g_cubes.camera;
+  flycamera_s* cam = &g_app.camera;
 
   SDL_Event e;
   bool windowShouldClose = false;

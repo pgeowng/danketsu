@@ -1,6 +1,7 @@
 g++ \
     -fdiagnostics-color=always \
     -g \
+    -I./engine \
     -I./external/stb \
     -I./external/glm \
     -lSDL2 \
