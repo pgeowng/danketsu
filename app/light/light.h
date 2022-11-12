@@ -31,8 +31,8 @@ struct app_s {
 bool app_init(app_s* app) {
   bool ok = false;
   flycamera_init(&app->camera, false);
-  ok = shader_New(&app->lighting_shader, "./app/light/light.vert",
-                  "./app/light/light.frag");
+  ok = shader_New(&app->lighting_shader, "./app/light/light_vert.vert",
+                  "./app/light/light_vert.frag");
   if (!ok) {
     printf("lighting shader new failed");
     return ok;
