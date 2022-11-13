@@ -34,7 +34,7 @@ void main() {
     // specular
     vec3 viewDir = normalize(-FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float specular_magnitude = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float specular_magnitude = pow(max(dot(viewDir, reflectDir), 0.0), max(material.shininess, 0.1));
     // float specularStrength = clamp(0.5 * diff, 0.0, 1.0);
 
     vec3 ambient = light.ambient * material.ambient;

@@ -1,32 +1,17 @@
-#ifndef HELLO_H
-#define HELLO_H
-
-#include "flycamera.h"
-#include "shader.h"
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-struct app_s {
-  GLuint vao;
-  GLuint vbo;
-  GLuint ebo;
-  flycamera_s camera = {};
-  shader_s shader = {};
-};
+#include "hello.h"
 
 bool app_init(app_s* app) {
   bool ok = false;
   flycamera_init(&app->camera);
-  ok = shader_init(&app->shader, "./engine/shaders/hello.vert",
-                   "./engine/shaders/hello.frag");
+  ok = shader_init(&app->shader, "./app/hello/hello.vert",
+                   "./app/hello/hello.frag");
   if (!ok) {
     printf("shader new failed");
     return ok;
   }
 
   float vertices[] = {
+
     // front
     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
@@ -85,21 +70,6 @@ bool app_init(app_s* app) {
 
     0.5, -0.5f, -0.5f, 1.0f, 0.0f
 
-    // -0.5f, -0.5f, 0.5f, // Back Left Bottom
-    // 1.0f, 1.0f, 1.0f,   // Color
-    // 1.0f, 1.0f,         // Texture
-
-    // -0.5f, 0.5f, 0.5f, // Back Left Top
-    // 1.0f, 1.0f, 1.0f,  // Color
-    // 1.0f, 0.0f,        // Texture
-
-    // 0.5f, 0.5f, 0.5f, // Back Right Top
-    // 1.0f, 1.0f, 1.0f, // Color
-    // 0.0f, 0.0f,       // Texture
-
-    // 0.5f, -0.5f, 0.5f, // Back Right Bottom
-    // 1.0f, 1.0f, 1.0f, // Color
-    // 0.0f, 1.0f,       // Texture
   };
 
   unsigned int faces[] = {
@@ -116,21 +86,6 @@ bool app_init(app_s* app) {
     16, 17, 18, 18, 19, 16,
 
     20, 21, 22, 22, 23, 20,
-
-    //     // 4, 5, 6, // Back
-    //     // 6, 7,4,
-
-    //     // 0, 1, 5, // Left
-    //     // 5, 4, 0,
-
-    //     // 3, 2, 6, // Right
-    //     // 6, 7, 3,
-
-    //     // 1, 2, 6, // Top
-    //     // 6, 5, 1,
-
-    //     // 0, 3, 7, // Bottom
-    //     // 7, 4, 0,
   };
 
   glGenVertexArrays(1, &app->vao);
@@ -148,6 +103,24 @@ bool app_init(app_s* app) {
   glGenBuffers(1, &app->ebo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces, GL_STATIC_DRAW);
+
+  shader_use(&app->shader);
+
+  ok = tex_load(&app->texWall, "assets/wall.jpg", GL_TEXTURE0, GL_RGB);
+  if (!ok) {
+    return false;
+  }
+
+  ok = tex_load(&app->texAwesome, "assets/awesomeface.png", GL_TEXTURE1,
+                GL_RGBA);
+  if (!ok) {
+    return false;
+  }
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, app->texWall);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, app->texAwesome);
 
   return ok;
 }
@@ -169,7 +142,7 @@ void app_update(app_s* app, float delta) {
   shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
   shader_mat4fv(&app->shader, "view",
                 glm::value_ptr(flycamera_get_view_matrix(&app->camera)));
-  // shader_mat4fv(&app->shader, "view",
+  // shader_SetMatrix4fv(&app->shader, "view",
   // glm::value_ptr(flycamera_get_weird_view_matrix(&app->camera)));
   shader_mat4fv(&app->shader, "projection",
                 glm::value_ptr(flycamera_get_projection_matrix(&app->camera)));
@@ -197,4 +170,3 @@ void app_update(app_s* app, float delta) {
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
   }
 }
-#endif
