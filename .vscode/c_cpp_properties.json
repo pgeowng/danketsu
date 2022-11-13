@@ -6,7 +6,8 @@
                 "${workspaceFolder}/external/**",
                 "${workspaceFolder}/external/SDL2-2.24.2/x86_64-w64-mingw32/include/**",
                 "${workspaceFolder}/engine",
-                "${workspaceFolder}/external/glm/glm/**"
+                "${workspaceFolder}/external/glm/glm/**",
+                "C:/TDM-GCC-64/x86_64-w64-mingw32/include/**"
             ],
             "defines": [],
             "compilerPath": "C:/TDM-GCC-64/bin/gcc.exe",

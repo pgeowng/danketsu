@@ -2,7 +2,10 @@
   "cmake.configureOnOpen": false,
   "files.associations": {
     "*.js": "javascript",
-    "sdl_endian.h": "c"
+    "sdl_endian.h": "c",
+    "cmath": "cpp",
+    "cstdlib": "cpp",
+    "chrono": "cpp"
   },
   "C_Cpp.errorSquiggles": "EnabledIfIncludesResolve"
 }
