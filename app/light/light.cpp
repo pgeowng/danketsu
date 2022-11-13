@@ -350,11 +350,24 @@ bool app_init(app_s* app) {
     }
   }
 
-  ok =
-      tex_load(&app->texDiffuse, "assets/container2.png", GL_TEXTURE0, GL_RGBA);
+  GLuint tex_diffuse = 0, tex_specular = 0;
+
+  ok = tex_load(&tex_diffuse, "assets/container2.png", GL_TEXTURE0, GL_RGBA);
   if (!ok) {
     return ok;
   }
+
+  ok = tex_load(&tex_specular, "assets/container2_specular.png", GL_TEXTURE1,
+                GL_RGBA);
+  if (!ok) {
+    return ok;
+  }
+
+  app->mat_tex.shininess = 32.0f;
+  app->mat_tex.tex_diffuse = tex_diffuse;
+  app->mat_tex.tex_diffuse_unit = 0;
+  app->mat_tex.tex_specular = tex_specular;
+  app->mat_tex.tex_specular_unit = 1;
 
   return ok;
 }
@@ -373,6 +386,10 @@ void app_maze_render(app_s* app, float dt) {
   glm::vec3 light_color((sin(time * 2.0f) + 1.0f) / 2.0f,
                         (sin(time * 0.7f) + 1.0f) / 2.0f,
                         (sin(time * 1.3f) + 1.0f) / 2.0f);
+
+  shader_use(&app->lighting_shader);
+  shader_1i(&app->lighting_shader, "material.diffuse", 0);
+  shader_1i(&app->lighting_shader, "material.specular", 1);
 
   {
     model = glm::translate(model, light_pos);
@@ -404,9 +421,10 @@ void app_maze_render(app_s* app, float dt) {
 
   {
     model = glm::mat4(1.0f);
-    mr_render(&g_cube, g_mat0, model, view, proj, camera_view_pos, &g_light);
+    app->mat_color = g_mat_sh_0;
+    app_render_mat_color_cube(app, &g_cube, model, view, proj, camera_view_pos,
+                              &g_light);
   }
-
   {
     model = glm::mat4(1.0f);
     float time = SDL_GetTicks() / 1000.0f;
@@ -416,7 +434,9 @@ void app_maze_render(app_s* app, float dt) {
     model = glm::scale(model, glm::vec3(cos(time / 2.0f) + 2.0f,
                                         sin(time / 3.0f) + 1.3f, 1.0f));
 
-    mr_render(&g_ramp, g_mat2, model, view, proj, camera_view_pos, &g_light);
+    app->mat_color = g_mat_sh_2;
+    app_render_mat_color_cube(app, &g_ramp, model, view, proj, camera_view_pos,
+                              &g_light);
   }
 
   {
@@ -436,7 +456,9 @@ void app_maze_render(app_s* app, float dt) {
     model = glm::rotate(model, glm::radians(3.1415f * animation_time),
                         glm::vec3(0.0f, 1.0f, 0.0f));
 
-    mr_render(&g_ramp, g_mat2, model, view, proj, camera_view_pos, &g_light);
+    app->mat_color = g_mat_sh_2;
+    app_render_mat_color_cube(app, &g_ramp, model, view, proj, camera_view_pos,
+                              &g_light);
   }
 
   {
@@ -478,9 +500,9 @@ void app_maze_render(app_s* app, float dt) {
                               rnd_mod));
 
             ;
-
-            mr_render(&g_cube, g_mat1, model, view, proj, camera_view_pos,
-                      &g_light);
+            app->mat_color = g_mat_sh_1;
+            app_render_mat_color_cube(app, &g_cube, model, view, proj,
+                                      camera_view_pos, &g_light);
           }
         }
       }
@@ -555,188 +577,45 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   glm::vec3 camera_view_pos =
       glm::vec3(view * glm::vec4(app->camera.position, 1.0f));
 
-  static material_s emerald = {
-    .ambient = glm::vec3(0.0215f, 0.1745f, 0.0215f),
-    .diffuse = glm::vec3(0.07568f, 0.61424f, 0.07568f),
-    .specular = glm::vec3(0.633f, 0.727811f, 0.633f),
-    .shininess = 0.6f * 128.0f,
-  };
-
-  static material_s jade = {
-    .ambient = glm::vec3(0.135f, 0.2225f, 0.1575f),
-    .diffuse = glm::vec3(0.54f, 0.89f, 0.63f),
-    .specular = glm::vec3(0.316228f, 0.316228f, 0.316228f),
-    .shininess = 0.1f * 128.0f,
-  };
-
-  static material_s obsidian = {
-    .ambient = glm::vec3(0.05375f, 0.05f, 0.06625f),
-    .diffuse = glm::vec3(0.18275f, 0.17f, 0.22525f),
-    .specular = glm::vec3(0.332741f, 0.328634f, 0.346435f),
-    .shininess = 0.3f * 128.0f,
-  };
-
-  static material_s pearl = {
-    .ambient = glm::vec3(0.25f, 0.20725f, 0.20725f),
-    .diffuse = glm::vec3(1.0f, 0.829f, 0.829f),
-    .specular = glm::vec3(0.296648f, 0.296648f, 0.296648f),
-    .shininess = 0.088f * 128.0f,
-  };
-  static material_s ruby = {
-    .ambient = glm::vec3(0.1745f, 0.01175f, 0.01175f),
-    .diffuse = glm::vec3(0.61424f, 0.04136f, 0.04136f),
-    .specular = glm::vec3(0.727811f, 0.626959f, 0.626959f),
-    .shininess = 0.6f * 128.0f,
-  };
-
-  static material_s turquoise = {
-    .ambient = glm::vec3(0.1f, 0.18725f, 0.1745f),
-    .diffuse = glm::vec3(0.396f, 0.74151f, 0.69102f),
-    .specular = glm::vec3(0.297254f, 0.30829f, 0.306678f),
-    .shininess = 0.1f * 128.0f,
-  };
-  static material_s brass = {
-    .ambient = glm::vec3(0.329412f, 0.223529f, 0.027451f),
-    .diffuse = glm::vec3(0.780392f, 0.568627f, 0.113725f),
-    .specular = glm::vec3(0.992157f, 0.941176f, 0.807843f),
-    .shininess = 0.21794872f * 128.0f,
-  };
-
-  static material_s bronze = {
-    .ambient = glm::vec3(0.2125f, 0.1275f, 0.054f),
-    .diffuse = glm::vec3(0.714f, 0.4284f, 0.18144f),
-    .specular = glm::vec3(0.393548f, 0.271906f, 0.166721f),
-    .shininess = 0.2f * 128.0f,
-  };
-
-  static material_s chrome = {
-    .ambient = glm::vec3(0.25f, 0.25f, 0.25f),
-    .diffuse = glm::vec3(0.4f, 0.4f, 0.4f),
-    .specular = glm::vec3(0.774597f, 0.774597f, 0.774597f),
-    .shininess = 0.6f * 128.0f,
-  };
-
-  static material_s copper = {
-    .ambient = glm::vec3(0.19125f, 0.0735f, 0.0225f),
-    .diffuse = glm::vec3(0.7038f, 0.27048f, 0.0828f),
-    .specular = glm::vec3(0.256777f, 0.137622f, 0.086014f),
-    .shininess = 0.1f * 128.0f,
-  };
-
-  static material_s gold = {
-    .ambient = glm::vec3(0.24725f, 0.1995f, 0.0745f),
-    .diffuse = glm::vec3(0.75164f, 0.60648f, 0.22648f),
-    .specular = glm::vec3(0.628281f, 0.555802f, 0.366065f),
-    .shininess = 0.4f * 128.0f,
-  };
-
-  static material_s silver = {
-    .ambient = glm::vec3(0.19225f, 0.19225f, 0.19225f),
-    .diffuse = glm::vec3(0.50754f, 0.50754f, 0.50754f),
-    .specular = glm::vec3(0.508273f, 0.508273f, 0.508273f),
-    .shininess = 0.4f * 128.0f,
-  };
-
-  static material_s black_plastic = {
-    .ambient = glm::vec3(0.0f, 0.0f, 0.0f),
-    .diffuse = glm::vec3(0.01f, 0.01f, 0.01f),
-    .specular = glm::vec3(0.50f, 0.50f, 0.50f),
-    .shininess = 0.25f * 128.0f,
-  };
-
-  static material_s cyan_plastic = {
-    .ambient = glm::vec3(0.0f, 0.1f, 0.06f),
-    .diffuse = glm::vec3(0.0f, 0.50980392f, 0.50980392f),
-    .specular = glm::vec3(0.50196078f, 0.50196078f, 0.50196078f),
-    .shininess = 0.25f * 128.0f,
-  };
-
-  static material_s green_plastic = {
-    .ambient = glm::vec3(0.0f, 0.0f, 0.0f),
-    .diffuse = glm::vec3(0.1f, 0.35f, 0.1f),
-    .specular = glm::vec3(0.45f, 0.55f, 0.45f),
-    .shininess = 0.25f * 128.0f,
-  };
-
-  static material_s red_plastic = {
-    .ambient = glm::vec3(0.0f, 0.0f, 0.0f),
-    .diffuse = glm::vec3(0.5f, 0.0f, 0.0f),
-    .specular = glm::vec3(0.7f, 0.6f, 0.6f),
-    .shininess = 0.25f * 128.0f,
-  };
-
-  static material_s white_plastic = {
-    .ambient = glm::vec3(0.0f, 0.0f, 0.0f),
-    .diffuse = glm::vec3(0.55f, 0.55f, 0.55f),
-    .specular = glm::vec3(0.70f, 0.70f, 0.70f),
-    .shininess = 0.25f * 128.0f,
-  };
-  static material_s yellow_plastic = {
-    .ambient = glm::vec3(0.0f, 0.0f, 0.0f),
-    .diffuse = glm::vec3(0.5f, 0.5f, 0.0f),
-    .specular = glm::vec3(0.60f, 0.60f, 0.50f),
-    .shininess = 0.25f * 128.0f,
-  };
-  static material_s black_rubber = {
-    .ambient = glm::vec3(0.02f, 0.02f, 0.02f),
-    .diffuse = glm::vec3(0.01f, 0.01f, 0.01f),
-    .specular = glm::vec3(0.4f, 0.4f, 0.4f),
-    .shininess = 0.078125f * 128.0f,
-  };
-  static material_s cyan_rubber = {
-    .ambient = glm::vec3(0.0f, 0.05f, 0.05f),
-    .diffuse = glm::vec3(0.4f, 0.5f, 0.5f),
-    .specular = glm::vec3(0.04f, 0.7f, 0.7f),
-    .shininess = 0.078125f * 128.0f,
-  };
-  static material_s green_rubber = {
-    .ambient = glm::vec3(0.0f, 0.05f, 0.0f),
-    .diffuse = glm::vec3(0.4f, 0.5f, 0.4f),
-    .specular = glm::vec3(0.04f, 0.7f, 0.04f),
-    .shininess = 0.078125f * 128.0f,
-  };
-  static material_s red_rubber = {
-    .ambient = glm::vec3(0.05f, 0.0f, 0.0f),
-    .diffuse = glm::vec3(0.5f, 0.4f, 0.4f),
-    .specular = glm::vec3(0.7f, 0.04f, 0.04f),
-    .shininess = 0.078125f * 128.0f,
-  };
-
-  static material_s white_rubber = {
-    .ambient = glm::vec3(0.05f, 0.05f, 0.05f),
-    .diffuse = glm::vec3(0.5f, 0.5f, 0.5f),
-    .specular = glm::vec3(0.7f, 0.7f, 0.7f),
-    .shininess = 0.078125f * 128.0f,
-  };
-
-  static material_s yellow_rubber = {
-    .ambient = glm::vec3(0.05f, 0.05f, 0.0f),
-    .diffuse = glm::vec3(0.5f, 0.5f, 0.4f),
-    .specular = glm::vec3(0.7f, 0.7f, 0.04f),
-    .shininess = 0.078125f * 128.0f,
-  };
-
-  static material_s mat[] = {
-    emerald,      jade,          obsidian,       pearl,         ruby,
-    turquoise,    brass,         bronze,         chrome,        copper,
-    gold,         silver,        black_plastic,  cyan_plastic,  green_plastic,
-    red_plastic,  white_plastic, yellow_plastic, black_rubber,  cyan_rubber,
-    green_rubber, red_rubber,    white_rubber,   yellow_rubber,
-  };
-
-#define NUM_MATERIALS (sizeof(mat) / sizeof(mat[0]))
-
   int columns = 6;
 
-  for (int i = 0; i < NUM_MATERIALS; i++) {
+  for (int i = 0; i < COUNT_OF(g_mat_color_materials); i++) {
     int row = i / columns;
     int col = i % columns;
     glm::vec3 pos = glm::vec3(col * 1.0f, row * 1.0f, 0.0f);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
-    mr_render(&g_cube, mat[i], model, view, proj, camera_view_pos, &g_light);
+    app->mat_color = g_mat_color_materials[i];
+    app_render_mat_color_cube(app, &g_cube, model, view, proj, camera_view_pos,
+                              &g_light);
   }
 }
 
-void app_update(app_s* app, float dt) { app_scene_mat_view_render(app, dt); }
+internal void app_update(app_s* app, float dt) {
+  app_scene_mat_view_render(app, dt);
+}
+
+// internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
+//                                         glm::mat4 model, glm::mat4 view,
+//                                         glm::mat4 proj,
+//                                         glm::vec3 camera_view_pos,
+//                                         light_s* light) {
+//   shader_use(cube->shader);
+//   mat_color_apply(app->mat_color, cube->shader);
+//   mr_set_light(cube, light);
+//   mr_set_projection(cube, model, view, proj, camera_view_pos);
+//   mr_render(cube);
+// }
+
+internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
+                                        glm::mat4 model, glm::mat4 view,
+                                        glm::mat4 proj,
+                                        glm::vec3 camera_view_pos,
+                                        light_s* light) {
+  shader_use(cube->shader);
+  mat_tex_apply(app->mat_tex, cube->shader);
+  mr_set_light(cube, light);
+  mr_set_projection(cube, model, view, proj, camera_view_pos);
+  mr_render(cube);
+}

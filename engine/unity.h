@@ -19,5 +19,6 @@
 #define internal static
 #define local_persist static
 #define global_variable static
-
+#define COUNT_OF(x)                                                            \
+  ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 #endif

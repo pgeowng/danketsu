@@ -5,10 +5,11 @@
 
 #include "debug.h"
 #include "flycamera.h"
+#include "mat_color.cpp"
+#include "mat_tex.cpp"
+#include "mesh_renderer.h"
 #include "shader.h"
 #include "texture.h"
-
-#include "mesh_renderer.h"
 
 struct app_s {
   // glm::vec3 position;
@@ -24,7 +25,8 @@ struct app_s {
   GLuint ramp_vbo;
   GLuint ebo;
 
-  GLuint texDiffuse;
+  mat_color_s mat_color;
+  mat_tex_s mat_tex = { 0 };
 
   flycamera_s camera = {};
   shader_s lighting_shader = {};
@@ -37,4 +39,9 @@ internal bool app_init(app_s* app);
 internal bool app_init_tex(app_s* app, GLuint* tex_unit, const char* path,
                            GLenum tex_unit_enum);
 
+internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
+                                        glm::mat4 model, glm::mat4 view,
+                                        glm::mat4 proj,
+                                        glm::vec3 camera_view_pos,
+                                        light_s* light);
 #endif
