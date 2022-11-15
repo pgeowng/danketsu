@@ -1,0 +1,6 @@
+external/glew-2.1.0
+external/glm
+external/imgui-1.88
+external/SDL2-2.24.2
+build/engine.exe
+imgui.ini

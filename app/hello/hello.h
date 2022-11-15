@@ -1,12 +1,10 @@
 #ifndef HELLO_H
 #define HELLO_H
 
+#include "unity.h"
+
 #include "flycamera.h"
 #include "shader.h"
-#include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 struct app_s {
   GLuint vao;
@@ -16,7 +14,7 @@ struct app_s {
   shader_s shader = {};
 };
 
-bool app_init(app_s* app) {
+internal bool app_init(app_s* app) {
   bool ok = false;
   flycamera_init(&app->camera);
   ok = shader_init(&app->shader, "./app/hello/hello.vert",
@@ -152,7 +150,7 @@ bool app_init(app_s* app) {
   return ok;
 }
 
-void app_update(app_s* app, float delta) {
+internal void app_update(app_s* app, float delta) {
   static float timeValue = 0.0f;
   timeValue += delta;
 

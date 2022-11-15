@@ -460,9 +460,9 @@ void app_update(app_s* app, float dt) {
 
   {
 
-    float cell_width = 2.0f;
-    float cell_height = 4.3f;
-    float cell_depth = 2.3f;
+    float cell_width = 2.0f / 2;
+    float cell_height = 4.3f / 2;
+    float cell_depth = 2.3f / 2;
 
     float cell_fluctuation = 0.5f;
     static int save_rnd = rnd;
@@ -476,7 +476,7 @@ void app_update(app_s* app, float dt) {
               1) {
 
             model = glm::mat4(1.0f);
-            model = glm::translate(model, glm::vec3(2.0f, -2.0f, 2.0f));
+            model = glm::translate(model, glm::vec3(2.0f, -5.0f, 2.0f));
             model = glm::translate(
                 model,
                 glm::vec3(i * cell_width - g_maze_size / 2.0f, l * cell_height,

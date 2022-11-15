@@ -1,8 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <GL/glew.h>
-#include <SDL2/SDL.h>
+#include "unity.h"
 
 struct shader_s {
   // char name[MAX_QPATH];

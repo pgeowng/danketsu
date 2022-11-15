@@ -1,10 +1,10 @@
 #ifndef FLYCAMERA_H
 #define FLYCAMERA_H
 
+#include "unity.h"
+
 #include "debug.h"
 #include "matrix.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 struct flycamera_s {
   //   float position[3];
@@ -27,20 +27,20 @@ struct flycamera_s {
   //   float sensitivity;
   float fov;
   float aspect;
-  float near;
-  float far;
+  float z_near;
+  float z_far;
 
   bool fps;
 };
 
 void flycamera_init(flycamera_s* camera, bool fps = true, float fov = 45.0f,
-                    float aspect = 16.0 / 9.0, float near = 0.1f,
-                    float far = 100.0f) {
+                    float aspect = 16.0 / 9.0, float z_near = 0.1f,
+                    float z_far = 100.0f) {
   camera->fps = fps;
   camera->fov = fov;
   camera->aspect = aspect;
-  camera->near = near;
-  camera->far = far;
+  camera->z_near = z_near;
+  camera->z_far = z_far;
 }
 
 void flycamera_process_mouse_movement(flycamera_s* camera, float xoffset,
@@ -102,7 +102,7 @@ glm::mat4 flycamera_get_view_matrix(flycamera_s* camera) {
 
 glm::mat4 flycamera_get_projection_matrix(flycamera_s* camera) {
   return glm::perspective(glm::radians(camera->fov + camera->zoom),
-                          camera->aspect, camera->near, camera->far);
+                          camera->aspect, camera->z_near, camera->z_far);
 };
 
 // fast jumping camera rotating around a point with easing
