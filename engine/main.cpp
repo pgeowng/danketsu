@@ -1,26 +1,10 @@
-#include <GL/glew.h>
-#include <GL/glu.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
-#include <cmath>
-#include <stdio.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "unity.h"
 
 #include "flycamera.h"
 #include "shader.h"
 
-// #include "../app/hello/hello.h"
-#include "../app/light/light.h"
-
-#define internal static
-#define local_persist static
-#define global_variable static
+// #include "../app/hello/hello.cpp"
+#include "../app/light/light.cpp"
 
 int g_screenWidth = 1000;
 int g_screenHeight = 600;
@@ -46,22 +30,6 @@ app_s g_app = {};
 
 SDL_bool g_relative_mouse_mode = SDL_FALSE;
 
-//   // glm::mat4 view = glm::mat4(1.0f); // TODO:REMOVE
-//   // view = glm::translate(view, glm::vec3(0, 0, -3.0f));
-//   // view = glm::rotate(view, glm::radians(10 * timeValue),
-//   glm::vec3(0.0, 1.0, 1.0));
-
-//   // const float radius = 10.0f;
-//   // float camX = sin(timeValue) * radius;
-//   // float camZ = cos(timeValue) * radius;
-//   // view = glm::lookAt(
-//   //   glm::vec3(camX, 0.0f, camZ),
-//   //   glm::vec3(0.0f, 0.0f, 0.0f),
-//   //   glm::vec3(0.0f, 1.0f, 0.0f)
-//   // );
-
-//   // glDrawArrays(GL_TRIANGLES, 0, 36);
-// }
 void initTwoVAO() {
   float triangle1[] = { // first bottom left
                         -1.0f, -1.0f, 0.0f,
@@ -291,93 +259,9 @@ internal void render() {
   glClearColor(0.15625f, 0.15625f, 0.15625f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // renderTwoVAO();
   app_update(&g_app, delta);
 
-  // glBindVertexArray(g_vao);
-
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ebo);
-  // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-  // glDrawArrays(GL_TRIANGLES, 0, 8);
-
   SDL_GL_SwapWindow(g_window);
-
-  // glUseProgram(g_shaderProgram);
-  // glEnableVertexAttribArray(g_vertexPos2DLocation);
-
-  // glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
-  // glVertexAttribPointer(g_vertexPos2DLocation, 2, GL_FLOAT, GL_FALSE, 2 *
-  // sizeof(GLfloat), NULL);
-
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibo);
-  // glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, NULL);
-
-  // glDisableVertexAttribArray(g_vertexPos2DLocation);
-
-  // glUseProgram(NULL);
-}
-
-internal bool initTexture() {
-  {
-    // load and generate the texture
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data =
-        stbi_load("./assets/wall.jpg", &width, &height, &nrChannels, 0);
-    if (!data) {
-      printf("Failed to load texture");
-      return false;
-    }
-
-    glGenTextures(1, &g_tex[0]);
-    glBindTexture(GL_TEXTURE_2D, g_tex[0]);
-
-    // set the texture wrapping/filtering options (on the currently bound
-    // texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    float borderColor[] = { 1.0f, 0.2f, 0.45f, 0.5f };
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
-  }
-  {
-    // load and generate the texture
-    int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char* data =
-        stbi_load("./assets/awesomeface.png", &width, &height, &nrChannels, 0);
-    if (!data) {
-      printf("Failed to load texture");
-      return false;
-    }
-
-    glGenTextures(1, &g_tex[1]);
-    glBindTexture(GL_TEXTURE_2D, g_tex[1]);
-
-    // set the texture wrapping/filtering options (on the currently bound
-    // texture object)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    stbi_image_free(data);
-  }
-
-  return true;
 }
 
 void triangleExampleVBO() {
@@ -481,7 +365,6 @@ internal bool init() {
 
   glEnable(GL_DEPTH_TEST);
 
-  // initTwoVAO();
   if (!app_init(&g_app)) {
     printf("cubes init failed\n");
     return false;
@@ -492,19 +375,6 @@ internal bool init() {
   int nrAttributes;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
   printf("Maximum nr of vertex attributes supported: %d\n", nrAttributes);
-
-  if (!initTexture()) {
-    printf("init texture failed\n");
-    return false;
-  }
-
-  // has to be done once
-  // need activated program
-  // shader_Use(&g_shaders[0]);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, g_tex[0]);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, g_tex[1]);
 
   return true;
 }
