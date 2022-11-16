@@ -19,6 +19,8 @@ uniform Light light;
 
 out vec4 FragColor;
 
+in vec4 gl_FragCoord;
+
 in vec2 TexCoords;
 in vec3 FragPos;
 in vec3 Normal;
@@ -39,8 +41,19 @@ void main() {
 
     vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
     vec3 diffuse = light.diffuse * diffuse_magnitude * vec3(texture(material.diffuse, TexCoords));
-    vec3 specular = light.specular *  specular_magnitude * vec3(texture(material.specular, TexCoords));
+    vec3 specularMap = (vec3(1.0-texture(material.specular, TexCoords)) * 4.0f - 3.0f);
+    float specularGray = (specularMap.r + specularMap.g + specularMap.b) / 3.0f;
 
-    vec3 result = diffuse + ambient + specular;
+    vec3 specular = light.specular * specular_magnitude * (specularGray * vec3(texture(material.diffuse, TexCoords))) ;
+
+    // ambient = vec3(0.0f);
+    // diffuse = vec3(0.0f);
+    // specular = light.specular;
+    // specular = specular * gl_FragCoord.xyz / gl_FragCoord.w ;
+
+
+
+    vec3 result = diffuse +  ambient + specular;
+    // vec3 result = vec3(max(diffuse.x, max(ambient.x, specular.x)), max(diffuse.y, max(ambient.y, specular.y)), max(diffuse.z, max(ambient.z, specular.z)));
     FragColor = vec4(result, 1.0);
 }

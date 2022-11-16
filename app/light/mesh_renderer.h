@@ -18,7 +18,7 @@ struct light_s {
   // glm::vec3(1.0f, 1.0f, 1.0f), // color
   glm::vec3(0.2f, 0.2f, 0.2f), // ambient
   glm::vec3(0.5f, 0.5f, 0.5f), // diffuse
-  glm::vec3(1.0f, 1.0f, 1.0f)  // specular
+  glm::vec3(0.3f, 1.0f, .6f)   // specular
 };
 
 struct mesh_renderer_s {

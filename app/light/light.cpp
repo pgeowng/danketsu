@@ -383,6 +383,23 @@ bool app_init(app_s* app) {
   return ok;
 }
 
+glm::vec3 app_update_colorful_light() {
+  float time = SDL_GetTicks() / 1000.0f;
+
+  glm::vec3 light_color((sin(time * 2.0f) + 1.0f) / 2.0f,
+                        (sin(time * 0.7f) + 1.0f) / 2.0f,
+                        (sin(time * 1.3f) + 1.0f) / 2.0f);
+
+  g_light.diffuse = light_color * glm::vec3(0.5f);
+  g_light.ambient = g_light.diffuse * glm::vec3(0.2f);
+  // g_light.specular =
+  //     glm::vec3((light_color.r + light_color.g + light_color.b) / 3.0f);
+  // g_light.specular = glm::vec3(glm::compMax(light_color));
+  g_light.specular = light_color;
+
+  return light_color;
+}
+
 void app_maze_render(app_s* app, float dt) {
   flycamera_update(&app->camera, dt);
 
@@ -394,13 +411,11 @@ void app_maze_render(app_s* app, float dt) {
   glm::mat4 view = flycamera_get_view_matrix(&app->camera);
   glm::mat4 proj = flycamera_get_projection_matrix(&app->camera);
 
-  glm::vec3 light_color((sin(time * 2.0f) + 1.0f) / 2.0f,
-                        (sin(time * 0.7f) + 1.0f) / 2.0f,
-                        (sin(time * 1.3f) + 1.0f) / 2.0f);
-
   shader_use(&app->lighting_shader);
   shader_1i(&app->lighting_shader, "material.diffuse", 0);
   shader_1i(&app->lighting_shader, "material.specular", 1);
+
+  glm::vec3 light_color = app_update_colorful_light();
 
   {
     model = glm::translate(model, light_pos);
@@ -417,12 +432,6 @@ void app_maze_render(app_s* app, float dt) {
     glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
     glDrawArrays(GL_TRIANGLES, 0, 72);
   }
-
-  g_light.diffuse = light_color * glm::vec3(0.5f);
-  g_light.ambient = g_light.diffuse * glm::vec3(0.2f);
-  // g_light.specular =
-  //     glm::vec3((light_color.r + light_color.g + light_color.b) / 3.0f);
-  g_light.specular = glm::vec3(glm::compMax(light_color));
 
   glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
   g_light.position = light_view_pos;
@@ -558,7 +567,7 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   // glm::vec3 light_color((sin(time * 2.0f) + 1.0f) / 2.0f,
   //                       (sin(time * 0.7f) + 1.0f) / 2.0f,
   //                       (sin(time * 1.3f) + 1.0f) / 2.0f);
-  glm::vec3 light_color(1.0f);
+  glm::vec3 light_color = app_update_colorful_light();
 
   {
     model = glm::translate(model, light_pos);
@@ -575,12 +584,6 @@ void app_scene_mat_view_render(app_s* app, float dt) {
     glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
     glDrawArrays(GL_TRIANGLES, 0, 72);
   }
-
-  g_light.diffuse = light_color * glm::vec3(0.5f);
-  g_light.ambient = g_light.diffuse * glm::vec3(0.2f);
-  // g_light.specular =
-  //     glm::vec3((light_color.r + light_color.g + light_color.b) / 3.0f);
-  g_light.specular = glm::vec3(glm::compMax(light_color));
 
   glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
   g_light.position = light_view_pos;
