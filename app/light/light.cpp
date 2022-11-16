@@ -350,24 +350,35 @@ bool app_init(app_s* app) {
     }
   }
 
-  GLuint tex_diffuse = 0, tex_specular = 0;
+  app->mat_tex = {
+    .tex_diffuse = 0,
+    .tex_specular = 0,
+    .tex_diffuse_unit = GL_TEXTURE1,
+    .tex_specular_unit = GL_TEXTURE2,
+    .tex_diffuse_unit_idx = 1,
+    .tex_specular_unit_idx = 2,
+    .shininess = 32.0f,
+  };
 
-  ok = tex_load(&tex_diffuse, "assets/container2.png", GL_TEXTURE0, GL_RGBA);
+  ok = tex_load(&app->mat_tex.tex_diffuse, "assets/container2.png");
   if (!ok) {
     return ok;
   }
 
-  ok = tex_load(&tex_specular, "assets/container2_specular.png", GL_TEXTURE1,
-                GL_RGBA);
+  glActiveTexture(app->mat_tex.tex_diffuse_unit);
+  glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_diffuse);
+
+  ok = tex_load(&app->mat_tex.tex_specular, "assets/container2_specular.png");
   if (!ok) {
     return ok;
   }
 
-  app->mat_tex.shininess = 32.0f;
-  app->mat_tex.tex_diffuse = tex_diffuse;
-  app->mat_tex.tex_diffuse_unit = 0;
-  app->mat_tex.tex_specular = tex_specular;
-  app->mat_tex.tex_specular_unit = 1;
+  glActiveTexture(app->mat_tex.tex_specular_unit);
+  glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_specular);
+
+  printf("mat tex: %f %d %d %d %d", app->mat_tex.shininess,
+         app->mat_tex.tex_diffuse, app->mat_tex.tex_diffuse_unit,
+         app->mat_tex.tex_specular, app->mat_tex.tex_specular_unit);
 
   return ok;
 }

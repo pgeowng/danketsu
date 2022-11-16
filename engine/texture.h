@@ -5,8 +5,7 @@
 
 #include "texture.h"
 
-bool tex_load(GLuint* tex_unit, const char* path, GLenum tex_unit_enum,
-              GLenum format) {
+bool tex_load(GLuint* tex_unit, const char* path) {
 
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
@@ -19,15 +18,12 @@ bool tex_load(GLuint* tex_unit, const char* path, GLenum tex_unit_enum,
   glGenTextures(1, tex_unit);
   glBindTexture(GL_TEXTURE_2D, *tex_unit);
 
-  // set the texture wrapping/filtering options (on the currently bound
-  // texture object)
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  // float borderColor[] = { 1.0f, 0.2f, 0.45f, 0.5f };
-  // glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+  GLenum format = GL_RED;
+  if (nrChannels == 3) {
+    format = GL_RGB;
+  } else if (nrChannels == 4) {
+    format = GL_RGBA;
+  }
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, format,
                GL_UNSIGNED_BYTE, data);
@@ -35,8 +31,16 @@ bool tex_load(GLuint* tex_unit, const char* path, GLenum tex_unit_enum,
 
   stbi_image_free(data);
 
-  glActiveTexture(tex_unit_enum);
-  glBindTexture(GL_TEXTURE_2D, *tex_unit);
+  // set the texture wrapping/filtering options (on the currently bound
+  // texture object)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                  GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  // float borderColor[] = { 1.0f, 0.2f, 0.45f, 0.5f };
+  // glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
   return 1;
 }
