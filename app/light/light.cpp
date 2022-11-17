@@ -596,6 +596,8 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
   g_light.position = light_view_pos;
 
+  g_light.direction = glm::vec3(view * glm::vec4(1.0f, 0.3f, 0.5f, 0.0f));
+
   glm::vec3 camera_view_pos =
       glm::vec3(view * glm::vec4(app->camera.position, 1.0f));
 
@@ -637,6 +639,7 @@ internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
                                         light_s* light) {
   shader_use(cube->shader);
   mat_tex_apply(app->mat_tex, cube->shader);
+  light->direction = glm::vec3(view * glm::vec4(app->camera.front, 0.0f));
   mr_set_light(cube, light);
   mr_set_projection(cube, model, view, proj, camera_view_pos);
   mr_render(cube);

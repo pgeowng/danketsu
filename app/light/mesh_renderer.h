@@ -9,12 +9,14 @@
 struct light_s {
   // be aware that is position is in view space
   glm::vec3 position;
+  glm::vec3 direction;
   // glm::vec3 color;
   glm::vec3 ambient;
   glm::vec3 diffuse;
   glm::vec3 specular;
 } g_light = {
   glm::vec3(0.0f, 0.0f, 0.0f), // position
+  glm::vec3(0.3f, 0.4f, 0.5f), // direction
   // glm::vec3(1.0f, 1.0f, 1.0f), // color
   glm::vec3(0.2f, 0.2f, 0.2f), // ambient
   glm::vec3(0.5f, 0.5f, 0.5f), // diffuse
@@ -36,14 +38,28 @@ struct mesh_renderer_s {
 
 void mr_set_light(mesh_renderer_s* mr, light_s* light) {
   shader_use(mr->shader);
-  shader_3f(mr->shader, "light.position", light->position.x, light->position.y,
-            light->position.z);
+
   shader_3f(mr->shader, "light.ambient", light->ambient.r, light->ambient.g,
             light->ambient.b);
   shader_3f(mr->shader, "light.diffuse", light->diffuse.r, light->diffuse.g,
             light->diffuse.b);
   shader_3f(mr->shader, "light.specular", light->specular.r, light->specular.g,
             light->specular.b);
+
+  // dirlight
+  shader_3f(mr->shader, "light.direction", light->direction.x,
+            light->direction.y, light->direction.z);
+
+  // pointlight
+  shader_3f(mr->shader, "light.position", light->position.x, light->position.y,
+            light->position.z);
+  shader_1f(mr->shader, "light.constant", 1.0f);
+  shader_1f(mr->shader, "light.linear", 0.09f);
+  shader_1f(mr->shader, "light.quadratic", 0.032f);
+
+  // spotlight
+  shader_3f(mr->shader, "light.position", 0.0f, 0.0f, 0.0f);
+  shader_1f(mr->shader, "light.cutOff", glm::cos(glm::radians(12.5f)));
 }
 
 void mr_set_projection(mesh_renderer_s* mr, glm::mat4 model, glm::mat4 view,
