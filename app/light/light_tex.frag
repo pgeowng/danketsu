@@ -20,6 +20,7 @@ struct Light {
     float quadratic;
 
     float cutOff;
+    float outerCutOff;
 };
 
 uniform Material material;
@@ -81,13 +82,13 @@ void main() {
     vec3 result = vec3(0.0f);
 
     float theta = dot(lightDir, normalize(-light.direction));
+    float epsilon = light.cutOff - light.outerCutOff;
+    float intensity = clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
 
-    if (theta > light.cutOff) {
-        result = diffuse +  ambient + specular + emission;
-    }
-    else {
-        result = ambient + emission;
-    }
+    diffuse *= intensity;
+    specular *= intensity;
+
+    result = ambient + diffuse + specular + emission;
 
     // vec3 result = vec3(max(diffuse.x, max(ambient.x, specular.x)), max(diffuse.y, max(ambient.y, specular.y)), max(diffuse.z, max(ambient.z, specular.z)));
     FragColor = vec4(result, 1.0);

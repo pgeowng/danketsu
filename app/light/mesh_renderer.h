@@ -60,6 +60,7 @@ void mr_set_light(mesh_renderer_s* mr, light_s* light) {
   // spotlight
   shader_3f(mr->shader, "light.position", 0.0f, 0.0f, 0.0f);
   shader_1f(mr->shader, "light.cutOff", glm::cos(glm::radians(12.5f)));
+  shader_1f(mr->shader, "light.outerCutOff", glm::cos(glm::radians(15.5f)));
 }
 
 void mr_set_projection(mesh_renderer_s* mr, glm::mat4 model, glm::mat4 view,
