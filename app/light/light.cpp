@@ -353,10 +353,13 @@ bool app_init(app_s* app) {
   app->mat_tex = {
     .tex_diffuse = 0,
     .tex_specular = 0,
+    .tex_emission = 0,
     .tex_diffuse_unit = GL_TEXTURE1,
     .tex_specular_unit = GL_TEXTURE2,
+    .tex_emission_unit = GL_TEXTURE3,
     .tex_diffuse_unit_idx = 1,
     .tex_specular_unit_idx = 2,
+    .tex_emission_unit_idx = 3,
     .shininess = 32.0f,
   };
 
@@ -368,7 +371,12 @@ bool app_init(app_s* app) {
   glActiveTexture(app->mat_tex.tex_diffuse_unit);
   glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_diffuse);
 
-  ok = tex_load(&app->mat_tex.tex_specular, "assets/container2_specular.png");
+  ok = tex_load(&app->mat_tex.tex_specular, "assets/container2_specular2.png");
+  if (!ok) {
+    return ok;
+  }
+
+  ok = tex_load(&app->mat_tex.tex_emission, "assets/matrix.jpg");
   if (!ok) {
     return ok;
   }
