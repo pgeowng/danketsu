@@ -449,6 +449,18 @@ int main(int argc, char* argv[]) {
           input_move_right = pressed;
           break;
         }
+        case SDLK_e: {
+          if (!pressed) {
+            g_app.enable_maze = !g_app.enable_maze;
+          }
+          break;
+        }
+        case SDLK_q: {
+          if (!pressed) {
+            g_app.enable_mat_color = !g_app.enable_mat_color;
+          }
+          break;
+        }
         case SDLK_ESCAPE: {
           if (!pressed) {
             g_relative_mouse_mode =

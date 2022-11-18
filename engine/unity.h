@@ -43,4 +43,8 @@
 #define global_variable static
 #define COUNT_OF(x)                                                            \
   ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
+
+using glm::mat4;
+using glm::vec3;
+using glm::vec4;
 #endif
