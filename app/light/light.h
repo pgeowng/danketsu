@@ -9,6 +9,7 @@
 #include "mat_tex.cpp"
 #include "mesh_renderer.h"
 #include "shader.h"
+#include "text.h"
 #include "texture.h"
 
 struct app_s {
@@ -38,6 +39,8 @@ struct app_s {
   light_s dir_light = {};
   light_s p_light[4] = {};
   light_s sp_light = {};
+
+  text_s text_renderer = {};
 };
 
 #define internal static

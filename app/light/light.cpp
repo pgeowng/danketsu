@@ -405,6 +405,12 @@ bool app_init(app_s* app) {
   app->sp_light.cutOff = glm::cos(glm::radians(12.5f));
   app->sp_light.outerCutOff = glm::cos(glm::radians(15.5f));
 
+  ok = text_init(&app->text_renderer);
+  if (!ok) {
+    printf("light: failed to init text renderer\n");
+    return ok;
+  }
+
   return ok;
 }
 
@@ -412,6 +418,8 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   flycamera_update(&app->camera, dt);
 
   float time = SDL_GetTicks() / 1000.0f;
+
+  text_draw(&app->text_renderer, 10, 20, "Hello, world!");
 
   glm::mat4 model = glm::mat4(1.0f);
   glm::mat4 view = flycamera_get_view_matrix(&app->camera);
