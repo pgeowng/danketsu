@@ -45,6 +45,8 @@
   ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
 using glm::mat4;
+using glm::scale;
+using glm::translate;
 using glm::vec3;
 using glm::vec4;
 #endif

@@ -66,4 +66,8 @@ internal void draw_ramp1(app_s* app, glm::mat4 view, glm::mat4 proj,
                          glm::vec3 camera_view_pos);
 internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
                          glm::vec3 camera_view_pos);
+
+internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj);
+internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
+                                    vec3 camera_view_pos);
 #endif

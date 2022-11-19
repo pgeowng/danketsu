@@ -400,6 +400,21 @@ bool app_init(app_s* app) {
     app->p_light[i].quadratic = 0.032f;
   }
 
+  glm::vec3 purple(255.0f / 255.0f, 115.0f / 255.0f, 253.0f / 255.0f);
+  app->p_light[1].specular = purple;
+  app->p_light[1].diffuse = purple * 0.5f;
+  app->p_light[1].specular = purple * 0.1f;
+
+  glm::vec3 yellow(255.0f / 255.0f, 215.0f / 255.0f, 0.0f);
+  app->p_light[2].specular = yellow;
+  app->p_light[2].diffuse = yellow * 0.5f;
+  app->p_light[2].specular = yellow * 0.1f;
+
+  glm::vec3 blue(23.0f / 255.0f, 159.0f / 255.0f, 255.0f / 255.0f);
+  app->p_light[2].specular = blue;
+  app->p_light[2].diffuse = blue * 0.5f;
+  app->p_light[2].specular = blue * 0.1f;
+
   // spotlight
   app->sp_light.position = glm::vec3(0.0f);
   app->sp_light.cutOff = glm::cos(glm::radians(12.5f));
@@ -419,21 +434,29 @@ void app_scene_mat_view_render(app_s* app, float dt) {
 
   float time = SDL_GetTicks() / 1000.0f;
 
-  text_draw(&app->text_renderer, 10, 20, "Hello, world!");
-
   glm::mat4 model = glm::mat4(1.0f);
   glm::mat4 view = flycamera_get_view_matrix(&app->camera);
   glm::mat4 proj = flycamera_get_projection_matrix(&app->camera);
 
   glm::vec3 light_pos(0.0f);
   update_move_zigzag(&light_pos);
+  light_pos = glm::vec3(view * vec4(light_pos, 1.0f));
+  app->p_light[0].position = light_pos;
+
   update_color_rainbow(&app->p_light[0]);
 
-  app->p_light[1].position = glm::vec3(
-      view * glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
+  app->p_light[1].position =
+      glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
 
-  glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
-  g_light.position = light_view_pos;
+  app->p_light[2].position = glm::vec3(
+      glm::vec4(1.0f, 1.2f + cos(time), 2.0f + sin(time) * 1.1f, 1.0f));
+
+  app->p_light[3].position = glm::vec3(
+      glm::vec4(1.2f + cos(time) * .98f, 2.0f + sin(time) * 2.3, 1.0f, 1.0f));
+
+  // glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
+  // g_light.position = light_view_pos;
+  light_s g_light = app->p_light[0];
 
   app_update_dirlight(&app->dir_light, view);
 
@@ -445,32 +468,10 @@ void app_scene_mat_view_render(app_s* app, float dt) {
       glm::vec3(view * glm::vec4(app->camera.position, 1.0f));
 
   for (int i = 0; i < 4; i++) {
-    light_s* light = &app->p_light[i];
-    model = glm::translate(model, light->position);
-    model = glm::scale(model, glm::vec3(0.2f));
-
-    shader_use(&app->lamp_shader);
-    shader_set_lightsrc(&app->lamp_shader, app->p_light[i].specular);
-    shader_set_transform(&app->lamp_shader, model, view, proj);
-
-    glBindVertexArray(app->light_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
-    glDrawArrays(GL_TRIANGLES, 0, 72);
+    draw_lamp(app, &app->p_light[i], view, proj);
   }
 
-  int columns = 6;
-
-  for (int i = 0; i < COUNT_OF(g_mat_color_materials); i++) {
-    int row = i / columns;
-    int col = i % columns;
-    glm::vec3 pos = glm::vec3(col * 1.0f, row * 1.0f, 0.0f);
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
-    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
-
-    app->mat_color = g_mat_color_materials[i];
-    app_render_mat_color_cube(app, &g_cube, model, view, proj, camera_view_pos,
-                              &g_light);
-  }
+  draw_material_preview(app, view, proj, camera_view_pos);
 
   if (app->enable_maze) {
     draw_cube(app, view, proj, camera_view_pos);
@@ -478,23 +479,22 @@ void app_scene_mat_view_render(app_s* app, float dt) {
     draw_ramp1(app, view, proj, camera_view_pos);
     draw_ramp2(app, view, proj, camera_view_pos);
   }
+
+  int text_y = 20;
+  text_draw(&app->text_renderer, 10, 20, "Hello, world!");
+  text_y += 32;
+  char buf[50];
+  for (int i = 0; i < 4; i++) {
+    sprintf(buf, "[%.2f; %.2f; %.2f]", app->p_light[i].position.x,
+            app->p_light[i].position.y, app->p_light[i].position.z);
+    text_draw(&app->text_renderer, 10, text_y, buf);
+    text_y += 32;
+  }
 }
 
 internal void app_update(app_s* app, float dt) {
   app_scene_mat_view_render(app, dt);
 }
-
-// internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
-//                                         glm::mat4 model, glm::mat4 view,
-//                                         glm::mat4 proj,
-//                                         glm::vec3 camera_view_pos,
-//                                         light_s* light) {
-//   shader_use(cube->shader);
-//   mat_color_apply(app->mat_color, cube->shader);
-//   mr_set_light(cube, light);
-//   mr_set_projection(cube, model, view, proj, camera_view_pos);
-//   mr_render(cube);
-// }
 
 internal void draw_cube(app_s* app, glm::mat4 view, glm::mat4 proj,
                         glm::vec3 camera_view_pos) {
@@ -549,6 +549,7 @@ internal void draw_maze(app_s* app, glm::mat4 view, glm::mat4 proj,
     }
   }
 }
+
 internal void draw_ramp1(app_s* app, glm::mat4 view, glm::mat4 proj,
                          glm::vec3 camera_view_pos) {
   glm::mat4 model = glm::mat4(1.0f);
@@ -646,12 +647,18 @@ internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
 
   shader_s* sh = cube->shader;
   shader_use(sh);
-  mat_tex_apply(app->mat_tex, cube->shader);
+  if (app->enable_mat_color) {
+    mat_color_apply(app->mat_color, sh);
+  } else {
+    mat_tex_apply(app->mat_tex, cube->shader);
+  }
+
   light->direction = glm::vec3(view * glm::vec4(app->camera.front, 0.0f));
 
   shader_set_dirlight(sh, &app->dir_light);
 
   for (int i = 0; i < 4; i++) {
+    app->p_light[0].position = vec3(view * vec4(app->p_light->position, 1.0f));
     shader_set_pointlight(sh, &app->p_light[i], i);
   }
 
@@ -660,4 +667,35 @@ internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
   mr_set_light(cube, light);
   mr_set_projection(cube, model, view, proj, camera_view_pos);
   mr_render(cube);
+}
+
+internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj) {
+  mat4 model(1.0f);
+  model = translate(model, light->position);
+  model = scale(model, glm::vec3(0.2f));
+
+  shader_use(&app->lamp_shader);
+  shader_set_lightsrc(&app->lamp_shader, light->specular);
+  shader_set_transform(&app->lamp_shader, model, view, proj);
+
+  glBindVertexArray(app->light_vao);
+  glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
+  glDrawArrays(GL_TRIANGLES, 0, 72);
+}
+
+internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
+                                    vec3 camera_view_pos) {
+  int columns = 6;
+
+  for (int i = 0; i < COUNT_OF(g_mat_color_materials); i++) {
+    int row = i / columns;
+    int col = i % columns;
+    glm::vec3 pos = glm::vec3(col * 1.0f, row * 1.0f, 0.0f);
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+    model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+
+    app->mat_color = g_mat_color_materials[i];
+    app_render_mat_color_cube(app, &g_cube, model, view, proj, camera_view_pos,
+                              &g_light);
+  }
 }
