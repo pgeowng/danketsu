@@ -15,7 +15,7 @@ case $OSTYPE in
     LIB="$LIB -lmingw32 -lSDL2main -lSDL2 -lglew32 -lopengl32 -lglu32 -lstdc++ -static-libgcc -static-libstdc++"
     OUTPUT="build/engine.exe"
     ;;
-    linux)
+  linux-gnu)
     CXXFLAGS="$CXXFLAGS -lGLEW -lGL"
     OUTPUT="build/engine"
     ;;
