@@ -20,7 +20,7 @@ internal bool text_init(text_s* t) {
     return ok;
   }
 
-  ok = tex_load(&t->tex, "assets/ascii.png");
+  ok = tex_load(&t->tex, "assets/ascii.png", false);
   if (!ok) {
     printf("text: failed to load font texture\n");
     return ok;
@@ -55,19 +55,21 @@ internal void text_draw(text_s* t, int x, int y, const char* str) {
 
   int idx = 0;
 
-  float screen_w = 16.0f;
-  float screen_h = 16.0f;
-  float char_w = 16.0f;
-  float char_h = 28.0f;
+  float screen_w = 32.0f / 1000.0f;
+  float screen_h = 32.0f / 600.0f;
+  float char_w = 16.0f / 256.0f;
+  float char_h = 16.0f / 256.0f;
+  float offset_x = -1.0f + x / 1000.0f;
+  float offset_y = 1.0f - char_h - y / 600.0f;
   while (str[idx] != '\0' && size < chars_size) {
     char str_i = str[idx];
     // float tex_x = str_i % 16 * char_width;
     // float tex_y = str_i / 16 * 16;
 
-    float screen_x = idx * screen_w;
-    float screen_y = 0;
-    float char_x = str_i % 16 * char_w;
-    float char_y = str_i / 16 * char_h;
+    float screen_x = offset_x + idx * screen_w;
+    float screen_y = offset_y;
+    float char_x = (16 - (256 - str_i) % 16) * char_w;
+    float char_y = (256 - str_i) / 16 * char_h;
 
     {
       // bottom left
@@ -98,14 +100,16 @@ internal void text_draw(text_s* t, int x, int y, const char* str) {
       chars[size++] = char_x + char_w;
       chars[size++] = char_y + char_h;
     }
+    idx++;
   }
 
+  shader_use(&t->shader);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, t->tex);
 
   glBindVertexArray(t->vao);
   glBindBuffer(GL_ARRAY_BUFFER, t->vbo);
-  glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), chars, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, size * sizeof(float), chars, GL_STATIC_DRAW);
   glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
@@ -114,13 +118,12 @@ internal void text_draw(text_s* t, int x, int y, const char* str) {
 
   mat4 model(1.0f);
   // model = glm::scale(model, vec3(1.0f / 800.0f, 1.0f / 600.0f, 1.0f));
-  shader_use(&t->shader);
   shader_mat4fv(&t->shader, "model", glm::value_ptr(model));
   shader_1i(&t->shader, "tex", 1);
 
   glBindVertexArray(t->vao);
   glBindBuffer(GL_ARRAY_BUFFER, t->vbo);
-  glDrawArrays(GL_TRIANGLES, 0, 24);
+  glDrawArrays(GL_TRIANGLES, 0, size / 4);
 }
 
 #endif

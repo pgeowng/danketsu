@@ -11,5 +11,5 @@ out vec2 TexCoords;
 void main() {
     gl_Position = model * vec4(aPos, 0.0f, 1.0f);
     FragPos = vec2(model * vec4(aPos, 0.0f, 1.0f));
-    TexCoords = aTexCoords;
+    TexCoords = vec2(model * vec4(aTexCoords, 0.0f, 1.0f));
 }
