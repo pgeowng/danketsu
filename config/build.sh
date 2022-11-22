@@ -18,6 +18,7 @@ case $OSTYPE in
   linux-gnu)
     CXXFLAGS="$CXXFLAGS -lGLEW -lGL"
     OUTPUT="build/engine"
+		LIB="$LIB -lSDL2main -lSDL2"
     ;;
   *)
     echo "Unknown OS: $OSTYPE"

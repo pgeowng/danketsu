@@ -151,6 +151,7 @@ void main() {
 
     // result += CalcSpotLight(spotLight, norm, viewDir);
 
+				/*
     // invert specular light
     vec3 specularMap = (vec3(1.0-texture(material.specular, TexCoords)) * 4.0f - 3.0f);
     specularMap = clamp(specularMap, 0.0, 1.0);
@@ -159,6 +160,7 @@ void main() {
     vec3 emission = specularGray * vec3(texture(material.emission, TexCoords + vec2(0.0, time/4.0f)));
 
     result = max(result, emission);
+		*/
 
     FragColor = vec4(result, 1.0);
 }

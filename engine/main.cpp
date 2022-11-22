@@ -4,8 +4,8 @@
 #include "shader.h"
 
 // #include "../app/hello/hello.cpp"
-#include "../app/audio/audio.cpp"
-// #include "../app/light/light.cpp"
+// #include "../app/audio/audio.cpp"
+#include "../app/light/light.cpp"
 
 int g_screenWidth = 1000;
 int g_screenHeight = 600;
