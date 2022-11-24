@@ -403,17 +403,17 @@ bool app_init(app_s* app) {
   glm::vec3 purple(255.0f / 255.0f, 115.0f / 255.0f, 253.0f / 255.0f);
   app->p_light[1].specular = purple;
   app->p_light[1].diffuse = purple * 0.5f;
-  app->p_light[1].specular = purple * 0.1f;
+  app->p_light[1].ambient = purple * 0.1f;
 
   glm::vec3 yellow(255.0f / 255.0f, 215.0f / 255.0f, 0.0f);
   app->p_light[2].specular = yellow;
   app->p_light[2].diffuse = yellow * 0.5f;
-  app->p_light[2].specular = yellow * 0.1f;
+  app->p_light[2].ambient = yellow * 0.1f;
 
   glm::vec3 blue(23.0f / 255.0f, 159.0f / 255.0f, 255.0f / 255.0f);
-  app->p_light[2].specular = blue;
-  app->p_light[2].diffuse = blue * 0.5f;
-  app->p_light[2].specular = blue * 0.1f;
+  app->p_light[3].specular = blue;
+  app->p_light[3].diffuse = blue * 0.5f;
+  app->p_light[3].ambient = blue * 0.1f;
 
   // spotlight
   app->sp_light.position = glm::vec3(0.0f);
@@ -447,6 +447,7 @@ void app_scene_mat_view_render(app_s* app, float dt) {
 
   app->p_light[1].position =
       glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
+
 
   app->p_light[2].position = glm::vec3(
       glm::vec4(1.0f, 1.2f + cos(time), 2.0f + sin(time) * 1.1f, 1.0f));
@@ -647,18 +648,18 @@ internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
 
   shader_s* sh = cube->shader;
   shader_use(sh);
-  if (app->enable_mat_color) {
-    mat_color_apply(app->mat_color, sh);
-  } else {
+  // if (app->enable_mat_color) {
+    // mat_color_apply(app->mat_color, sh);
+  // } else {
     mat_tex_apply(app->mat_tex, cube->shader);
-  }
+  // }
 
   light->direction = glm::vec3(view * glm::vec4(app->camera.front, 0.0f));
 
   shader_set_dirlight(sh, &app->dir_light);
 
   for (int i = 0; i < 4; i++) {
-    app->p_light[0].position = vec3(view * vec4(app->p_light->position, 1.0f));
+    app->p_light[i].position = vec3(vec4(app->p_light[i].position, 1.0f));
     shader_set_pointlight(sh, &app->p_light[i], i);
   }
 

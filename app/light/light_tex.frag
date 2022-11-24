@@ -91,8 +91,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos) {
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
 
-    return vec3(1.0f) * diff;
-    // return (ambient + diffuse + specular) * attenuation;
+    return (ambient + diffuse + specular) * attenuation;
 }
 
 struct SpotLight {
@@ -146,8 +145,8 @@ void main() {
     // result += CalcDirLight(dirLight, norm, viewDir);
 
     // for(int i = 0; i < NR_POINT_LIGHTS; i++)
-        // result += CalcPointLight(pointLights[i], norm, viewDir, FragPos);
-        result += CalcPointLight(pointLights[0], norm, viewDir, FragPos);
+    // result += CalcPointLight(pointLights[i], norm, viewDir, FragPos);
+    result += CalcPointLight(pointLights[1], norm, viewDir, FragPos);
 
     // result += CalcSpotLight(spotLight, norm, viewDir);
 
