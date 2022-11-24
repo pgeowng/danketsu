@@ -416,7 +416,12 @@ bool app_init(app_s* app) {
   app->p_light[3].ambient = blue * 0.1f;
 
   // spotlight
+  glm::vec3 orange(1.0f, 85.0f/255.0f, 0.0f);
+  app->sp_light.specular = orange;
+  app->sp_light.diffuse = orange * 0.5f;
+  app->sp_light.ambient = orange * 0.1f;
   app->sp_light.position = glm::vec3(0.0f);
+  app->sp_light.direction = glm::vec3(0.0f, 0.0f, -1.0f);
   app->sp_light.cutOff = glm::cos(glm::radians(12.5f));
   app->sp_light.outerCutOff = glm::cos(glm::radians(15.5f));
 
@@ -440,13 +445,12 @@ void app_scene_mat_view_render(app_s* app, float dt) {
 
   glm::vec3 light_pos(0.0f);
   update_move_zigzag(&light_pos);
-  light_pos = glm::vec3(view * vec4(light_pos, 1.0f));
   app->p_light[0].position = light_pos;
 
   update_color_rainbow(&app->p_light[0]);
 
-  app->p_light[1].position =
-      glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
+  app->p_light[1].position = glm::vec3(
+    glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
 
 
   app->p_light[2].position = glm::vec3(
@@ -660,7 +664,7 @@ internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
 
   for (int i = 0; i < 4; i++) {
     app->p_light[i].position = vec3(vec4(app->p_light[i].position, 1.0f));
-    shader_set_pointlight(sh, &app->p_light[i], i);
+    shader_set_pointlight(sh, view, &app->p_light[i], i);
   }
 
   shader_set_spotlight(sh, &app->sp_light);

@@ -58,7 +58,8 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir) {
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
 
-    return ambient + diffuse + specular;
+    return diffuse + specular;
+    // return ambient + diffuse + specular;
 };
 
 
@@ -91,7 +92,8 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 viewDir, vec3 fragPos) {
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoords));
     vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoords));
 
-    return (ambient + diffuse + specular) * attenuation;
+    // return (ambient + diffuse + specular) * attenuation;
+    return (diffuse + specular) * attenuation;
 }
 
 struct SpotLight {
@@ -137,20 +139,17 @@ void main() {
 
     vec3 result = vec3(0.0f);
 
-/*
-    vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
-    result += ambient;
-    */
+    // vec3 ambient = light.ambient * vec3(texture(material.diffuse, TexCoords));
+    // result += ambient;
 
-    // result += CalcDirLight(dirLight, norm, viewDir);
+    result += CalcDirLight(dirLight, norm, viewDir);
 
-    // for(int i = 0; i < NR_POINT_LIGHTS; i++)
-    // result += CalcPointLight(pointLights[i], norm, viewDir, FragPos);
-    result += CalcPointLight(pointLights[1], norm, viewDir, FragPos);
+    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+    result += CalcPointLight(pointLights[i], norm, viewDir, FragPos);
+    // result += CalcPointLight(pointLights[1], norm, viewDir, FragPos);
 
-    // result += CalcSpotLight(spotLight, norm, viewDir);
+    result += CalcSpotLight(spotLight, norm, viewDir);
 
-				/*
     // invert specular light
     vec3 specularMap = (vec3(1.0-texture(material.specular, TexCoords)) * 4.0f - 3.0f);
     specularMap = clamp(specularMap, 0.0, 1.0);
@@ -159,7 +158,6 @@ void main() {
     vec3 emission = specularGray * vec3(texture(material.emission, TexCoords + vec2(0.0, time/4.0f)));
 
     result = max(result, emission);
-		*/
 
     FragColor = vec4(result, 1.0);
 }

@@ -57,21 +57,29 @@ void shader_set_dirlight(shader_s* sh, light_s* l) {
             l->direction.z);
 }
 
-void shader_set_pointlight(shader_s* sh, light_s* l, int l_idx) {
+void shader_set_pointlight(shader_s* sh, mat4 view, light_s* l, int l_idx) {
   char key[50];
   shader_use(sh);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "position");
-  shader_3f(sh, key, l->position.x, l->position.y, l->position.z);
+  vec3 position = vec3(view * vec4(l->position, 1.0f));
+  shader_3f(sh, key, position.x, position.y, position.z);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "ambient");
   shader_3f(sh, key, l->ambient.x, l->ambient.y, l->ambient.z);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "diffuse");
   shader_3f(sh, key, l->diffuse.x, l->diffuse.y, l->diffuse.z);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "specular");
   shader_3f(sh, key, l->specular.x, l->specular.y, l->specular.z);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "constant");
   shader_1f(sh, key, l->constant);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "linear");
   shader_1f(sh, key, l->linear);
+
   sprintf(key, "pointLights[%d].%s", l_idx, "quadratic");
   shader_1f(sh, key, l->quadratic);
 }
