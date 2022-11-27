@@ -3,10 +3,10 @@
 #include "flycamera.h"
 #include "shader.h"
 
-#include "../app/hello/hello.cpp"
-#include "../app/hello/input.h"
+// #include "../app/hello/hello.cpp"
+// #include "../app/hello/input.h"
 // #include "../app/audio/audio.cpp"
-//#include "../app/light/light.cpp"
+#include "../app/light/light.cpp"
 
 int g_screenWidth = 1000;
 int g_screenHeight = 600;

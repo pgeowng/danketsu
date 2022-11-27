@@ -59,7 +59,8 @@ bool mesh_clean(mesh_s *m) {
   return true;
 }
 
-void mesh_draw(mesh_s *m) {
+void mesh_draw(mesh_s *m, shader_s *sh) {
+
   glBindVertexArray(m->vao);
   if (m->indices_size > 0) {
     glDrawElements(GL_TRIANGLES, m->indices_size, GL_UNSIGNED_INT, 0);

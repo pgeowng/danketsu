@@ -7,10 +7,16 @@
 #include "flycamera.h"
 #include "mat_color.cpp"
 #include "mat_tex.cpp"
-#include "mesh_renderer.h"
+//#include "mesh_renderer.h"
 #include "shader.h"
 #include "text.h"
 #include "texture.h"
+#include "mesh.h"
+#include "mesh.cpp"
+
+#include "example/cube_tex_mesh.h"
+#include "light_shader.h"
+#include "example/ramp_mesh.h"
 
 struct app_s {
   // glm::vec3 position;
@@ -19,12 +25,15 @@ struct app_s {
   // glm::vec3 diffuse;
   // glm::vec3 specular;
 
-  GLuint vao;
-  GLuint light_vao;
-  GLuint vbo;
-  GLuint ramp_vao;
-  GLuint ramp_vbo;
-  GLuint ebo;
+  // GLuint vao;
+  // GLuint light_vao;
+  // GLuint vbo;
+  // GLuint ramp_vao;
+  // GLuint ramp_vbo;
+  // GLuint ebo;
+
+  mesh_s ramp_mesh = {};
+  mesh_s cube_mesh = {};
 
   bool enable_maze = false;
   bool enable_mat_color = false;
@@ -49,7 +58,7 @@ internal bool app_init(app_s* app);
 internal bool app_init_tex(app_s* app, GLuint* tex_unit, const char* path,
                            GLenum tex_unit_enum);
 
-internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
+internal void app_render_mat_color_cube(app_s* app, mesh_s* cube, shader_s* sh,
                                         glm::mat4 model, glm::mat4 view,
                                         glm::mat4 proj,
                                         glm::vec3 camera_view_pos,

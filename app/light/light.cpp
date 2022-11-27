@@ -26,317 +26,25 @@ bool app_init(app_s* app) {
     return ok;
   }
 
-  float cube[] = { // front
-                   -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f,
 
-                   -0.5f, 0.5f, -0.5f, // Front Left Top
-                   0.0f, 0.0f, -0.5f, 0.0f, 1.0f,
+  mesh_init(&app->cube_mesh);
+  mesh_init_cube_tex(&app->cube_mesh);
+  mesh_setup(&app->cube_mesh);
 
-                   0.5f, 0.5f, -0.5f, // Front Right Top
-                   0.0f, 0.0f, -0.5f, 1.0f, 1.0f,
+  mesh_init(&app->ramp_mesh);
+  mesh_init_ramp(&app->ramp_mesh);
+  mesh_setup(&app->ramp_mesh);
 
-                   0.5f, 0.5f, -0.5f, // Front Right Top
-                   0.0f, 0.0f, -0.5f, 1.0f, 1.0f,
 
-                   0.5f, -0.5f, -0.5f, // Front Right Bottom
-                   0.0f, 0.0f, -0.5f, 1.0f, 0.0f,
+  // g_cube.shader = &app->lighting_shader;
+  // g_cube.vao = app->vao;
+  // g_cube.vbo = app->vbo;
+  // g_cube.num_triangles = 72;
 
-                   -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -0.5f, 0.0f, 0.0f,
-
-                   // right
-                   0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-
-                   0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-
-                   0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-
-                   0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-
-                   0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-                   0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-
-                   // back
-                   0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-
-                   0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-
-                   -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-
-                   -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-
-                   -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-
-                   0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-
-                   // left
-                   -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-
-                   -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
-
-                   -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-
-                   -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
-
-                   -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-
-                   -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-
-                   // top
-                   -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-
-                   -0.5, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-
-                   0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-
-                   0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-
-                   0.5, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-
-                   -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-
-                   // bottom
-                   -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-
-                   -0.5, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
-
-                   0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-
-                   0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
-
-                   0.5, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-
-                   -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f
-  };
-
-  float x_45deg = 0.70710678118f;
-
-  float ramp[] = {
-    // up
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    0.0f,
-    x_45deg,
-    -x_45deg,
-
-    -0.5f,
-    0.5f,
-    0.5f,
-    0.0f,
-    x_45deg,
-    -x_45deg,
-
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.0f,
-    x_45deg,
-    -x_45deg,
-
-    // up right
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.0f,
-    x_45deg,
-    -x_45deg,
-
-    -0.5f,
-    0.5f,
-    0.5f,
-    0.0f,
-    x_45deg,
-    -x_45deg,
-
-    0.5f,
-    0.5f,
-    0.5f,
-    0.0f,
-    x_45deg,
-    -x_45deg,
-
-    // left
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -1.0f,
-    0.0f,
-    0.0f,
-
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -1.0f,
-    0.0f,
-    0.0f,
-
-    -0.5f,
-    0.5f,
-    0.5f,
-    -1.0f,
-    0.0f,
-    0.0f,
-
-    // right
-    0.5f,
-    -0.5f,
-    -0.5f,
-    1.0f,
-    0.0f,
-    0.0f,
-
-    0.5f,
-    -0.5f,
-    0.5f,
-    1.0f,
-    0.0f,
-    0.0f,
-
-    0.5f,
-    0.5f,
-    0.5f,
-    1.0f,
-    0.0f,
-    0.0f,
-
-    // bottom
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    0.0f,
-    -1.0f,
-    0.0f,
-
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.0f,
-    -1.0f,
-    0.0f,
-
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.0f,
-    -1.0f,
-    0.0f,
-
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    0.0f,
-    -1.0f,
-    0.0f,
-
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.0f,
-    -1.0f,
-    0.0f,
-
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.0f,
-    -1.0f,
-    0.0f,
-
-    // back
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.0f,
-    0.0f,
-    1.0f,
-
-    -0.5f,
-    0.5f,
-    0.5f,
-    0.0f,
-    0.0f,
-    1.0f,
-
-    0.5f,
-    0.5f,
-    0.5f,
-    0.0f,
-    0.0f,
-    1.0f,
-
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.0f,
-    0.0f,
-    1.0f,
-
-    0.5f,
-    0.5f,
-    0.5f,
-    0.0f,
-    0.0f,
-    1.0f,
-
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.0f,
-    0.0f,
-    1.0f,
-  };
-
-  glGenVertexArrays(1, &app->vao);
-  glBindVertexArray(app->vao);
-  glGenBuffers(1, &app->vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(6 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-
-  glGenVertexArrays(1, &app->ramp_vao);
-  glBindVertexArray(app->ramp_vao);
-  glGenBuffers(1, &app->ramp_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, app->ramp_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(ramp), ramp, GL_STATIC_DRAW);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
-                        (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
-
-  glGenVertexArrays(1, &app->light_vao);
-  glBindVertexArray(app->light_vao);
-
-  glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(3 * sizeof(float)));
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(6 * sizeof(float)));
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-
-  g_cube.shader = &app->lighting_shader;
-  g_cube.vao = app->vao;
-  g_cube.vbo = app->vbo;
-  g_cube.num_triangles = 72;
-
-  g_ramp.shader = &app->lighting_shader;
-  g_ramp.vao = app->ramp_vao;
-  g_ramp.vbo = app->ramp_vbo;
-  g_ramp.num_triangles = 24;
+  // g_ramp.shader = &app->lighting_shader;
+  // g_ramp.vao = app->ramp_vao;
+  // g_ramp.vbo = app->ramp_vbo;
+  // g_ramp.num_triangles = 24;
 
   for (int l = 0; l < 3; l++) {
 
@@ -505,8 +213,8 @@ internal void draw_cube(app_s* app, glm::mat4 view, glm::mat4 proj,
                         glm::vec3 camera_view_pos) {
   glm::mat4 model = glm::mat4(1.0f);
   app->mat_color = g_mat_sh_0;
-  app_render_mat_color_cube(app, &g_cube, model, view, proj, camera_view_pos,
-                            &g_light);
+  app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
+                            &app->p_light[0]);
 }
 
 internal void draw_maze(app_s* app, glm::mat4 view, glm::mat4 proj,
@@ -547,8 +255,8 @@ internal void draw_maze(app_s* app, glm::mat4 view, glm::mat4 proj,
 
           ;
           app->mat_color = g_mat_sh_1;
-          app_render_mat_color_cube(app, &g_cube, model, view, proj,
-                                    camera_view_pos, &g_light);
+          app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model, view, proj,
+                                    camera_view_pos, &app->p_light[0]);
         }
       }
     }
@@ -566,8 +274,8 @@ internal void draw_ramp1(app_s* app, glm::mat4 view, glm::mat4 proj,
       model, glm::vec3(cos(time / 2.0f) + 2.0f, sin(time / 3.0f) + 1.3f, 1.0f));
 
   app->mat_color = g_mat_sh_2;
-  app_render_mat_color_cube(app, &g_ramp, model, view, proj, camera_view_pos,
-                            &g_light);
+  app_render_mat_color_cube(app, &app->ramp_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
+                            &app->p_light[0]);
 }
 
 internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
@@ -591,8 +299,8 @@ internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
                       glm::vec3(0.0f, 1.0f, 0.0f));
 
   app->mat_color = g_mat_sh_2;
-  app_render_mat_color_cube(app, &g_ramp, model, view, proj, camera_view_pos,
-                            &g_light);
+  app_render_mat_color_cube(app, &app->ramp_mesh,&app->lighting_shader, model, view, proj, camera_view_pos,
+                            &app->p_light[0]);
 }
 internal void update_move_zigzag(glm::vec3* pos) {
   float time = SDL_GetTicks() / 1000.0f;
@@ -631,7 +339,7 @@ internal void update_color_rainbow(light_s* l) {
                         (sin(time * 1.3f) + 1.0f) / 2.0f);
 
   l->diffuse = light_color * glm::vec3(0.5f);
-  l->ambient = g_light.diffuse * glm::vec3(0.2f);
+  l->ambient = light_color * glm::vec3(0.2f);
   // g_light.specular =
   //     glm::vec3((light_color.r + light_color.g + light_color.b) / 3.0f);
   // g_light.specular = glm::vec3(glm::compMax(light_color));
@@ -644,18 +352,17 @@ internal void app_update_dirlight(light_s* l, glm::mat4 view) {
   l->direction = glm::vec3(view * dir_light_direction);
 }
 
-internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
+internal void app_render_mat_color_cube(app_s* app, mesh_s* mesh, shader_s* sh,
                                         glm::mat4 model, glm::mat4 view,
                                         glm::mat4 proj,
                                         glm::vec3 camera_view_pos,
                                         light_s* light) {
 
-  shader_s* sh = cube->shader;
   shader_use(sh);
   // if (app->enable_mat_color) {
     // mat_color_apply(app->mat_color, sh);
   // } else {
-    mat_tex_apply(app->mat_tex, cube->shader);
+    mat_tex_apply(app->mat_tex, sh);
   // }
 
   light->direction = glm::vec3(view * glm::vec4(app->camera.front, 0.0f));
@@ -669,9 +376,9 @@ internal void app_render_mat_color_cube(app_s* app, mesh_renderer_s* cube,
 
   shader_set_spotlight(sh, &app->sp_light);
 
-  mr_set_light(cube, light);
-  mr_set_projection(cube, model, view, proj, camera_view_pos);
-  mr_render(cube);
+  shader_set_light(sh, light);
+  shader_set_transform_and_viewpos(sh, model, view, proj, camera_view_pos);
+  mesh_draw(mesh, sh);
 }
 
 internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj) {
@@ -683,9 +390,7 @@ internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj) {
   shader_set_lightsrc(&app->lamp_shader, light->specular);
   shader_set_transform(&app->lamp_shader, model, view, proj);
 
-  glBindVertexArray(app->light_vao);
-  glBindBuffer(GL_ARRAY_BUFFER, app->vbo);
-  glDrawArrays(GL_TRIANGLES, 0, 72);
+  mesh_draw(&app->cube_mesh, &app->lamp_shader);
 }
 
 internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
@@ -700,8 +405,8 @@ internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     app->mat_color = g_mat_color_materials[i];
-    app_render_mat_color_cube(app, &g_cube, model, view, proj, camera_view_pos,
-                              &g_light);
+    app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
+                              &app->p_light[0]);
   }
 }
 

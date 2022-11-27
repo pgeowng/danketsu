@@ -3,6 +3,7 @@
 
 
 #include "alloc.h"
+#include "shader.h"
 
 #include "unity.h"
 
@@ -30,7 +31,7 @@ void mesh_init(mesh_s *m);
 bool mesh_read_obj(mesh_s *m, const char * filename);
 bool mesh_setup(mesh_s *m);
 bool mesh_clean(mesh_s *m);
-void mesh_draw(mesh_s *m);
+void mesh_draw(mesh_s *m, shader_s *sh);
 
 
 // #define MAX_VERTICES 20000

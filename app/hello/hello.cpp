@@ -55,10 +55,7 @@ void app_update(app_s* app, float delta) {
   shader_mat4fv(&app->shader, "projection",
                 glm::value_ptr(flycamera_get_projection_matrix(&app->camera)));
 
-  mesh_draw(&app->cube_mesh);
-  // glBindVertexArray(app->vao);
-  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->ebo);
-  // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+  mesh_draw(&app->cube_mesh, &app->shader);
 
   glm::vec3 positions[] = {
     glm::vec3(0.2f, -0.2f, 1.0f),
@@ -75,10 +72,7 @@ void app_update(app_s* app, float delta) {
 
     shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
 
-    mesh_draw(&app->cube_mesh);
+    mesh_draw(&app->cube_mesh, &app->shader);
 
-    // glBindVertexArray(app->vao);
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, app->ebo);
-    // glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
   }
 }
