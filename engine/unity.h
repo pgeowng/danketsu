@@ -49,4 +49,5 @@ using glm::scale;
 using glm::translate;
 using glm::vec3;
 using glm::vec4;
+using glm::vec2;
 #endif
