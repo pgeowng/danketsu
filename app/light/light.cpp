@@ -27,8 +27,11 @@ bool app_init(app_s* app) {
   }
 
 
+  // mesh_init(&app->cube_mesh);
+  // mesh_init_cube_tex(&app->cube_mesh);
+  // mesh_setup(&app->cube_mesh);
   mesh_init(&app->cube_mesh);
-  mesh_init_cube_tex(&app->cube_mesh);
+  mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
   mesh_setup(&app->cube_mesh);
 
   mesh_init(&app->ramp_mesh);
