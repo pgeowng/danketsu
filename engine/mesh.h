@@ -13,6 +13,12 @@ struct vertex_s {
   vec2 texcoord;
 };
 
+struct texture_s {
+  GLuint id;
+  const char* type;
+  // const char* path;
+};
+
 struct mesh_s {
   vertex_s *verts;
   int verts_size;
@@ -21,6 +27,11 @@ struct mesh_s {
   uint *indices;
   int indices_size;
   int indices_cap;
+
+  texture_s *textures;
+  int textures_size;
+  int textures_cap;
+
 
   GLuint vao;
   GLuint vbo;

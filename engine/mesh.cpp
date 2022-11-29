@@ -9,6 +9,10 @@ void mesh_init(mesh_s *m)  {
   m->indices_size = 0;
   m->indices_cap = 0;
 
+  m->textures = NULL;
+  m->textures_size = 0;
+  m->textures_cap = 0;
+
   m->vao = 0;
   m->vbo = 0;
   m->ebo = 0;
@@ -60,6 +64,22 @@ bool mesh_clean(mesh_s *m) {
 }
 
 void mesh_draw(mesh_s *m, shader_s *sh) {
+  int diffuse_nr = 1;
+  int specular_nr = 1;
+
+  for (int i = 0; i < m->textures_size; i++) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    glBindTexture(GL_TEXTURE_2D, m->textures[i].id);
+    const char *name = m->textures[i].type;
+
+    int index = 0;
+    if (strcmp(name, "texture_diffuse") == 0) {
+
+
+      glUniform1i(glGetUniformLocation(sh->id, m->textures[i].type), i);
+    }
+    glUniform1i(glGetUniformLocation(sh->id, m->textures[i].type), i);
+  }
 
   glBindVertexArray(m->vao);
   if (m->indices_size > 0) {
