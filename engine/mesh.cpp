@@ -69,17 +69,21 @@ void mesh_draw(mesh_s *m, shader_s *sh) {
 
   for (int i = 0; i < m->textures_size; i++) {
     glActiveTexture(GL_TEXTURE0 + i);
-    glBindTexture(GL_TEXTURE_2D, m->textures[i].id);
-    const char *name = m->textures[i].type;
 
-    int index = 0;
-    if (strcmp(name, "texture_diffuse") == 0) {
-
-
-      glUniform1i(glGetUniformLocation(sh->id, m->textures[i].type), i);
+    int slot = 0;
+    if (strcmp(m->textures[i].type, "texture_diffuse") == 0) {
+      slot = diffuse_nr++;
+    } else if (strcmp(m->textures[i].type, "texture_specular") == 0) {
+      slot = specular_nr++;
     }
-    glUniform1i(glGetUniformLocation(sh->id, m->textures[i].type), i);
+
+    char name[50];
+    sprintf(name, "%s%d", m->textures[i].type, slot);
+    shader_1i(sh, name, i);
+    glBindTexture(GL_TEXTURE_2D, m->textures[i].id);
   }
+
+
 
   glBindVertexArray(m->vao);
   if (m->indices_size > 0) {
@@ -88,6 +92,8 @@ void mesh_draw(mesh_s *m, shader_s *sh) {
     glDrawArrays(GL_TRIANGLES, 0, m->verts_size);
   }
   glBindVertexArray(0);
+
+  glActiveTexture(GL_TEXTURE0);
 }
 
 bool mesh_read_obj(mesh_s *m, const char * filename) {
