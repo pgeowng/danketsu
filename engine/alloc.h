@@ -27,4 +27,15 @@ void * alloc_free(void *ptr) {
   return NULL;
 }
 
+void *alloc_push(void *ptr, int *size, int *cap, size_t elem_size, void *elem) {
+  if (*size == *cap) {
+    *cap *= 2;
+    ptr = alloc_resize(ptr, *cap * elem_size);
+  }
+  void *dest = (char*)ptr + *size * elem_size;
+  memcpy(dest, elem, elem_size);
+  *size += 1;
+  return ptr;
+}
+
 #endif

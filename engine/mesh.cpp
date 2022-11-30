@@ -71,9 +71,9 @@ void mesh_draw(mesh_s *m, shader_s *sh) {
     glActiveTexture(GL_TEXTURE0 + i);
 
     int slot = 0;
-    if (strcmp(m->textures[i].type, "texture_diffuse") == 0) {
+    if (strcmp(m->textures[i].type, "material.diffuse") == 0) {
       slot = diffuse_nr++;
-    } else if (strcmp(m->textures[i].type, "texture_specular") == 0) {
+    } else if (strcmp(m->textures[i].type, "material.specular") == 0) {
       slot = specular_nr++;
     }
 
@@ -94,6 +94,20 @@ void mesh_draw(mesh_s *m, shader_s *sh) {
   glBindVertexArray(0);
 
   glActiveTexture(GL_TEXTURE0);
+}
+
+bool mesh_add_texture(mesh_s *m, const char *path, const char *type) {
+  texture_s tex;
+  bool ok = tex_load(&tex.id, path);
+  if (!ok) {
+    printf("mesh_add_texture: failed to load texture %s", path);
+    return false;
+  }
+  tex.type = type;
+  // tex.path = path;
+  m->textures = (texture_s*)alloc_push(m->textures, &m->textures_size, &m->textures_cap, sizeof(texture_s), &tex);
+
+  return true;
 }
 
 bool mesh_read_obj(mesh_s *m, const char * filename) {

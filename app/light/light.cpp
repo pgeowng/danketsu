@@ -30,8 +30,10 @@ bool app_init(app_s* app) {
   // mesh_init(&app->cube_mesh);
   // mesh_init_cube_tex(&app->cube_mesh);
   // mesh_setup(&app->cube_mesh);
+
   mesh_init(&app->cube_mesh);
   mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
+  mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png", "material.diffuse");
   mesh_setup(&app->cube_mesh);
 
   mesh_init(&app->ramp_mesh);
@@ -405,6 +407,7 @@ internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
     int col = i % columns;
     glm::vec3 pos = glm::vec3(col * 1.0f, row * 1.0f, 0.0f);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+    model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     app->mat_color = g_mat_color_materials[i];
