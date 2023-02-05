@@ -189,6 +189,7 @@ void mesh_init_ramp(mesh_s *m) {
   m->verts = (vertex_s *)alloc_make(sizeof(vertex_s) * m->verts_cap);
 
   for (int i = 0; i < m->verts_size; i++) {
+    log_debug("i: %d", i*6+5);
     m->verts[i].pos.x = ramp[i * 6 + 0];
     m->verts[i].pos.y = ramp[i * 6 + 1];
     m->verts[i].pos.z = ramp[i * 6 + 2];

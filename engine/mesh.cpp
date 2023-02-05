@@ -1,17 +1,9 @@
 #include "mesh.h"
 
 void mesh_init(mesh_s *m)  {
-  m->verts = NULL;
-  m->verts_size = 0;
-  m->verts_cap = 0;
-
-  m->indices = NULL;
-  m->indices_size = 0;
-  m->indices_cap = 0;
-
-  m->textures = NULL;
-  m->textures_size = 0;
-  m->textures_cap = 0;
+  slice_make(&m->verts, 4, sizeof(vertex_s));
+  slice_make(&m->indices, 6, sizeof(uint32_t)); // unsigned int ?
+  slice_make(&m->textures, 4, sizeof(texture_s));
 
   m->vao = 0;
   m->vbo = 0;
@@ -26,12 +18,12 @@ bool mesh_setup(mesh_s *m) {
   glBindVertexArray(m->vao);
   glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_s) * m->verts_size, m->verts, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, slice_bytes(m->verts), slice_ptr(m->verts), GL_STATIC_DRAW);
 
-  if (m->indices_size > 0) {
+  if (slice_size(m->indices) > 0) {
     glGenBuffers(1, &m->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * m->indices_size, m->indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, slice_bytes(m->indices), slice_ptr(m->indices), GL_STATIC_DRAW);
   }
 
   // position attribute
@@ -53,28 +45,35 @@ bool mesh_setup(mesh_s *m) {
 bool mesh_clean(mesh_s *m) {
   glDeleteVertexArrays(1, &m->vao);
   glDeleteBuffers(1, &m->vbo);
-  if (m->indices_size > 0) {
+  if (slice_size(m->indices) > 0) {
     glDeleteBuffers(1, &m->ebo);
   }
 
-  m->verts = (vertex_s*)alloc_free(m->verts);
-  m->verts_size = 0;
-  m->verts_cap = 0;
+  slice_free(&m->verts);
+  slice_free(&m->indices);
+  slice_free(&m->textures);
   return true;
 }
 
 void mesh_draw(mesh_s *m, shader_s *sh) {
   int diffuse_nr = 1;
   int specular_nr = 1;
+  int emission_nr = 1;
 
-  for (int i = 0; i < m->textures_size; i++) {
+  for (int i = 0; i < slice_size(m->textures); i++) {
     glActiveTexture(GL_TEXTURE0 + i);
 
+
+    ()(slice_ptr(m->textures, i))
+    const char *type_name = (char *)((texture_s*)slice_idx(m->textures, i).type);
+
     int slot = 0;
-    if (strcmp(m->textures[i].type, "material.diffuse") == 0) {
+    if (strcmp(type_name, "material.diffuse") == 0) {
       slot = diffuse_nr++;
-    } else if (strcmp(m->textures[i].type, "material.specular") == 0) {
+    } else if (strcmp(type_name, "material.specular") == 0) {
       slot = specular_nr++;
+    } else if (strcmp(type_name, "material.emission") == 0) {
+      slot = emission_nr++;
     }
 
     char name[50];

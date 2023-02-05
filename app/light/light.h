@@ -13,6 +13,7 @@
 #include "texture.h"
 #include "mesh.h"
 #include "mesh.cpp"
+#include "util/log.c"
 
 #include "example/cube_tex_mesh.h"
 #include "light_shader.h"

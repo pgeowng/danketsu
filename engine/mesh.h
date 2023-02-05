@@ -4,6 +4,8 @@
 
 #include "alloc.h"
 #include "shader.h"
+#include "util/log.c"
+#include "util/slice.c"
 
 #include "unity.h"
 

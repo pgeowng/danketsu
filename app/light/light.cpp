@@ -15,16 +15,20 @@ bool app_init(app_s* app) {
   ok = shader_init(&app->lighting_shader, "./app/light/light.vert",
                    "./app/light/light_tex.frag");
   if (!ok) {
-    printf("lighting shader new failed");
+    log_error("lighting shader init failed");
     return ok;
   }
+
+  log_debug("lighting_shader loaded");
 
   ok = shader_init(&app->lamp_shader, "./app/light/light.vert",
                    "./app/light/light_src.frag");
   if (!ok) {
-    printf("lamp shader new failed");
+    log_error("lamp_shader init failed");
     return ok;
   }
+
+  log_debug("lamp_shader loaded");
 
 
   // mesh_init(&app->cube_mesh);
@@ -32,14 +36,42 @@ bool app_init(app_s* app) {
   // mesh_setup(&app->cube_mesh);
 
   mesh_init(&app->cube_mesh);
-  mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
-  mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png", "material.diffuse");
-  mesh_setup(&app->cube_mesh);
+  // mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
+  mesh_init_cube_tex(&app->cube_mesh);
+  // mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png", "material.diffuse");
+  ok = mesh_add_texture(&app->cube_mesh, "assets/container2.png", "material.diffuse");
+  if (!ok) {
+    log_error("add_texture: assets/container2.png failed");
+    return ok;
+  }
+
+  ok = mesh_add_texture(&app->cube_mesh, "assets/container2_specular.png", "material.specular");
+  if (!ok) {
+    log_error("add_texture: assets/container2_specular.png failed");
+    return ok;
+  }
+
+  ok = mesh_add_texture(&app->cube_mesh, "assets/matrix.jpg", "material.emission");
+  if (!ok) {
+    log_error("add_texture: assets/matrix.jpg failed");
+    return ok;
+  }
+
+  ok = mesh_setup(&app->cube_mesh);
+  if (!ok) {
+    log_error("cube_mesh setup failed");
+    return ok;
+  }
+
+  log_debug("cube mesh setup done");
 
   mesh_init(&app->ramp_mesh);
+  log_debug("ramp_mesh init");
   mesh_init_ramp(&app->ramp_mesh);
+  log_debug("ramp_mesh init ramp");
   mesh_setup(&app->ramp_mesh);
 
+  log_debug("meshes loaded");
 
   // g_cube.shader = &app->lighting_shader;
   // g_cube.vao = app->vao;
