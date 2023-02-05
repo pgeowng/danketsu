@@ -94,7 +94,7 @@ bool shader_init(shader_s* shader_s, const char* vertexFilename,
 
       glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &ok);
       if (ok != GL_TRUE) {
-        printf("compile fragment shader failed: %d\n", fragmentShader);
+        printf("%s:%d: compile fragment shader failed %s: %d\n", __FILE__, __LINE__, fragmentFilename, fragmentShader);
         printShaderLog(fragmentShader);
 
         // error defer
