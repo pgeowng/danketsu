@@ -1,151 +1,6 @@
 #include "light.h"
 
-#define MAZE_SIZE 10
 
-int g_maze[MAZE_SIZE * MAZE_SIZE * 3] = { 0 };
-int g_maze_size = MAZE_SIZE;
-
-int rnd = 41241515;
-int rnd_mod = 489414;
-int rnd_step = 12345;
-
-bool app_init(app_s* app) {
-  bool ok = false;
-  flycamera_init(&app->camera, false);
-  ok = shader_init(&app->lighting_shader, "./app/light/light.vert",
-                   "./app/light/light_tex.frag");
-  if (!ok) {
-    printf("lighting shader new failed");
-    return ok;
-  }
-
-  ok = shader_init(&app->lamp_shader, "./app/light/light.vert",
-                   "./app/light/light_src.frag");
-  if (!ok) {
-    printf("lamp shader new failed");
-    return ok;
-  }
-
-
-  // mesh_init(&app->cube_mesh);
-  // mesh_init_cube_tex(&app->cube_mesh);
-  // mesh_setup(&app->cube_mesh);
-
-  mesh_init(&app->cube_mesh);
-  mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
-  mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png", "material.diffuse");
-  mesh_setup(&app->cube_mesh);
-
-  mesh_init(&app->ramp_mesh);
-  mesh_init_ramp(&app->ramp_mesh);
-  mesh_setup(&app->ramp_mesh);
-
-
-  // g_cube.shader = &app->lighting_shader;
-  // g_cube.vao = app->vao;
-  // g_cube.vbo = app->vbo;
-  // g_cube.num_triangles = 72;
-
-  // g_ramp.shader = &app->lighting_shader;
-  // g_ramp.vao = app->ramp_vao;
-  // g_ramp.vbo = app->ramp_vbo;
-  // g_ramp.num_triangles = 24;
-
-  for (int l = 0; l < 3; l++) {
-
-    for (int i = 0; i < g_maze_size; i++) {
-      for (int j = 0; j < g_maze_size; j++) {
-        g_maze[l * g_maze_size * g_maze_size + i * g_maze_size + j] =
-            (rnd > 60 ? 1 : 0);
-
-        rnd = (rnd * rnd_step) % rnd_mod;
-      }
-    }
-  }
-
-  app->mat_tex = {
-    .tex_diffuse = 0,
-    .tex_specular = 0,
-    .tex_emission = 0,
-    .tex_diffuse_unit = GL_TEXTURE1,
-    .tex_specular_unit = GL_TEXTURE2,
-    .tex_emission_unit = GL_TEXTURE3,
-    .tex_diffuse_unit_idx = 1,
-    .tex_specular_unit_idx = 2,
-    .tex_emission_unit_idx = 3,
-    .shininess = 32.0f,
-  };
-
-  ok = tex_load(&app->mat_tex.tex_diffuse, "assets/container2.png");
-  if (!ok) {
-    return ok;
-  }
-
-  glActiveTexture(app->mat_tex.tex_diffuse_unit);
-  glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_diffuse);
-
-  ok = tex_load(&app->mat_tex.tex_specular, "assets/container2_specular2.png");
-  if (!ok) {
-    return ok;
-  }
-
-  ok = tex_load(&app->mat_tex.tex_emission, "assets/matrix.jpg");
-  if (!ok) {
-    return ok;
-  }
-
-  glActiveTexture(app->mat_tex.tex_specular_unit);
-  glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_specular);
-
-  printf("mat tex: %f %d %d %d %d", app->mat_tex.shininess,
-         app->mat_tex.tex_diffuse, app->mat_tex.tex_diffuse_unit,
-         app->mat_tex.tex_specular, app->mat_tex.tex_specular_unit);
-
-  // dirlight
-  app->dir_light.ambient = glm::vec3(0.1f);
-  app->dir_light.diffuse = glm::vec3(0.5f);
-  app->dir_light.specular = glm::vec3(1.0f);
-
-  // pointlight
-  for (int i = 0; i < 4; i++) {
-    app->p_light[i].constant = 1.0f;
-    app->p_light[i].linear = 0.09f;
-    app->p_light[i].quadratic = 0.032f;
-  }
-
-  glm::vec3 purple(255.0f / 255.0f, 115.0f / 255.0f, 253.0f / 255.0f);
-  app->p_light[1].specular = purple;
-  app->p_light[1].diffuse = purple * 0.5f;
-  app->p_light[1].ambient = purple * 0.1f;
-
-  glm::vec3 yellow(255.0f / 255.0f, 215.0f / 255.0f, 0.0f);
-  app->p_light[2].specular = yellow;
-  app->p_light[2].diffuse = yellow * 0.5f;
-  app->p_light[2].ambient = yellow * 0.1f;
-
-  glm::vec3 blue(23.0f / 255.0f, 159.0f / 255.0f, 255.0f / 255.0f);
-  app->p_light[3].specular = blue;
-  app->p_light[3].diffuse = blue * 0.5f;
-  app->p_light[3].ambient = blue * 0.1f;
-
-  // spotlight
-  glm::vec3 orange(1.0f, 85.0f/255.0f, 0.0f);
-  app->sp_light.specular = orange;
-  app->sp_light.diffuse = orange * 0.5f;
-  app->sp_light.ambient = orange * 0.1f;
-  app->sp_light.position = glm::vec3(0.0f);
-  app->sp_light.direction = glm::vec3(0.0f, 0.0f, -1.0f);
-  app->sp_light.cutOff = glm::cos(glm::radians(12.5f));
-  app->sp_light.outerCutOff = glm::cos(glm::radians(15.5f));
-
-  ok = text_init(&app->text_renderer);
-  if (!ok) {
-    printf("light: failed to init text renderer\n");
-    return ok;
-  }
-
-  return ok;
-}
 
 void app_scene_mat_view_render(app_s* app, float dt) {
   flycamera_update(&app->camera, dt);
@@ -185,9 +40,9 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   glm::vec3 camera_view_pos =
       glm::vec3(view * glm::vec4(app->camera.position, 1.0f));
 
-  for (int i = 0; i < 4; i++) {
-    draw_lamp(app, &app->p_light[i], view, proj);
-  }
+  // for (int i = 0; i < 4; i++) {
+  //   draw_lamp(app, &app->p_light[i], view, proj);
+  // }
 
   draw_material_preview(app, view, proj, camera_view_pos);
 
@@ -196,6 +51,13 @@ void app_scene_mat_view_render(app_s* app, float dt) {
     draw_maze(app, view, proj, camera_view_pos);
     draw_ramp1(app, view, proj, camera_view_pos);
     draw_ramp2(app, view, proj, camera_view_pos);
+  }
+
+  {
+    glm::mat4 model = glm::mat4(1.0f);
+    app->mat_color = g_mat_sh_0;
+    app_render_mat_color_cube(app, &app->texture_cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
+                              &app->p_light[0]);
   }
 
   int text_y = 20;
@@ -411,94 +273,7 @@ internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     app->mat_color = g_mat_color_materials[i];
-    app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
+    app_render_mat_color_cube(app, &app->texture_cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
                               &app->p_light[0]);
-  }
-}
-
-internal void app_input(app_s* app, SDL_Event e) {
-  static int input_move_forward = 0;
-  static int input_move_right = 0;
-  static int input_move_left = 0;
-  static int input_move_back = 0;
-  static SDL_bool g_relative_mouse_mode = SDL_FALSE;
-  switch (e.type) {
-  case SDL_WINDOWEVENT: {
-    if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-      int g_screenWidth = e.window.data1;
-      int g_screenHeight = e.window.data2;
-      glViewport(0, 0, g_screenWidth, g_screenHeight);
-      // is it good to do this here?
-      app->camera.aspect = (float)g_screenWidth / (float)g_screenHeight;
-    }
-    break;
-  }
-  case SDL_KEYDOWN:
-  case SDL_KEYUP: {
-    float forward = 0;
-    float right = 0;
-    int pressed = e.key.state == SDL_PRESSED;
-    switch (e.key.keysym.sym) {
-    case SDLK_w: {
-      input_move_forward = pressed;
-      break;
-    }
-    case SDLK_a: {
-      input_move_left = pressed;
-      break;
-    };
-    case SDLK_s: {
-      input_move_back = pressed;
-      break;
-    }
-    case SDLK_d: {
-      input_move_right = pressed;
-      break;
-    }
-    case SDLK_e: {
-      if (!pressed) {
-        app->enable_maze = !app->enable_maze;
-      }
-      break;
-    }
-    case SDLK_q: {
-      if (!pressed) {
-        app->enable_mat_color = !app->enable_mat_color;
-      }
-      break;
-    }
-    case SDLK_ESCAPE: {
-      if (!pressed) {
-        g_relative_mouse_mode =
-            (g_relative_mouse_mode == SDL_TRUE) ? SDL_FALSE : SDL_TRUE;
-        int ok = SDL_SetRelativeMouseMode(g_relative_mouse_mode);
-        if (ok) {
-          printf("sdl set relative mouse mode failed: %s\n", SDL_GetError());
-        }
-      }
-      break;
-    }
-    case SDLK_LSHIFT: {
-      app->camera.speed = pressed ? 10.0f : 5.0f;
-      break;
-    }
-    }
-
-    flycamera_process_movement(&app->camera,
-                               input_move_forward - input_move_back,
-                               input_move_right - input_move_left);
-    break;
-  }
-
-  case SDL_MOUSEMOTION: {
-    flycamera_process_mouse_movement(&app->camera, e.motion.xrel,
-                                     e.motion.yrel);
-    break;
-  }
-
-  case SDL_MOUSEWHEEL: {
-    flycamera_process_mouse_scroll(&app->camera, e.wheel.y);
-    break;
-  }
   }
 }

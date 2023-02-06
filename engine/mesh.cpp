@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-void mesh_init(mesh_s *m)  {
+void mesh_zero(mesh_s *m)  {
   m->verts = NULL;
   m->verts_size = 0;
   m->verts_cap = 0;

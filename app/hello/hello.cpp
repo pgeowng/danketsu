@@ -10,7 +10,7 @@ bool app_init(app_s* app) {
     return ok;
   }
 
-  mesh_init(&app->cube_mesh);
+  mesh_zero(&app->cube_mesh);
   mesh_init_cube(&app->cube_mesh);
   mesh_setup(&app->cube_mesh);
 

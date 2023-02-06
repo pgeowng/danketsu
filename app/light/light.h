@@ -34,6 +34,7 @@ struct app_s {
 
   mesh_s ramp_mesh = {};
   mesh_s cube_mesh = {};
+  mesh_s texture_cube_mesh = {};
 
   bool enable_maze = false;
   bool enable_mat_color = false;
@@ -79,4 +80,13 @@ internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
 internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj);
 internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
                                     vec3 camera_view_pos);
+
+#define MAZE_SIZE 10
+
+int g_maze[MAZE_SIZE * MAZE_SIZE * 3] = { 0 };
+int g_maze_size = MAZE_SIZE;
+
+int rnd = 41241515;
+int rnd_mod = 489414;
+int rnd_step = 12345;
 #endif

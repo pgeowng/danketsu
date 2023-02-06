@@ -6,10 +6,12 @@
 // #include "../app/hello/hello.cpp"
 // #include "../app/hello/input.h"
 // #include "../app/audio/audio.cpp"
-#include "../app/light/light.cpp"
+#include "../app/light/init.cpp"
+#include "../app/light/render.cpp"
+#include "../app/light/input.cpp"
 
 int g_screenWidth = 1000;
-int g_screenHeight = 600;
+int g_screenHeight = 1000;
 SDL_Window* g_window;
 SDL_GLContext g_ctx;
 
@@ -28,9 +30,9 @@ internal bool init() {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
   g_window = SDL_CreateWindow(
-      "Danketsu", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, g_screenWidth,
+      "Danketsu", 0, 20, g_screenWidth,
       g_screenHeight,
-      SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+      SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
 
   if (g_window == NULL) {
     printf("sdl create window failed: %s\n", SDL_GetError());

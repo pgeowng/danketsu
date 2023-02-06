@@ -38,7 +38,7 @@ struct mesh_s {
   GLuint ebo;
 };
 
-void mesh_init(mesh_s *m);
+void mesh_zero(mesh_s *m);
 bool mesh_read_obj(mesh_s *m, const char * filename);
 bool mesh_setup(mesh_s *m);
 bool mesh_clean(mesh_s *m);
@@ -66,7 +66,7 @@ void mesh_draw(mesh_s *m, shader_s *sh);
 //     int num_textures;
 // };
 
-// bool mesh_init(mesh_s *mesh_s, );
+// bool mesh_zero(mesh_s *mesh_s, );
 
 // // struct mesh_renderer_s {
 // //     mesh_s mesh;
