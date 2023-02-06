@@ -86,6 +86,8 @@ void mesh_draw(mesh_s *m, shader_s *sh) {
 
 
   glBindVertexArray(m->vao);
+  // printf("mesh_draw: indices_size: %d\n", m->indices_size);
+  // printf("mesh_draw: verts_size: %d\n", m->verts_size);
   if (m->indices_size > 0) {
     glDrawElements(GL_TRIANGLES, m->indices_size, GL_UNSIGNED_INT, 0);
   } else {
@@ -143,9 +145,8 @@ bool mesh_read_obj(mesh_s *m, const char * filename) {
           printf("fscanf EOF exiting....\n");
           break;
       }
-      printf("n: %d\n", n);
 
-      printf("buf: %s\n", buf);
+      printf("dir=%s ", buf);
       // (ch = fgetc(file)) != EOF;
 
       bool next_line = false;
@@ -192,25 +193,60 @@ bool mesh_read_obj(mesh_s *m, const char * filename) {
                   next_line = true;
               }
               break;
-          case 'f':
-              while (verts_size+3 > verts_cap) {
-                  verts_cap *= 2;
-                  verts = (vertex_s*)alloc_resize(verts, verts_cap * sizeof(vertex_s));
-              }
+          case 'f': {
+            int n = 0;
+            uint v1, vt1, vn1;
+            uint v2, vt2, vn2;
+            uint v3, vt3, vn3;
 
-              unsigned int v1, v2, v3;
-              unsigned int vt1, vt2, vt3;
-              unsigned int vn1, vn2, vn3;
-              fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d", &v1, &vt1, &vn1, &v2, &vt2, &vn2, &v3, &vt3, &vn3);
-
-              printf("face: %d/%d/%d %d/%d/%d %d/%d/%d\n", v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3);
-
-              verts[verts_size++] = { vertices[v1-1], normals[vn1-1], texcoords[vt1-1] };
-              verts[verts_size++] = { vertices[v2-1], normals[vn2-1], texcoords[vt2-1] };
-              verts[verts_size++] = { vertices[v3-1], normals[vn3-1], texcoords[vt3-1] };
-
-              next_line = true;
+            n = fscanf(file, "%d/%d/%d", &v1, &vt1, &vn1);
+            if (n != 3) {
+              LOG_ERROR("mesh_read_obj: failed to read first pair of the face");
               break;
+            }
+
+            n = fscanf(file, "%d/%d/%d", &v2, &vt2, &vn2);
+            if (n != 3) {
+              LOG_ERROR("mesh_read_obj: failed to read second pair of the face");
+              break;
+            }
+
+            n = fscanf(file, "%d/%d/%d", &v3, &vt3, &vn3);
+            if (n != 3) {
+              LOG_ERROR("mesh_read_obj: failed to read third pair of the face");
+              break;
+            }
+
+            while (n == 3) {
+
+            while (verts_size+3 > verts_cap) {
+                verts_cap *= 2;
+                verts = (vertex_s*)alloc_resize(verts, verts_cap * sizeof(vertex_s));
+            }
+
+
+            printf("%d/%d/%d %d/%d/%d %d/%d/%d\n", v1, vt1, vn1, v2, vt2, vn2, v3, vt3, vn3);
+
+            verts[verts_size++] = { vertices[v1-1], normals[vn1-1], texcoords[vt1-1] };
+            verts[verts_size++] = { vertices[v2-1], normals[vn2-1], texcoords[vt2-1] };
+            verts[verts_size++] = { vertices[v3-1], normals[vn3-1], texcoords[vt3-1] };
+
+            // moving last vertex to the previous slot
+            v2 = v3;
+            vt2 = vt3;
+            vn2 = vn3;
+
+            n = fscanf(file, "%d/%d/%d", &v3, &vt3, &vn3);
+            if (n != 3) {
+              LOG_ERROR("mesh_read_obj: failed to read new pair of the face");
+            }
+            }
+
+            LOG_DEBUG("mesh_read_obj: face read finished");
+
+            next_line = false;
+            break;
+          }
           default:
               printf("default\n");
               break;
@@ -218,8 +254,9 @@ bool mesh_read_obj(mesh_s *m, const char * filename) {
 
       if (next_line) {
           while ((ch = fgetc(file)) != '\n') {
+            printf("skipping char: '%c'\n", ch);
               if (ch == EOF) {
-                  printf("EOF\n");
+                  LOG_DEBUG("mesh_read_obj: EOF\n");
                   break;
               }
           }

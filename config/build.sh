@@ -30,5 +30,12 @@ MAIN="engine/main.cpp"
 
 
 CMD="$CXX $CXXFLAGS $INCLUDE $SLIB $MAIN $LIB -o $OUTPUT"
-$CMD
 echo "$CMD"
+$CMD
+COMPILE_STATUS=$?
+if [ $COMPILE_STATUS -eq 0 ]; then
+  echo "Build successful. Running..."
+  $OUTPUT
+else
+  echo "Build failed"
+fi

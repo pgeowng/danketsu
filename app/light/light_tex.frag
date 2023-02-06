@@ -168,7 +168,7 @@ void main() {
     specularMap = clamp(specularMap, 0.0, 1.0);
     float specularGray = (specularMap.r + specularMap.g + specularMap.b) / 3.0f;
     // vec3 specular = light.specular * specular_magnitude * (specularGray * GetDiffuseColor(TexCoords)) ;
-    vec3 emission = specularGray * vec3(GetEmissionColor(TexCoords + vec2(0.0, time/4.0f)));
+    vec3 emission = specularGray * vec3(GetEmissionColor(TexCoords));
 
     result = max(result, emission);
 
