@@ -1,8 +1,6 @@
 #include "light.h"
 
-
-
-void app_scene_mat_view_render(app_s* app, float dt) {
+void app_scene_mat_view_render(app_s *app, float dt) {
   flycamera_update(&app->camera, dt);
 
   float time = SDL_GetTicks() / 1000.0f;
@@ -17,9 +15,8 @@ void app_scene_mat_view_render(app_s* app, float dt) {
 
   update_color_rainbow(&app->p_light[0]);
 
-  app->p_light[1].position = glm::vec3(
-    glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
-
+  app->p_light[1].position =
+      glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
 
   app->p_light[2].position = glm::vec3(
       glm::vec4(1.0f, 1.2f + cos(time), 2.0f + sin(time) * 1.1f, 1.0f));
@@ -44,7 +41,7 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   //   draw_lamp(app, &app->p_light[i], view, proj);
   // }
 
-  draw_material_preview(app, view, proj, camera_view_pos);
+  draw_material_preview(app, view, proj, camera_view_pos, &app->camera);
 
   if (app->enable_maze) {
     draw_cube(app, view, proj, camera_view_pos);
@@ -56,8 +53,9 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   {
     glm::mat4 model = glm::mat4(1.0f);
     app->mat_color = g_mat_sh_0;
-    app_render_mat_color_cube(app, &app->texture_cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
-                              &app->p_light[0]);
+    app_render_mat_color_cube(app, &app->texture_cube_mesh,
+                              &app->lighting_shader, model, view, proj,
+                              camera_view_pos, &app->p_light[0]);
   }
 
   int text_y = 20;
@@ -72,19 +70,19 @@ void app_scene_mat_view_render(app_s* app, float dt) {
   }
 }
 
-internal void app_update(app_s* app, float dt) {
+internal void app_update(app_s *app, float dt) {
   app_scene_mat_view_render(app, dt);
 }
 
-internal void draw_cube(app_s* app, glm::mat4 view, glm::mat4 proj,
+internal void draw_cube(app_s *app, glm::mat4 view, glm::mat4 proj,
                         glm::vec3 camera_view_pos) {
   glm::mat4 model = glm::mat4(1.0f);
   app->mat_color = g_mat_sh_0;
-  app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
-                            &app->p_light[0]);
+  app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model,
+                            view, proj, camera_view_pos, &app->p_light[0]);
 }
 
-internal void draw_maze(app_s* app, glm::mat4 view, glm::mat4 proj,
+internal void draw_maze(app_s *app, glm::mat4 view, glm::mat4 proj,
                         glm::vec3 camera_view_pos) {
   float cell_width = 2.0f;
   float cell_height = 4.3f;
@@ -122,15 +120,16 @@ internal void draw_maze(app_s* app, glm::mat4 view, glm::mat4 proj,
 
           ;
           app->mat_color = g_mat_sh_1;
-          app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader, model, view, proj,
-                                    camera_view_pos, &app->p_light[0]);
+          app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader,
+                                    model, view, proj, camera_view_pos,
+                                    &app->p_light[0]);
         }
       }
     }
   }
 }
 
-internal void draw_ramp1(app_s* app, glm::mat4 view, glm::mat4 proj,
+internal void draw_ramp1(app_s *app, glm::mat4 view, glm::mat4 proj,
                          glm::vec3 camera_view_pos) {
   glm::mat4 model = glm::mat4(1.0f);
   float time = SDL_GetTicks() / 1000.0f;
@@ -141,11 +140,11 @@ internal void draw_ramp1(app_s* app, glm::mat4 view, glm::mat4 proj,
       model, glm::vec3(cos(time / 2.0f) + 2.0f, sin(time / 3.0f) + 1.3f, 1.0f));
 
   app->mat_color = g_mat_sh_2;
-  app_render_mat_color_cube(app, &app->ramp_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
-                            &app->p_light[0]);
+  app_render_mat_color_cube(app, &app->ramp_mesh, &app->lighting_shader, model,
+                            view, proj, camera_view_pos, &app->p_light[0]);
 }
 
-internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
+internal void draw_ramp2(app_s *app, glm::mat4 view, glm::mat4 proj,
                          glm::vec3 camera_view_pos) {
   float time = SDL_GetTicks() / 1000.0f;
 
@@ -166,10 +165,10 @@ internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
                       glm::vec3(0.0f, 1.0f, 0.0f));
 
   app->mat_color = g_mat_sh_2;
-  app_render_mat_color_cube(app, &app->ramp_mesh,&app->lighting_shader, model, view, proj, camera_view_pos,
-                            &app->p_light[0]);
+  app_render_mat_color_cube(app, &app->ramp_mesh, &app->lighting_shader, model,
+                            view, proj, camera_view_pos, &app->p_light[0]);
 }
-internal void update_move_zigzag(glm::vec3* pos) {
+internal void update_move_zigzag(glm::vec3 *pos) {
   float time = SDL_GetTicks() / 1000.0f;
 
   float max_x = 5.0f;
@@ -198,7 +197,7 @@ internal void update_move_zigzag(glm::vec3* pos) {
   *pos = offset;
 }
 
-internal void update_color_rainbow(light_s* l) {
+internal void update_color_rainbow(light_s *l) {
   float time = SDL_GetTicks() / 1000.0f;
 
   glm::vec3 light_color((sin(time * 2.0f) + 1.0f) / 2.0f,
@@ -213,23 +212,23 @@ internal void update_color_rainbow(light_s* l) {
   l->specular = light_color;
 }
 
-internal void app_update_dirlight(light_s* l, glm::mat4 view) {
+internal void app_update_dirlight(light_s *l, glm::mat4 view) {
   // must be in view space
   static glm::vec4 dir_light_direction(0.3f, 0.2f, -0.2f, 0.0f);
   l->direction = glm::vec3(view * dir_light_direction);
 }
 
-internal void app_render_mat_color_cube(app_s* app, mesh_s* mesh, shader_s* sh,
+internal void app_render_mat_color_cube(app_s *app, mesh_s *mesh, shader_s *sh,
                                         glm::mat4 model, glm::mat4 view,
                                         glm::mat4 proj,
                                         glm::vec3 camera_view_pos,
-                                        light_s* light) {
+                                        light_s *light) {
 
   shader_use(sh);
   // if (app->enable_mat_color) {
-    // mat_color_apply(app->mat_color, sh);
+  // mat_color_apply(app->mat_color, sh);
   // } else {
-    mat_tex_apply(app->mat_tex, sh);
+  mat_tex_apply(app->mat_tex, sh);
   // }
 
   light->direction = glm::vec3(view * glm::vec4(app->camera.front, 0.0f));
@@ -248,7 +247,7 @@ internal void app_render_mat_color_cube(app_s* app, mesh_s* mesh, shader_s* sh,
   mesh_draw(mesh, sh);
 }
 
-internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj) {
+internal void draw_lamp(app_s *app, light_s *light, mat4 view, mat4 proj) {
   mat4 model(1.0f);
   model = translate(model, light->position);
   model = scale(model, glm::vec3(0.2f));
@@ -260,8 +259,8 @@ internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj) {
   mesh_draw(&app->cube_mesh, &app->lamp_shader);
 }
 
-internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
-                                    vec3 camera_view_pos) {
+internal void draw_material_preview(app_s *app, mat4 view, mat4 proj,
+                                    vec3 camera_view_pos, flycamera_s *camera) {
   int columns = 6;
 
   for (int i = 0; i < COUNT_OF(g_mat_color_materials); i++) {
@@ -269,11 +268,26 @@ internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
     int col = i % columns;
     glm::vec3 pos = glm::vec3(col * 1.0f, row * 1.0f, 0.0f);
     glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
-    model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(0.0f, 1.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(20.0f * i),
+                        glm::vec3(0.0f, 1.0f, 0.0f));
     model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
 
     app->mat_color = g_mat_color_materials[i];
-    app_render_mat_color_cube(app, &app->texture_cube_mesh, &app->lighting_shader, model, view, proj, camera_view_pos,
-                              &app->p_light[0]);
+
+    bool colliding = ray_intersect(camera->position - pos, camera->front,
+                                   (vec3 *)&app->texture_cube_mesh.verts,
+                                   app->texture_cube_mesh.verts_size,
+                                   (sizeof &app->texture_cube_mesh.verts[0]));
+
+    if (colliding) {
+      printf("colliding\n");
+      app_render_mat_color_cube(app, &app->texture_cube_mesh,
+                                &app->lighting_shader, model, view, proj,
+                                camera_view_pos, &app->p_light[0]);
+    } else {
+      // app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader,
+      //                           model, view, proj, camera_view_pos,
+      //                           &app->p_light[0]);
+    }
   }
 }

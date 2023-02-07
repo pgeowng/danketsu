@@ -13,6 +13,7 @@
 #include "texture.h"
 #include "mesh.h"
 #include "mesh.cpp"
+#include "raycast.h"
 
 #include "example/cube_tex_mesh.h"
 #include "light_shader.h"
@@ -79,7 +80,7 @@ internal void draw_ramp2(app_s* app, glm::mat4 view, glm::mat4 proj,
 
 internal void draw_lamp(app_s* app, light_s* light, mat4 view, mat4 proj);
 internal void draw_material_preview(app_s* app, mat4 view, mat4 proj,
-                                    vec3 camera_view_pos);
+                                    vec3 camera_view_pos, flycamera_s* camera);
 
 #define MAZE_SIZE 10
 
