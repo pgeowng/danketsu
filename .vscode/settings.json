@@ -2,10 +2,16 @@
   "cmake.configureOnOpen": false,
   "files.associations": {
     "*.js": "javascript",
+    "*.tmpl": "html",
     "sdl_endian.h": "c",
     "cmath": "cpp",
     "cstdlib": "cpp",
-    "chrono": "cpp"
+    "chrono": "cpp",
+    "slice.c": "cpp",
+    "light.h": "c",
+    "functional": "cpp",
+    "utility": "cpp",
+    "variant": "cpp"
   },
   "C_Cpp.errorSquiggles": "EnabledIfIncludesResolve"
 }

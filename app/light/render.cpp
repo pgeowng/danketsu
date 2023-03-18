@@ -18,11 +18,14 @@ void app_scene_mat_view_render(app_s *app, float dt) {
   app->p_light[1].position =
       glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
 
-  app->p_light[2].position = glm::vec3(
-      glm::vec4(1.0f, 1.2f + cos(time), 2.0f + sin(time) * 1.1f, 1.0f));
+  app->p_light[2].position = glm::vec3(glm::vec4(1.0f,
+                                                 1.2f, // + cos(time),
+                                                 2.0f, // + sin(time) * 1.1f,
+                                                 1.0f));
 
-  app->p_light[3].position = glm::vec3(
-      glm::vec4(1.2f + cos(time) * .98f, 2.0f + sin(time) * 2.3, 1.0f, 1.0f));
+  app->p_light[3].position = glm::vec3(glm::vec4(1.2f, // + cos(time) * .98f,
+                                                 2.0f, // + sin(time) * 2.3,
+                                                 1.0f, 1.0f));
 
   // glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
   // g_light.position = light_view_pos;
@@ -50,13 +53,13 @@ void app_scene_mat_view_render(app_s *app, float dt) {
     draw_ramp2(app, view, proj, camera_view_pos);
   }
 
-  {
-    glm::mat4 model = glm::mat4(1.0f);
-    app->mat_color = g_mat_sh_0;
-    app_render_mat_color_cube(app, &app->texture_cube_mesh,
-                              &app->lighting_shader, model, view, proj,
-                              camera_view_pos, &app->p_light[0]);
-  }
+  // {
+  //   glm::mat4 model = glm::mat4(1.0f);
+  //   app->mat_color = g_mat_sh_0;
+  //   app_render_mat_color_cube(app, &app->texture_cube_mesh,
+  //                             &app->lighting_shader, model, view, proj,
+  //                             camera_view_pos, &app->p_light[0]);
+  // }
 
   int text_y = 20;
   text_draw(&app->text_renderer, 10, 20, "Hello, world!");
@@ -136,8 +139,11 @@ internal void draw_ramp1(app_s *app, glm::mat4 view, glm::mat4 proj,
   model = glm::translate(model, glm::vec3(2.0f, 0.0f, 2.0f));
   model = glm::rotate(model, glm::radians(SDL_GetTicks() / 1000.0f * 50.0f),
                       glm::vec3(0.0f, 1.0f, 0.0f));
-  model = glm::scale(
-      model, glm::vec3(cos(time / 2.0f) + 2.0f, sin(time / 3.0f) + 1.3f, 1.0f));
+  model = glm::scale(model, glm::vec3(
+                                // cos(time / 2.0f) +
+                                2.0f,
+                                // sin(time / 3.0f) +
+                                1.3f, 1.0f));
 
   app->mat_color = g_mat_sh_2;
   app_render_mat_color_cube(app, &app->ramp_mesh, &app->lighting_shader, model,
@@ -198,7 +204,8 @@ internal void update_move_zigzag(glm::vec3 *pos) {
 }
 
 internal void update_color_rainbow(light_s *l) {
-  float time = SDL_GetTicks() / 1000.0f;
+  // float time = SDL_GetTicks() / 1000.0f;
+  float time = 0;
 
   glm::vec3 light_color((sin(time * 2.0f) + 1.0f) / 2.0f,
                         (sin(time * 0.7f) + 1.0f) / 2.0f,
@@ -274,20 +281,26 @@ internal void draw_material_preview(app_s *app, mat4 view, mat4 proj,
 
     app->mat_color = g_mat_color_materials[i];
 
-    bool colliding = ray_intersect(camera->position - pos, camera->front,
-                                   (vec3 *)&app->texture_cube_mesh.verts,
-                                   app->texture_cube_mesh.verts_size,
-                                   (sizeof &app->texture_cube_mesh.verts[0]));
+    vec3 rayIntersection = {0, 0, 0};
+
+    bool colliding =
+        intersectRayMesh(camera->position - pos, camera->front,
+                         &app->texture_cube_mesh, &rayIntersection);
 
     if (colliding) {
-      printf("colliding\n");
-      app_render_mat_color_cube(app, &app->texture_cube_mesh,
-                                &app->lighting_shader, model, view, proj,
-                                camera_view_pos, &app->p_light[0]);
-    } else {
-      // app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader,
-      //                           model, view, proj, camera_view_pos,
-      //                           &app->p_light[0]);
+      glm::mat4 sphere_view = glm::mat4(1.0f);
+      sphere_view = glm::translate(sphere_view, rayIntersection);
+      sphere_view = glm::scale(sphere_view, glm::vec3(0.2));
+      printf("colliding (%.2f %.2f %.2f)\n", rayIntersection.x,
+             rayIntersection.y, rayIntersection.z);
+      app_render_mat_color_cube(app, &app->debug_sphere, &app->lighting_shader,
+                                sphere_view, view, proj, camera_view_pos,
+                                &app->p_light[0]);
     }
+    // } else {
+    app_render_mat_color_cube(app, &app->texture_cube_mesh,
+                              &app->lighting_shader, model, view, proj,
+                              camera_view_pos, &app->p_light[0]);
+    // }
   }
 }

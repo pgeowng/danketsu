@@ -7,12 +7,12 @@
 // #include "../app/hello/input.h"
 // #include "../app/audio/audio.cpp"
 #include "../app/light/init.cpp"
-#include "../app/light/render.cpp"
 #include "../app/light/input.cpp"
+#include "../app/light/render.cpp"
 
 int g_screenWidth = 1000;
 int g_screenHeight = 1000;
-SDL_Window* g_window;
+SDL_Window *g_window;
 SDL_GLContext g_ctx;
 
 float prevTime = 0;
@@ -29,10 +29,8 @@ internal bool init() {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  g_window = SDL_CreateWindow(
-      "Danketsu", 0, 20, g_screenWidth,
-      g_screenHeight,
-      SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+  g_window = SDL_CreateWindow("Danketsu", 0, 20, g_screenWidth, g_screenHeight,
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
   if (g_window == NULL) {
     printf("sdl create window failed: %s\n", SDL_GetError());
@@ -79,7 +77,20 @@ internal void clean() {
   SDL_Quit();
 }
 
-int main(int argc, char* argv[]) {
+#define TICK_INTERVAL 2
+static Uint32 nextTime;
+
+Uint32 timeLeft() {
+  Uint32 now;
+  now = SDL_GetTicks();
+  if (nextTime <= now) {
+    return 0;
+  } else {
+    return nextTime - now;
+  }
+}
+
+int main(int argc, char *argv[]) {
 
   bool ok = init();
   if (!ok) {
@@ -122,6 +133,10 @@ int main(int argc, char* argv[]) {
     app_update(&g_app, delta);
 
     SDL_GL_SwapWindow(g_window);
+
+    nextTime = SDL_GetTicks() + TICK_INTERVAL;
+    SDL_Delay(timeLeft());
+    nextTime += TICK_INTERVAL;
   }
 
   clean();

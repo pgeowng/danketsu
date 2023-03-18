@@ -1,10 +1,11 @@
 #ifndef MESH_H
 #define MESH_H
 
-
 #include "alloc.h"
-#include "shader.h"
 #include "log.h"
+#include "shader.h"
+#include "texture.h"
+
 
 #include "unity.h"
 
@@ -16,7 +17,7 @@ struct vertex_s {
 
 struct texture_s {
   GLuint id;
-  const char* type;
+  const char *type;
   // const char* path;
 };
 
@@ -33,14 +34,13 @@ struct mesh_s {
   int textures_size;
   int textures_cap;
 
-
   GLuint vao;
   GLuint vbo;
   GLuint ebo;
 };
 
 void mesh_zero(mesh_s *m);
-bool mesh_read_obj(mesh_s *m, const char * filename);
+bool mesh_read_obj(mesh_s *m, const char *filename);
 bool mesh_setup(mesh_s *m);
 bool mesh_clean(mesh_s *m);
 void mesh_draw(mesh_s *m, shader_s *sh);

@@ -1,10 +1,9 @@
 #include "light.h"
 
-
 int gScreenWidth = 1000;
 int gScreenHeight = 1000;
 
-bool app_init(app_s* app) {
+bool app_init(app_s *app) {
   bool ok = false;
   flycamera_init(&app->camera, false, 60.0f, gScreenWidth / gScreenHeight);
   ok = shader_init(&app->lighting_shader, "./app/light/light.vert",
@@ -21,15 +20,14 @@ bool app_init(app_s* app) {
     return ok;
   }
 
-
   // mesh_zero(&app->cube_mesh);
   // mesh_init_cube_tex(&app->cube_mesh);
   // mesh_setup(&app->cube_mesh);
 
   // mesh_zero(&app->cube_mesh);
   // mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
-  // mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png", "material.diffuse");
-  // mesh_setup(&app->cube_mesh);
+  // mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png",
+  // "material.diffuse"); mesh_setup(&app->cube_mesh);
 
   // mesh_zero(&app->ramp_mesh);
   // mesh_init_ramp(&app->ramp_mesh);
@@ -37,10 +35,13 @@ bool app_init(app_s* app) {
 
   mesh_zero(&app->texture_cube_mesh);
   mesh_read_obj(&app->texture_cube_mesh, "assets/checker_cube.obj");
-  mesh_add_texture(&app->texture_cube_mesh, "assets/checker.png", "material.diffuse");
+  mesh_add_texture(&app->texture_cube_mesh, "assets/checker.png",
+                   "material.diffuse");
   mesh_setup(&app->texture_cube_mesh);
 
-
+  mesh_zero(&app->debug_sphere);
+  mesh_read_obj(&app->debug_sphere, "assets/sphere.obj");
+  mesh_setup(&app->debug_sphere);
 
   // g_cube.shader = &app->lighting_shader;
   // g_cube.vao = app->vao;
@@ -65,16 +66,16 @@ bool app_init(app_s* app) {
   }
 
   app->mat_tex = {
-    .tex_diffuse = 0,
-    .tex_specular = 0,
-    .tex_emission = 0,
-    .tex_diffuse_unit = GL_TEXTURE1,
-    .tex_specular_unit = GL_TEXTURE2,
-    .tex_emission_unit = GL_TEXTURE3,
-    .tex_diffuse_unit_idx = 1,
-    .tex_specular_unit_idx = 2,
-    .tex_emission_unit_idx = 3,
-    .shininess = 32.0f,
+      .tex_diffuse = 0,
+      .tex_specular = 0,
+      .tex_emission = 0,
+      .tex_diffuse_unit = GL_TEXTURE1,
+      .tex_specular_unit = GL_TEXTURE2,
+      .tex_emission_unit = GL_TEXTURE3,
+      .tex_diffuse_unit_idx = 1,
+      .tex_specular_unit_idx = 2,
+      .tex_emission_unit_idx = 3,
+      .shininess = 32.0f,
   };
 
   ok = tex_load(&app->mat_tex.tex_diffuse, "assets/container2.png");
@@ -130,7 +131,7 @@ bool app_init(app_s* app) {
   app->p_light[3].ambient = blue * 0.1f;
 
   // spotlight
-  glm::vec3 orange(1.0f, 85.0f/255.0f, 0.0f);
+  glm::vec3 orange(1.0f, 85.0f / 255.0f, 0.0f);
   app->sp_light.specular = orange;
   app->sp_light.diffuse = orange * 0.5f;
   app->sp_light.ambient = orange * 0.1f;
