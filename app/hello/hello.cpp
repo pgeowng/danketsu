@@ -1,6 +1,6 @@
 #include "hello.h"
 
-bool app_init(app_s* app) {
+bool app_init(app_s *app) {
   bool ok = false;
   flycamera_init(&app->camera);
   ok = shader_init(&app->shader, "./app/hello/hello.vert",
@@ -33,7 +33,7 @@ bool app_init(app_s* app) {
   return ok;
 }
 
-void app_update(app_s* app, float delta) {
+void app_update(app_s *app, float delta) {
   static float timeValue = 0.0f;
   timeValue += delta;
 
@@ -48,20 +48,19 @@ void app_update(app_s* app, float delta) {
   shader_1i(&app->shader, "tex1", 0);
   shader_1i(&app->shader, "tex2", 1);
   shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
-  shader_mat4fv(&app->shader, "view",
-                glm::value_ptr(flycamera_get_view_matrix(&app->camera)));
+  shader_mat4fv(&app->shader, "view", glm::value_ptr(fcamView(&app->camera)));
   // shader_SetMatrix4fv(&app->shader, "view",
   // glm::value_ptr(flycamera_get_weird_view_matrix(&app->camera)));
   shader_mat4fv(&app->shader, "projection",
-                glm::value_ptr(flycamera_get_projection_matrix(&app->camera)));
+                glm::value_ptr(fcamProjection(&app->camera)));
 
   mesh_draw(&app->cube_mesh, &app->shader);
 
   glm::vec3 positions[] = {
-    glm::vec3(0.2f, -0.2f, 1.0f),
-    glm::vec3(-0.4f, 0.4f, 0.5f),
-    glm::vec3(0.0f, 0.0f, 1.5f),
-    glm::vec3(0.89f, 0.5f, 2.0f),
+      glm::vec3(0.2f, -0.2f, 1.0f),
+      glm::vec3(-0.4f, 0.4f, 0.5f),
+      glm::vec3(0.0f, 0.0f, 1.5f),
+      glm::vec3(0.89f, 0.5f, 2.0f),
   };
 
   for (int i = 0; i < 3; i++) {
@@ -73,6 +72,5 @@ void app_update(app_s* app, float delta) {
     shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
 
     mesh_draw(&app->cube_mesh, &app->shader);
-
   }
 }

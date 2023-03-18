@@ -6,8 +6,8 @@ void app_scene_mat_view_render(app_s *app, float dt) {
   float time = SDL_GetTicks() / 1000.0f;
 
   glm::mat4 model = glm::mat4(1.0f);
-  glm::mat4 view = flycamera_get_view_matrix(&app->camera);
-  glm::mat4 proj = flycamera_get_projection_matrix(&app->camera);
+  glm::mat4 view = fcamView(&app->camera);
+  glm::mat4 proj = fcamProjection(&app->camera);
 
   glm::vec3 light_pos(0.0f);
   update_move_zigzag(&light_pos);
@@ -37,14 +37,13 @@ void app_scene_mat_view_render(app_s *app, float dt) {
   shader_1i(&app->lighting_shader, "material.diffuse", 0);
   shader_1i(&app->lighting_shader, "material.specular", 1);
 
-  glm::vec3 camera_view_pos =
-      glm::vec3(view * glm::vec4(app->camera.position, 1.0f));
+  glm::vec3 camera_view_pos = fcamViewPosition(&app->camera);
 
   // for (int i = 0; i < 4; i++) {
   //   draw_lamp(app, &app->p_light[i], view, proj);
   // }
 
-  draw_material_preview(app, view, proj, camera_view_pos, &app->camera);
+  draw_material_preview(app, &app->camera);
 
   if (app->enable_maze) {
     draw_cube(app, view, proj, camera_view_pos);
@@ -266,8 +265,7 @@ internal void draw_lamp(app_s *app, light_s *light, mat4 view, mat4 proj) {
   mesh_draw(&app->cube_mesh, &app->lamp_shader);
 }
 
-internal void draw_material_preview(app_s *app, mat4 view, mat4 proj,
-                                    vec3 camera_view_pos, flycamera_s *camera) {
+internal void draw_material_preview(app_s *app, flycamera_s *camera) {
   int columns = 6;
 
   for (int i = 0; i < COUNT_OF(g_mat_color_materials); i++) {
@@ -294,13 +292,15 @@ internal void draw_material_preview(app_s *app, mat4 view, mat4 proj,
       printf("colliding (%.2f %.2f %.2f)\n", rayIntersection.x,
              rayIntersection.y, rayIntersection.z);
       app_render_mat_color_cube(app, &app->debug_sphere, &app->lighting_shader,
-                                sphere_view, view, proj, camera_view_pos,
-                                &app->p_light[0]);
+                                sphere_view, fcamView(camera),
+                                fcamProjection(camera),
+                                fcamViewPosition(camera), &app->p_light[0]);
     }
     // } else {
     app_render_mat_color_cube(app, &app->texture_cube_mesh,
-                              &app->lighting_shader, model, view, proj,
-                              camera_view_pos, &app->p_light[0]);
+                              &app->lighting_shader, model, fcamView(camera),
+                              fcamProjection(camera), fcamViewPosition(camera),
+                              &app->p_light[0]);
     // }
   }
 }

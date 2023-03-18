@@ -33,7 +33,7 @@ struct flycamera_s {
   bool fps;
 };
 
-void flycamera_init(flycamera_s* camera, bool fps = true, float fov = 45.0f,
+void flycamera_init(flycamera_s *camera, bool fps = true, float fov = 45.0f,
                     float aspect = 16.0 / 9.0, float z_near = 0.1f,
                     float z_far = 100.0f) {
   camera->fps = fps;
@@ -43,7 +43,7 @@ void flycamera_init(flycamera_s* camera, bool fps = true, float fov = 45.0f,
   camera->z_far = z_far;
 }
 
-void flycamera_process_mouse_movement(flycamera_s* camera, float xoffset,
+void flycamera_process_mouse_movement(flycamera_s *camera, float xoffset,
                                       float yoffset) {
   camera->yaw += xoffset * camera->sensitivity;
   camera->pitch += -yoffset * camera->sensitivity;
@@ -55,7 +55,7 @@ void flycamera_process_mouse_movement(flycamera_s* camera, float xoffset,
   }
 }
 
-void flycamera_process_mouse_scroll(flycamera_s* camera, float yoffset) {
+void flycamera_process_mouse_scroll(flycamera_s *camera, float yoffset) {
   if (camera->zoom >= 1.0f && camera->zoom <= 180.0f)
     camera->zoom -= yoffset;
   if (camera->zoom <= 1.0f)
@@ -64,12 +64,12 @@ void flycamera_process_mouse_scroll(flycamera_s* camera, float yoffset) {
     camera->zoom = 180.0f;
 }
 
-void flycamera_process_movement(flycamera_s* camera, int front_axis,
+void flycamera_process_movement(flycamera_s *camera, int front_axis,
                                 int right_axis) {
   camera->move_dir = glm::vec3(right_axis, 0.0f, front_axis);
 }
 
-void flycamera_update(flycamera_s* camera, float deltaTime) {
+void flycamera_update(flycamera_s *camera, float deltaTime) {
   glm::vec3 velocity(0.0f);
 
   glm::vec3 front = camera->front;
@@ -90,7 +90,7 @@ void flycamera_update(flycamera_s* camera, float deltaTime) {
   }
 };
 
-glm::mat4 flycamera_get_view_matrix(flycamera_s* camera) {
+glm::mat4 fcamView(flycamera_s *camera) {
   camera->front = glm::vec3(
       cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
       sin(glm::radians(camera->pitch)),
@@ -100,13 +100,13 @@ glm::mat4 flycamera_get_view_matrix(flycamera_s* camera) {
                         camera->up);
 }
 
-glm::mat4 flycamera_get_projection_matrix(flycamera_s* camera) {
+glm::mat4 fcamProjection(flycamera_s *camera) {
   return glm::perspective(glm::radians(camera->fov + camera->zoom),
                           camera->aspect, camera->z_near, camera->z_far);
 };
 
 // fast jumping camera rotating around a point with easing
-glm::mat4 flycamera_get_weird_view_matrix(flycamera_s* camera) {
+glm::mat4 flycamera_get_weird_view_matrix(flycamera_s *camera) {
   float time = SDL_GetTicks() / 1000.0f;
   time = abs(fmod(time, 2.0f) - 1.0f);
   // time = time < 0.5f ? (1.0f - sqrt(1.0f - time * time)) : (sqrt(1.0f - (time
@@ -115,6 +115,10 @@ glm::mat4 flycamera_get_weird_view_matrix(flycamera_s* camera) {
   glm::vec3 pos = glm::vec3(0.0f, 0.0f, 1.0f);
   return matrix_look_at(pos + glm::vec3(cos(time), 0, abs(sin(time))), pos,
                         camera->up);
+}
+
+vec3 fcamViewPosition(flycamera_s *camera) {
+  return vec3(fcamView(camera) * vec4(camera->position, 1.0f));
 }
 
 #endif

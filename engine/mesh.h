@@ -6,7 +6,6 @@
 #include "shader.h"
 #include "texture.h"
 
-
 #include "unity.h"
 
 struct vertex_s {
@@ -22,6 +21,17 @@ struct texture_s {
 };
 
 struct mesh_s {
+
+  // Model matrix translates object to the world coordinates.
+  mat4 model;
+
+  // View matrix translates object to the camera coordinates;
+  mat4 view;
+
+  // Projection matrix translates object to the homogeneous coordinates.
+  // (perspective, etc.)
+  mat4 proj;
+
   vertex_s *verts;
   int verts_size;
   int verts_cap;
