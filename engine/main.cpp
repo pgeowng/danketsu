@@ -17,7 +17,7 @@ SDL_GLContext g_ctx;
 
 float prevTime = 0;
 
-app_s g_app = {};
+App g_app = {};
 
 internal bool init() {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {

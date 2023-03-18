@@ -3,17 +3,17 @@
 
 #include "unity.h"
 
+#include "example/cube_mesh.h"
 #include "flycamera.h"
+#include "mesh.cpp"
 #include "shader.h"
 #include "texture.h"
-#include "example/cube_mesh.h"
-#include "mesh.cpp"
 
-struct app_s {
+struct App {
   GLuint vao;
   GLuint vbo;
   GLuint ebo;
-  flycamera_s camera = {};
+  Camera camera = {};
   shader_s shader = {};
 
   mesh_s cube_mesh = {};

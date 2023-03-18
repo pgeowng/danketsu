@@ -1,6 +1,6 @@
 #include "hello.h"
 
-bool app_init(app_s *app) {
+bool app_init(App *app) {
   bool ok = false;
   flycamera_init(&app->camera);
   ok = shader_init(&app->shader, "./app/hello/hello.vert",
@@ -33,7 +33,7 @@ bool app_init(app_s *app) {
   return ok;
 }
 
-void app_update(app_s *app, float delta) {
+void app_update(App *app, float delta) {
   static float timeValue = 0.0f;
   timeValue += delta;
 
@@ -48,11 +48,11 @@ void app_update(app_s *app, float delta) {
   shader_1i(&app->shader, "tex1", 0);
   shader_1i(&app->shader, "tex2", 1);
   shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
-  shader_mat4fv(&app->shader, "view", glm::value_ptr(fcamView(&app->camera)));
+  shader_mat4fv(&app->shader, "view", glm::value_ptr(camViewMat(&app->camera)));
   // shader_SetMatrix4fv(&app->shader, "view",
   // glm::value_ptr(flycamera_get_weird_view_matrix(&app->camera)));
   shader_mat4fv(&app->shader, "projection",
-                glm::value_ptr(fcamProjection(&app->camera)));
+                glm::value_ptr(camProjMat(&app->camera)));
 
   mesh_draw(&app->cube_mesh, &app->shader);
 

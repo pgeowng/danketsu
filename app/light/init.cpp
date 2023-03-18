@@ -3,7 +3,7 @@
 int gScreenWidth = 1000;
 int gScreenHeight = 1000;
 
-bool app_init(app_s *app) {
+bool app_init(App *app) {
   bool ok = false;
   flycamera_init(&app->camera, false, 60.0f, gScreenWidth / gScreenHeight);
   ok = shader_init(&app->lighting_shader, "./app/light/light.vert",

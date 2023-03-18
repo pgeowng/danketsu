@@ -3,11 +3,11 @@
 
 #include "unity.h"
 
-struct app_s {};
+struct App {};
 
-internal bool app_init(app_s* app);
-internal void app_update(app_s* app, float delta);
-internal void sdl_audio_callback(void* userdata, Uint8* stream, int len);
-internal void app_input(app_s* app, SDL_Event e);
+internal bool app_init(App *app);
+internal void app_update(App *app, float delta);
+internal void sdl_audio_callback(void *userdata, Uint8 *stream, int len);
+internal void app_input(App *app, SDL_Event e);
 
 #endif

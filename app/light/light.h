@@ -19,7 +19,7 @@
 #include "example/ramp_mesh.h"
 #include "light_shader.h"
 
-struct app_s {
+struct App {
   // glm::vec3 position;
   // glm::vec3 color;
   // glm::vec3 ambient;
@@ -44,7 +44,7 @@ struct app_s {
   mat_color_s mat_color;
   mat_tex_s mat_tex = {0};
 
-  flycamera_s camera = {};
+  Camera camera = {};
   shader_s lighting_shader = {};
   shader_s lamp_shader = {};
 
@@ -57,30 +57,24 @@ struct app_s {
 
 #define internal static
 
-internal bool app_init(app_s *app);
-internal bool app_init_tex(app_s *app, GLuint *tex_unit, const char *path,
+internal bool app_init(App *app);
+internal bool app_init_tex(App *app, GLuint *tex_unit, const char *path,
                            GLenum tex_unit_enum);
 
-internal void app_render_mat_color_cube(app_s *app, mesh_s *cube, shader_s *sh,
-                                        glm::mat4 model, glm::mat4 view,
-                                        glm::mat4 proj,
-                                        glm::vec3 camera_view_pos,
+internal void app_render_mat_color_cube(App *app, mesh_s *cube, shader_s *sh,
+                                        glm::mat4 model, Camera *camera,
                                         light_s *light);
 
 internal void app_update_dirlight(light_s *l, glm::mat4 view);
 internal void update_color_rainbow(light_s *l);
 internal void update_move_zigzag(glm::vec3 *pos);
-internal void draw_cube(app_s *app, glm::mat4 view, glm::mat4 proj,
-                        glm::vec3 camera_view_pos);
-internal void draw_maze(app_s *app, glm::mat4 view, glm::mat4 proj,
-                        glm::vec3 camera_view_pos);
-internal void draw_ramp1(app_s *app, glm::mat4 view, glm::mat4 proj,
-                         glm::vec3 camera_view_pos);
-internal void draw_ramp2(app_s *app, glm::mat4 view, glm::mat4 proj,
-                         glm::vec3 camera_view_pos);
+internal void draw_cube(App *app, Camera *camera);
+internal void draw_maze(App *app, Camera *camera);
+internal void draw_ramp1(App *app, Camera *camera);
+internal void draw_ramp2(App *app, Camera *camera);
 
-internal void draw_lamp(app_s *app, light_s *light, mat4 view, mat4 proj);
-internal void draw_material_preview(app_s *app, flycamera_s *camera);
+internal void draw_lamp(App *app, light_s *light, mat4 view, mat4 proj);
+internal void draw_material_preview(App *app, Camera *camera);
 
 #define MAZE_SIZE 10
 

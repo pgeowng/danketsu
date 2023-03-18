@@ -6,7 +6,7 @@
 #include "debug.h"
 #include "matrix.h"
 
-struct flycamera_s {
+struct Camera {
   //   float position[3];
   glm::vec3 position = glm::vec3(0.0f, 0.0f, 3.0f);
 
@@ -33,7 +33,7 @@ struct flycamera_s {
   bool fps;
 };
 
-void flycamera_init(flycamera_s *camera, bool fps = true, float fov = 45.0f,
+void flycamera_init(Camera *camera, bool fps = true, float fov = 45.0f,
                     float aspect = 16.0 / 9.0, float z_near = 0.1f,
                     float z_far = 100.0f) {
   camera->fps = fps;
@@ -43,7 +43,7 @@ void flycamera_init(flycamera_s *camera, bool fps = true, float fov = 45.0f,
   camera->z_far = z_far;
 }
 
-void flycamera_process_mouse_movement(flycamera_s *camera, float xoffset,
+void flycamera_process_mouse_movement(Camera *camera, float xoffset,
                                       float yoffset) {
   camera->yaw += xoffset * camera->sensitivity;
   camera->pitch += -yoffset * camera->sensitivity;
@@ -55,7 +55,7 @@ void flycamera_process_mouse_movement(flycamera_s *camera, float xoffset,
   }
 }
 
-void flycamera_process_mouse_scroll(flycamera_s *camera, float yoffset) {
+void flycamera_process_mouse_scroll(Camera *camera, float yoffset) {
   if (camera->zoom >= 1.0f && camera->zoom <= 180.0f)
     camera->zoom -= yoffset;
   if (camera->zoom <= 1.0f)
@@ -64,12 +64,12 @@ void flycamera_process_mouse_scroll(flycamera_s *camera, float yoffset) {
     camera->zoom = 180.0f;
 }
 
-void flycamera_process_movement(flycamera_s *camera, int front_axis,
+void flycamera_process_movement(Camera *camera, int front_axis,
                                 int right_axis) {
   camera->move_dir = glm::vec3(right_axis, 0.0f, front_axis);
 }
 
-void flycamera_update(flycamera_s *camera, float deltaTime) {
+void flycamera_update(Camera *camera, float deltaTime) {
   glm::vec3 velocity(0.0f);
 
   glm::vec3 front = camera->front;
@@ -90,7 +90,9 @@ void flycamera_update(flycamera_s *camera, float deltaTime) {
   }
 };
 
-glm::mat4 fcamView(flycamera_s *camera) {
+// camViewMat translates object from world coordinates to the camera
+// coordinates.
+glm::mat4 camViewMat(Camera *camera) {
   camera->front = glm::vec3(
       cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
       sin(glm::radians(camera->pitch)),
@@ -100,13 +102,15 @@ glm::mat4 fcamView(flycamera_s *camera) {
                         camera->up);
 }
 
-glm::mat4 fcamProjection(flycamera_s *camera) {
+// camProjMat translates object from camera coordinates to the homogeneous
+// coordinates. (perspective, etc.)
+glm::mat4 camProjMat(Camera *camera) {
   return glm::perspective(glm::radians(camera->fov + camera->zoom),
                           camera->aspect, camera->z_near, camera->z_far);
 };
 
 // fast jumping camera rotating around a point with easing
-glm::mat4 flycamera_get_weird_view_matrix(flycamera_s *camera) {
+glm::mat4 flycamera_get_weird_view_matrix(Camera *camera) {
   float time = SDL_GetTicks() / 1000.0f;
   time = abs(fmod(time, 2.0f) - 1.0f);
   // time = time < 0.5f ? (1.0f - sqrt(1.0f - time * time)) : (sqrt(1.0f - (time
@@ -117,8 +121,14 @@ glm::mat4 flycamera_get_weird_view_matrix(flycamera_s *camera) {
                         camera->up);
 }
 
-vec3 fcamViewPosition(flycamera_s *camera) {
-  return vec3(fcamView(camera) * vec4(camera->position, 1.0f));
+// camViewPosition returns camera position within camera coordinates.
+vec3 camViewPosition(Camera *camera) {
+  return vec3(camViewMat(camera) * vec4(camera->position, 1.0f));
+}
+
+// camViewDirection returns camera direction within camera coordinates.
+vec3 camViewDirection(Camera *camera) {
+  return vec3(camViewMat(camera) * vec4(camera->front, 0.0f));
 }
 
 #endif

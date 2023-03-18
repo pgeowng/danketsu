@@ -12,7 +12,7 @@
 
 int g_screenWidth = 1000;
 int g_screenHeight = 600;
-SDL_Window* g_window;
+SDL_Window *g_window;
 SDL_GLContext g_ctx;
 
 GLint g_vertexPos2DLocation = -1;
@@ -23,12 +23,12 @@ GLuint g_ebo = 0;
 GLuint g_vao1 = 0;
 GLuint g_vbo1 = 0;
 
-shader_s g_shaders[2] = { { 0 }, { 0 } };
-GLuint g_tex[2] = { 0, 0 };
+shader_s g_shaders[2] = {{0}, {0}};
+GLuint g_tex[2] = {0, 0};
 
-flycamera_s g_camera = {};
+Camera g_camera = {};
 
-app_s g_app = {};
+App g_app = {};
 
 SDL_bool g_relative_mouse_mode = SDL_FALSE;
 
@@ -49,49 +49,47 @@ SDL_bool g_relative_mouse_mode = SDL_FALSE;
 //   // glDrawArrays(GL_TRIANGLES, 0, 36);
 // }
 void initTwoVAO() {
-  float triangle1[] = { // first bottom left
-                        -1.0f, -1.0f, 0.0f,
+  float triangle1[] = {// first bottom left
+                       -1.0f, -1.0f, 0.0f,
 
-                        1.0f, 1.0f, 1.0f,
+                       1.0f, 1.0f, 1.0f,
 
-                        0.0f, 0.0f,
+                       0.0f, 0.0f,
 
-                        // first top left
-                        -1.0f, 1.0f, 0.0f,
+                       // first top left
+                       -1.0f, 1.0f, 0.0f,
 
-                        1.0f, 1.0f, 1.0f,
+                       1.0f, 1.0f, 1.0f,
 
-                        0.0f, 2.0f,
+                       0.0f, 2.0f,
 
-                        // first bottom right
-                        1.0f, -1.0f, 0.0f,
+                       // first bottom right
+                       1.0f, -1.0f, 0.0f,
 
-                        1.0f, 1.0f, 1.0f,
+                       1.0f, 1.0f, 1.0f,
 
-                        2.0f, 0.0f
-  };
+                       2.0f, 0.0f};
 
-  float triangle2[] = { // second top left
-                        -1.0f, 1.0f, 0.0f,
+  float triangle2[] = {// second top left
+                       -1.0f, 1.0f, 0.0f,
 
-                        1.0f, 1.0f, 1.0f,
+                       1.0f, 1.0f, 1.0f,
 
-                        0.0f, 2.0f,
+                       0.0f, 2.0f,
 
-                        // second top right
-                        1.0f, 1.0f, 0.0f,
+                       // second top right
+                       1.0f, 1.0f, 0.0f,
 
-                        1.0f, 1.0f, 1.0f,
+                       1.0f, 1.0f, 1.0f,
 
-                        2.0f, 2.0f,
+                       2.0f, 2.0f,
 
-                        // second bottom right
-                        1.0f, -1.0f, 0.0f,
+                       // second bottom right
+                       1.0f, -1.0f, 0.0f,
 
-                        1.0f, 1.0f, 1.0f,
+                       1.0f, 1.0f, 1.0f,
 
-                        2.0f, 0.0f
-  };
+                       2.0f, 0.0f};
 
   glGenVertexArrays(1, &g_vao);
   glBindVertexArray(g_vao);
@@ -99,13 +97,13 @@ void initTwoVAO() {
   glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(triangle1), triangle1, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(3 * sizeof(float)));
+                        (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(6 * sizeof(float)));
+                        (void *)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
   glGenVertexArrays(1, &g_vao1);
@@ -114,13 +112,13 @@ void initTwoVAO() {
   glBindBuffer(GL_ARRAY_BUFFER, g_vbo1);
   glBufferData(GL_ARRAY_BUFFER, sizeof(triangle2), triangle2, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(3 * sizeof(float)));
+                        (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
-                        (void*)(6 * sizeof(float)));
+                        (void *)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 }
 
@@ -274,7 +272,7 @@ internal bool initTexture() {
     // load and generate the texture
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data =
+    unsigned char *data =
         stbi_load("./assets/wall.jpg", &width, &height, &nrChannels, 0);
     if (!data) {
       printf("Failed to load texture");
@@ -291,7 +289,7 @@ internal bool initTexture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    float borderColor[] = { 1.0f, 0.2f, 0.45f, 0.5f };
+    float borderColor[] = {1.0f, 0.2f, 0.45f, 0.5f};
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
@@ -304,7 +302,7 @@ internal bool initTexture() {
     // load and generate the texture
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data =
+    unsigned char *data =
         stbi_load("./assets/awesomeface.png", &width, &height, &nrChannels, 0);
     if (!data) {
       printf("Failed to load texture");
@@ -353,26 +351,25 @@ void triangleExampleVBO() {
   //     0.5f,
   //     0.0f};
 
-  float vertices[] = { // first bottom left
-                       -.5f, 0.0f, 0.0f,
+  float vertices[] = {// first bottom left
+                      -.5f, 0.0f, 0.0f,
 
-                       // first top left
-                       -.5f, 0.5f, 0.0f,
+                      // first top left
+                      -.5f, 0.5f, 0.0f,
 
-                       // first bottom right
-                       -.25f, 0.0f, 0.0f,
+                      // first bottom right
+                      -.25f, 0.0f, 0.0f,
 
-                       // second top left
-                       0.0f, 0.5f, 0.0f,
+                      // second top left
+                      0.0f, 0.5f, 0.0f,
 
-                       // second top right
-                       .25f, 0.5f, 0.0f,
+                      // second top right
+                      .25f, 0.5f, 0.0f,
 
-                       // second bottom right
-                       .25f, 0.0f, 0.0f
-  };
+                      // second bottom right
+                      .25f, 0.0f, 0.0f};
 
-  unsigned int indices[] = { 0, 1, 2, 3, 4, 5 };
+  unsigned int indices[] = {0, 1, 2, 3, 4, 5};
 
   glGenVertexArrays(1, &g_vao);
   glBindVertexArray(g_vao);
@@ -381,7 +378,7 @@ void triangleExampleVBO() {
   glBindBuffer(GL_ARRAY_BUFFER, g_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
   glGenBuffers(1, &g_ebo);
@@ -444,12 +441,12 @@ internal bool init() {
 
   io.Fonts->AddFontDefault();
   {
-    ImFont* font =
+    ImFont *font =
         io.Fonts->AddFontFromFileTTF("./assets/Inter-Light.ttf", 16.0f);
     IM_ASSERT(font != NULL);
   }
   {
-    ImFont* font =
+    ImFont *font =
         io.Fonts->AddFontFromFileTTF("./assets/MPLUS1p-Light.ttf", 16.0f);
     IM_ASSERT(font != NULL);
   }
@@ -496,7 +493,7 @@ internal void clean() {
   SDL_Quit();
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
   bool ok = init();
   if (!ok) {
@@ -510,7 +507,7 @@ int main(int argc, char* argv[]) {
   int input_move_left = 0;
   int input_move_back = 0;
 
-  flycamera_s* cam = &g_app.camera;
+  Camera *cam = &g_app.camera;
 
   SDL_Event e;
   bool windowShouldClose = false;
