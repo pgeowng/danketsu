@@ -134,88 +134,48 @@ bool intersectRayTriangle(vec3 rayOrigin, vec3 rayDir, vec3 a, vec3 b, vec3 c,
 
   return false;
 }
-bool floatEquality(float a, float b, float epsilon) {
-  return fabs(a - b) < epsilon;
-}
-
-bool testIntersectRayTriangle() {
-  bool result = false;
-  vec3 intersection = glm::vec3(0);
-
-  result = intersectRayTriangle(glm::vec3(0), glm::vec3(0, 0, -1),
-                                glm::vec3(1, 0, -1), glm::vec3(0, 1, -1),
-                                glm::vec3(-1, -1, -1), &intersection);
-  if (result != true) {
-    printf("test_1: result isn't true\n");
-    return true;
-  }
-
-  if (!floatEquality(intersection.x, 0.f, 0.01)) {
-    printf("test_1: x value mismatch: %f != %f\n", intersection.x, 0.f);
-    return true;
-  }
-
-  if (!floatEquality(intersection.y, 0.f, 0.01)) {
-    printf("test_1: y value mismatch: %f != %f\n", intersection.y, 0.f);
-    return true;
-  }
-
-  if (!floatEquality(intersection.z, -1.f, 0.01)) {
-    printf("test_1: z value mismatch: %f != %f\n", intersection.z, -1.f);
-    return true;
-  }
-
-  result = intersectRayTriangle(
-      glm::vec3(0), glm::normalize(glm::vec3(-13.18f, 16.89, 4)),
-      glm::vec3(-7.34, 0.46, 5), glm::vec3(-3.18, 6.48, 0),
-      glm::vec3(-6.76, 7.67, 3), &intersection);
-  if (result != true) {
-    printf("test_2: result isn't true\n");
-    return true;
-  }
-
-  if (!floatEquality(intersection.x, -4.57f, 0.01)) {
-    printf("test_2: x value mismatch: %f != %f\n", intersection.x, -4.57f);
-    return true;
-  }
-
-  if (!floatEquality(intersection.y, 5.85f, 0.01)) {
-    printf("test_2: y value mismatch: %f != %f\n", intersection.y, 5.85f);
-    return true;
-  }
-
-  if (!floatEquality(intersection.z, 1.38f, 0.01)) {
-    printf("test_2: z value mismatch: %f != %f\n", intersection.z, 1.38f);
-    return true;
-  }
-
-  return false;
-}
 
 bool intersectRayMesh(vec3 rayOrigin, vec3 rayDir, mesh_s *mesh,
                       /*int num_triangles, int stride,*/ vec3 *out) {
+
+  bool wasIntersection = false;
+  vec3 intersection = glm::vec3(0);
+  float distance = 0.f;
+  vec3 tmpIntersection = glm::vec3(0);
+  float newDistance = 0.f;
 
   if (mesh->indices_size == 0) {
     assert(mesh->verts_size % 3 == 0);
     printf("intersecting verts\n");
     for (int i = 0; i < mesh->verts_size; i += 3) {
-      printf("rayOrigin: ");
-      printVec3(rayOrigin);
-      printf(", rayDir: ");
-      printVec3(rayDir);
-      printf(", p0: ");
-      printVec3(mesh->verts[i].pos);
-      printf(", p1: ");
-      printVec3(mesh->verts[i + 1].pos);
-      printf(", p2: ");
-      printVec3(mesh->verts[i + 2].pos);
-      printf("\n");
+      // printf("rayOrigin: ");
+      // printVec3(rayOrigin);
+      // printf(", rayDir: ");
+      // printVec3(rayDir);
+      // printf(", p0: ");
+      // printVec3(mesh->verts[i].pos);
+      // printf(", p1: ");
+      // printVec3(mesh->verts[i + 1].pos);
+      // printf(", p2: ");
+      // printVec3(mesh->verts[i + 2].pos);
+      // printf("\n");
 
       if (intersectRayTriangle(rayOrigin, rayDir, mesh->verts[i].pos,
                                mesh->verts[i + 1].pos, mesh->verts[i + 2].pos,
-                               out)) {
-        printf("ray intersects mesh\n");
-        return true;
+                               &tmpIntersection)) {
+        if (wasIntersection) {
+          newDistance = glm::length(tmpIntersection - rayOrigin);
+          printf("newDistance: %f\n", newDistance);
+          if (newDistance < distance) {
+            intersection = tmpIntersection;
+            distance = newDistance;
+          }
+        } else {
+          intersection = tmpIntersection;
+          distance = glm::length(intersection - rayOrigin);
+          printf("distance: %f\n", distance);
+          wasIntersection = true;
+        }
       }
     }
   } else {
@@ -223,26 +183,30 @@ bool intersectRayMesh(vec3 rayOrigin, vec3 rayDir, mesh_s *mesh,
     printf("intersecting indices\n");
     for (int i = 0; i < mesh->indices_size; i += 3) {
 
-      if (intersectRayTriangle(rayOrigin, rayDir,
-                               mesh->verts[mesh->indices[i]].pos,
-                               mesh->verts[mesh->indices[i + 1]].pos,
-                               mesh->verts[mesh->indices[i + 2]].pos, out)) {
-        printf("ray intersects indexed mesh");
-        return true;
+      if (intersectRayTriangle(
+              rayOrigin, rayDir, mesh->verts[mesh->indices[i]].pos,
+              mesh->verts[mesh->indices[i + 1]].pos,
+              mesh->verts[mesh->indices[i + 2]].pos, &tmpIntersection)) {
+        if (wasIntersection) {
+          newDistance = glm::length(tmpIntersection - rayOrigin);
+          if (newDistance < distance) {
+            intersection = tmpIntersection;
+            distance = newDistance;
+          }
+        } else {
+          intersection = tmpIntersection;
+          distance = glm::length(intersection - rayOrigin);
+          wasIntersection = true;
+        }
       }
     }
   }
 
-  // for (int i = 0; i < mesh->; i++) {
-  //   vec3 p0 = triangles[i * stride + 0];
-  //   vec3 p1 = triangles[i * stride + 3];
-  //   vec3 p2 = triangles[i * stride + 6];
-  //   if (intersectRayTriangle(rayOrigin, rayDir, p0, p1, p2, out)) {
-  //     printf("ray intersects mesh");
-  //     return true;
-  //   }
-  // }
-  return false;
+  if (wasIntersection) {
+    *out = intersection;
+  }
+
+  return wasIntersection;
 }
 
 #endif

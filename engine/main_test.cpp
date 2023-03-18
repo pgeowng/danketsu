@@ -1,4 +1,4 @@
-#include "raycast.h"
+#include "raycast_test.cpp"
 
 int main(int argc, char *argv[]) {
   bool failed = testIntersectRayTriangle();
@@ -6,4 +6,6 @@ int main(int argc, char *argv[]) {
     printf("test intersect ray triangle failed\n");
     return 0;
   }
+
+  return 0;
 }
