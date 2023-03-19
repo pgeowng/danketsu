@@ -1,6 +1,6 @@
 #include "audio.h"
 
-internal bool app_init(App *app) {
+internal bool app_init(Scene *app) {
   bool ok = true;
 
   SDL_AudioSpec want, have;
@@ -31,7 +31,7 @@ internal bool app_init(App *app) {
   return ok;
 }
 
-internal void app_update(App *app, float delta) {}
+internal void app_update(Scene *app, float delta) {}
 
 internal void sdl_audio_callback(void *userdata, Uint8 *stream, int len) {
   static float time = 0.0f;
@@ -47,4 +47,4 @@ internal void sdl_audio_callback(void *userdata, Uint8 *stream, int len) {
   }
 }
 
-internal void app_input(App *app, SDL_Event e) {}
+internal void app_input(Scene *app, SDL_Event e) {}

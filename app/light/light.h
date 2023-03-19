@@ -8,6 +8,7 @@
 #include "mat_color.cpp"
 #include "mat_tex.cpp"
 // #include "mesh_renderer.h"
+#include "game_object.h"
 #include "mesh.cpp"
 #include "mesh.h"
 #include "raycast.h"
@@ -15,11 +16,16 @@
 #include "text.h"
 #include "texture.h"
 
+#include "example/cube_mesh.h"
 #include "example/cube_tex_mesh.h"
 #include "example/ramp_mesh.h"
 #include "light_shader.h"
 
-struct App {
+
+const int GOSize = 4;
+const int LampInstance = 12;
+
+struct Scene {
   // glm::vec3 position;
   // glm::vec3 color;
   // glm::vec3 ambient;
@@ -34,7 +40,6 @@ struct App {
   // GLuint ebo;
 
   mesh_s ramp_mesh = {};
-  mesh_s cube_mesh = {};
   mesh_s texture_cube_mesh = {};
   mesh_s debug_sphere = {};
 
@@ -53,28 +58,30 @@ struct App {
   light_s sp_light = {};
 
   text_s text_renderer = {};
+
+  GameObject go[GOSize];
 };
 
 #define internal static
 
-internal bool app_init(App *app);
-internal bool app_init_tex(App *app, GLuint *tex_unit, const char *path,
+internal bool app_init(Scene *app);
+internal bool app_init_tex(Scene *app, GLuint *tex_unit, const char *path,
                            GLenum tex_unit_enum);
 
-internal void app_render_mat_color_cube(App *app, mesh_s *cube, shader_s *sh,
+internal void app_render_mat_color_cube(Scene *app, mesh_s *cube, shader_s *sh,
                                         glm::mat4 model, Camera *camera,
                                         light_s *light);
 
 internal void app_update_dirlight(light_s *l, glm::mat4 view);
 internal void update_color_rainbow(light_s *l);
 internal void update_move_zigzag(glm::vec3 *pos);
-internal void draw_cube(App *app, Camera *camera);
-internal void draw_maze(App *app, Camera *camera);
-internal void draw_ramp1(App *app, Camera *camera);
-internal void draw_ramp2(App *app, Camera *camera);
+internal void draw_cube(Scene *app, Camera *camera);
+internal void draw_maze(Scene *app, Camera *camera);
+internal void draw_ramp1(Scene *app, Camera *camera);
+internal void draw_ramp2(Scene *app, Camera *camera);
 
-internal void draw_lamp(App *app, light_s *light, mat4 view, mat4 proj);
-internal void draw_material_preview(App *app, Camera *camera);
+internal void SceneLampDraw(Scene *scene);
+internal void draw_material_preview(Scene *app, Camera *camera);
 
 #define MAZE_SIZE 10
 

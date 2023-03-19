@@ -1,6 +1,6 @@
 #include "light.h"
 
-internal void app_input(App *app, SDL_Event e) {
+internal void app_input(Scene *app, SDL_Event e) {
   static int input_move_forward = 0;
   static int input_move_right = 0;
   static int input_move_left = 0;

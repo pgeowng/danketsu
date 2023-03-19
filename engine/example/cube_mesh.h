@@ -4,67 +4,64 @@
 #include "alloc.h"
 #include "mesh.h"
 
+void MeshSetCube(mesh_s *m) {
+  float vertices[] = {// front
+                      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-void mesh_init_cube(mesh_s *m) {
-  float vertices[] = {
-    // front
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+                      -0.5f, 0.5f, -0.5f, // Front Left Top
+                      0.0f, 1.0f,         // Texture
 
-    -0.5f, 0.5f, -0.5f, // Front Left Top
-    0.0f, 1.0f,         // Texture
+                      0.5f, 0.5f, -0.5f, // Front Right Top
+                      1.0f, 1.0f,        // Texture
 
-    0.5f, 0.5f, -0.5f, // Front Right Top
-    1.0f, 1.0f,        // Texture
+                      0.5f, -0.5f, -0.5f, // Front Right Bottom
+                      1.0f, 0.0f,         // Texture
 
-    0.5f, -0.5f, -0.5f, // Front Right Bottom
-    1.0f, 0.0f,         // Texture
+                      // right
+                      0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-    // right
-    0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+                      0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
 
-    0.5f, 0.5f, -0.5f, 1.0f, 0.0f,
+                      0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
 
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+                      0.5f, -0.5f, 0.5f, 0.0f, 1.0f,
 
-    0.5f, -0.5f, 0.5f, 0.0f, 1.0f,
+                      // back
+                      0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
 
-    // back
-    0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+                      0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
 
-    0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+                      -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
 
-    -0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+                      -0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
 
-    -0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+                      // left
+                      -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
 
-    // left
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+                      -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
 
-    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+                      -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
 
-    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+                      -0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+                      // top
 
-    // top
+                      -0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
 
-    -0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
+                      -0.5, 0.5f, 0.5f, 0.0f, 1.0f,
 
-    -0.5, 0.5f, 0.5f, 0.0f, 1.0f,
+                      0.5f, 0.5f, 0.5f, 1.0f, 1.01f,
 
-    0.5f, 0.5f, 0.5f, 1.0f, 1.01f,
+                      0.5, 0.5f, -0.5f, 1.0f, 0.0f,
 
-    0.5, 0.5f, -0.5f, 1.0f, 0.0f,
+                      // bottom
+                      -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-    // bottom
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+                      -0.5, -0.5f, 0.5f, 0.0f, 1.0f,
 
-    -0.5, -0.5f, 0.5f, 0.0f, 1.0f,
+                      0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
 
-    0.5f, -0.5f, 0.5f, 1.0f, 1.0f,
-
-    0.5, -0.5f, -0.5f, 1.0f, 0.0f
-  };
+                      0.5, -0.5f, -0.5f, 1.0f, 0.0f};
 
   m->verts_size = 24;
   m->verts_cap = 24;
@@ -79,39 +76,39 @@ void mesh_init_cube(mesh_s *m) {
   }
 
   uint indices[] = {
-    0, 1, 3, // first triangle
-    1, 2, 3, // second triangle
+      0,  1,  3, // first triangle
+      1,  2,  3, // second triangle
 
-    4, 5, 7, // first triangle
-    5, 6, 7, // second triangle
+      4,  5,  7, // first triangle
+      5,  6,  7, // second triangle
 
-    8, 9, 11, // first triangle
-    9, 10, 11, // second triangle
+      8,  9,  11, // first triangle
+      9,  10, 11, // second triangle
 
-    12, 13, 15, // first triangle
-    13, 14, 15, // second triangle
+      12, 13, 15, // first triangle
+      13, 14, 15, // second triangle
 
-    16, 17, 19, // first triangle
-    17, 18, 19, // second triangle
+      16, 17, 19, // first triangle
+      17, 18, 19, // second triangle
 
-    20, 21, 23, // first triangle
-    21, 22, 23 // second triangle
+      20, 21, 23, // first triangle
+      21, 22, 23  // second triangle
   };
 
   uint faces[] = {
-    0,  1,  2, // Front
+      0,  1,  2, // Front
 
-    2,  3,  0,
+      2,  3,  0,
 
-    4,  5,  6,  6,  7,  4,
+      4,  5,  6,  6,  7,  4,
 
-    8,  9,  10, 10, 11, 8,
+      8,  9,  10, 10, 11, 8,
 
-    12, 13, 14, 14, 15, 12,
+      12, 13, 14, 14, 15, 12,
 
-    16, 17, 18, 18, 19, 16,
+      16, 17, 18, 18, 19, 16,
 
-    20, 21, 22, 22, 23, 20,
+      20, 21, 22, 22, 23, 20,
   };
 
   m->indices_size = 36;
@@ -122,9 +119,9 @@ void mesh_init_cube(mesh_s *m) {
     m->indices[i] = indices[i];
   }
 
-  m->vao = 0;
-  m->vbo = 0;
-  m->ebo = 0;
+  assert(m->vao == 0);
+  assert(m->vbo == 0);
+  assert(m->ebo == 0);
 }
 
 #endif

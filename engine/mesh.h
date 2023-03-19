@@ -22,9 +22,6 @@ struct texture_s {
 
 struct mesh_s {
 
-  // Model matrix translates object to the world coordinates.
-  mat4 model;
-
   vertex_s *verts;
   int verts_size;
   int verts_cap;
@@ -42,10 +39,10 @@ struct mesh_s {
   GLuint ebo;
 };
 
-void mesh_zero(mesh_s *m);
+void MeshZero(mesh_s *m);
 bool mesh_read_obj(mesh_s *m, const char *filename);
-bool mesh_setup(mesh_s *m);
+bool MeshInitialize(mesh_s *m);
 bool mesh_clean(mesh_s *m);
-void mesh_draw(mesh_s *m, shader_s *sh);
+void MeshDraw(mesh_s *m, shader_s *sh);
 
 #endif

@@ -146,7 +146,6 @@ bool intersectRayMesh(vec3 rayOrigin, vec3 rayDir, mesh_s *mesh,
 
   if (mesh->indices_size == 0) {
     assert(mesh->verts_size % 3 == 0);
-    printf("intersecting verts\n");
     for (int i = 0; i < mesh->verts_size; i += 3) {
       // printf("rayOrigin: ");
       // printVec3(rayOrigin);

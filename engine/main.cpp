@@ -17,7 +17,7 @@ SDL_GLContext g_ctx;
 
 float prevTime = 0;
 
-App g_app = {};
+Scene g_app = {};
 
 internal bool init() {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
     float delta = timeValue - prevTime;
     prevTime = timeValue;
 
-    glClearColor(0.15625f, 0.15625f, 0.15625f, 1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     app_update(&g_app, delta);

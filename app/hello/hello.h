@@ -9,7 +9,7 @@
 #include "shader.h"
 #include "texture.h"
 
-struct App {
+struct Scene {
   GLuint vao;
   GLuint vbo;
   GLuint ebo;

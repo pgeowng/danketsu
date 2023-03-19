@@ -1,6 +1,6 @@
 #include "hello.h"
 
-bool app_init(App *app) {
+bool app_init(Scene *app) {
   bool ok = false;
   flycamera_init(&app->camera);
   ok = shader_init(&app->shader, "./app/hello/hello.vert",
@@ -10,9 +10,9 @@ bool app_init(App *app) {
     return ok;
   }
 
-  mesh_zero(&app->cube_mesh);
-  mesh_init_cube(&app->cube_mesh);
-  mesh_setup(&app->cube_mesh);
+  MeshZero(&app->cube_mesh);
+  MeshSetCube(&app->cube_mesh);
+  MeshInitialize(&app->cube_mesh);
 
   shader_use(&app->shader);
 
@@ -33,7 +33,7 @@ bool app_init(App *app) {
   return ok;
 }
 
-void app_update(App *app, float delta) {
+void app_update(Scene *app, float delta) {
   static float timeValue = 0.0f;
   timeValue += delta;
 
@@ -54,7 +54,7 @@ void app_update(App *app, float delta) {
   shader_mat4fv(&app->shader, "projection",
                 glm::value_ptr(camProjMat(&app->camera)));
 
-  mesh_draw(&app->cube_mesh, &app->shader);
+  MeshDraw(&app->cube_mesh, &app->shader);
 
   glm::vec3 positions[] = {
       glm::vec3(0.2f, -0.2f, 1.0f),
@@ -71,6 +71,6 @@ void app_update(App *app, float delta) {
 
     shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
 
-    mesh_draw(&app->cube_mesh, &app->shader);
+    MeshDraw(&app->cube_mesh, &app->shader);
   }
 }

@@ -3,7 +3,7 @@
 int gScreenWidth = 1000;
 int gScreenHeight = 1000;
 
-bool app_init(App *app) {
+bool app_init(Scene *app) {
   bool ok = false;
   flycamera_init(&app->camera, false, 60.0f, gScreenWidth / gScreenHeight);
   ok = shader_init(&app->lighting_shader, "./app/light/light.vert",
@@ -20,28 +20,30 @@ bool app_init(App *app) {
     return ok;
   }
 
-  // mesh_zero(&app->cube_mesh);
-  // mesh_init_cube_tex(&app->cube_mesh);
-  // mesh_setup(&app->cube_mesh);
+  // TODO: need memory allocation
+  static mesh_s cubeMesh = {};
+  MeshZero(&cubeMesh);
+  MeshSetCube(&cubeMesh);
+  MeshInitialize(&cubeMesh);
 
-  // mesh_zero(&app->cube_mesh);
+  // MeshZero(&app->cube_mesh);
   // mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
   // mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png",
-  // "material.diffuse"); mesh_setup(&app->cube_mesh);
+  // "material.diffuse"); MeshInitialize(&app->cube_mesh);
 
-  // mesh_zero(&app->ramp_mesh);
+  // MeshZero(&app->ramp_mesh);
   // mesh_init_ramp(&app->ramp_mesh);
-  // mesh_setup(&app->ramp_mesh);
+  // MeshInitialize(&app->ramp_mesh);
 
-  mesh_zero(&app->texture_cube_mesh);
+  MeshZero(&app->texture_cube_mesh);
   mesh_read_obj(&app->texture_cube_mesh, "assets/checker_cube.obj");
   mesh_add_texture(&app->texture_cube_mesh, "assets/checker.png",
                    "material.diffuse");
-  mesh_setup(&app->texture_cube_mesh);
+  MeshInitialize(&app->texture_cube_mesh);
 
-  mesh_zero(&app->debug_sphere);
+  MeshZero(&app->debug_sphere);
   mesh_read_obj(&app->debug_sphere, "assets/sphere.obj");
-  mesh_setup(&app->debug_sphere);
+  MeshInitialize(&app->debug_sphere);
 
   // g_cube.shader = &app->lighting_shader;
   // g_cube.vao = app->vao;
@@ -144,6 +146,14 @@ bool app_init(App *app) {
   if (!ok) {
     printf("light: failed to init text renderer\n");
     return ok;
+  }
+
+  for (int i = 0; i < 4; i++) {
+    app->go[i].instance = LampInstance;
+    app->go[i].transform = mat4(1.0f);
+    app->go[i].mesh = &cubeMesh;
+    app->go[i].shader = &app->lamp_shader;
+    app->go[i].light = &app->p_light[i];
   }
 
   return ok;

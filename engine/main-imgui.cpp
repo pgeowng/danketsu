@@ -28,7 +28,7 @@ GLuint g_tex[2] = {0, 0};
 
 Camera g_camera = {};
 
-App g_app = {};
+Scene g_app = {};
 
 SDL_bool g_relative_mouse_mode = SDL_FALSE;
 
