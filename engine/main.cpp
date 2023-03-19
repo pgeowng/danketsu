@@ -71,7 +71,8 @@ internal bool init() {
   return true;
 }
 
-internal void clean() {
+internal void clean(Scene *scn) {
+  AppClean(scn);
   SDL_GL_DeleteContext(g_ctx);
   SDL_DestroyWindow(g_window);
   SDL_Quit();
@@ -95,7 +96,7 @@ int main(int argc, char *argv[]) {
   bool ok = init();
   if (!ok) {
     printf("init failed\n");
-    clean();
+    clean(&g_app);
     return 0;
   }
 
@@ -139,7 +140,7 @@ int main(int argc, char *argv[]) {
     nextTime += TICK_INTERVAL;
   }
 
-  clean();
+  clean(&g_app);
 
   return 0;
 }

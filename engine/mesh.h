@@ -42,7 +42,7 @@ struct mesh_s {
 void MeshZero(mesh_s *m);
 bool mesh_read_obj(mesh_s *m, const char *filename);
 bool MeshInitialize(mesh_s *m);
-bool mesh_clean(mesh_s *m);
+bool MeshClean(mesh_s *m);
 void MeshDraw(mesh_s *m, shader_s *sh);
 
 #endif

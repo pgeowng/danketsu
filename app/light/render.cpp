@@ -36,23 +36,38 @@ void app_scene_mat_view_render(Scene *app, float dt) {
   shader_1i(&app->lighting_shader, "material.diffuse", 0);
   shader_1i(&app->lighting_shader, "material.specular", 1);
 
-  SceneLampDraw(app);
-
   draw_material_preview(app, &app->camera);
 
   if (app->enable_maze) {
-    draw_cube(app, camera);
-    draw_maze(app, camera);
+    sceneDrawCube(app, camera);
+    // draw_maze(app, camera);
     draw_ramp1(app, camera);
     draw_ramp2(app, camera);
   }
 
-  {
-    glm::mat4 model = glm::mat4(1.0f);
-    app->mat_color = g_mat_sh_0;
-    app_render_mat_color_cube(app, &app->texture_cube_mesh,
-                              &app->lighting_shader, model, camera,
-                              &app->p_light[0]);
+  for (int i = 0; i < GOSize; i++) {
+    GameObject *obj = &app->go[i];
+    switch (obj->instance) {
+    case LampInstance: {
+      sceneLampDraw(app, obj);
+      break;
+    }
+    case BoxInstance: {
+      sceneRenderMatColor(app, obj);
+      break;
+    }
+    case MazeInstance: {
+      // sceneDrawCube(app, camera);
+      sceneRenderMatColor(app, obj);
+      // draw_ramp1(app, camera);
+      // draw_ramp2(app, camera);
+      break;
+    }
+
+    default: {
+      break;
+    }
+    }
   }
 
   int text_y = 20;
@@ -72,60 +87,64 @@ internal void app_update(Scene *app, float dt) {
 }
 
 // TODO: fix cube mesh usage
-internal void draw_cube(Scene *app, Camera *camera) {
-  //   glm::mat4 model = glm::mat4(1.0f);
-  //   app->mat_color = g_mat_sh_0;
-  //   app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader,
-  //   model,
-  //                             camera, &app->p_light[0]);
+internal void sceneDrawCube(Scene *app, Camera *camera) {
+  glm::mat4 model = glm::mat4(1.0f);
+  app->mat_color = g_mat_sh_0;
+  // app_render_mat_color_cube(app, &app->cube_mesh, &app->lighting_shader,
+  // model, camera, &app->p_light[0]);
 }
 
-internal void draw_maze(Scene *app, Camera *camera) {
-  float cell_width = 2.0f;
-  float cell_height = 4.3f;
-  float cell_depth = 2.3f;
+// internal void draw_maze(Scene *app, Camera *camera) {
+//   float cell_width = 2.0f;
+//   float cell_height = 4.3f;
+//   float cell_depth = 2.3f;
 
-  float cell_fluctuation = 0.5f;
-  static int save_rnd = rnd;
-  rnd = save_rnd;
+//   float cell_fluctuation = 0.5f;
+//   static int save_rnd = rnd;
+//   rnd = save_rnd;
 
-  for (int l = 0; l < 3; l++) {
+//   for (int l = 0; l < 3; l++) {
 
-    for (int i = 0; i < g_maze_size; i++) {
-      for (int j = 0; j < g_maze_size; j++) {
-        if (g_maze[l * g_maze_size * g_maze_size + i * g_maze_size + j] == 1) {
+//     for (int i = 0; i < g_maze_size; i++) {
+//       for (int j = 0; j < g_maze_size; j++) {
+//         if (g_maze[l * g_maze_size * g_maze_size + i * g_maze_size + j] == 1)
+//         {
 
-          glm::mat4 model = glm::mat4(1.0f);
-          model = glm::translate(model, glm::vec3(2.0f, -2.0f, 2.0f));
-          model = glm::translate(
-              model,
-              glm::vec3(i * cell_width - g_maze_size / 2.0f, l * cell_height,
-                        j * cell_depth - g_maze_size / 2.0f));
+//           glm::mat4 model = glm::mat4(1.0f);
+//           model = glm::translate(model, glm::vec3(2.0f, -2.0f, 2.0f));
+//           model = glm::translate(
+//               model,
+//               glm::vec3(i * cell_width - g_maze_size / 2.0f, l * cell_height,
+//                         j * cell_depth - g_maze_size / 2.0f));
 
-          model = glm::scale(model, glm::vec3(cell_width - cell_fluctuation,
-                                              cell_height - cell_fluctuation,
-                                              cell_depth - cell_fluctuation));
+//           model = glm::scale(model, glm::vec3(cell_width - cell_fluctuation,
+//                                               cell_height - cell_fluctuation,
+//                                               cell_depth -
+//                                               cell_fluctuation));
 
-          model = glm::translate(
-              model,
-              glm::vec3(cell_fluctuation *
-                            float(rnd = (rnd * rnd_step) % rnd_mod) / rnd_mod,
-                        cell_fluctuation *
-                            float(rnd = (rnd * rnd_step) % rnd_mod) / rnd_mod,
-                        cell_fluctuation *
-                            float(rnd = (rnd * rnd_step) % rnd_mod) / rnd_mod));
+//           model = glm::translate(
+//               model,
+//               glm::vec3(cell_fluctuation *
+//                             float(rnd = (rnd * rnd_step) % rnd_mod) /
+//                             rnd_mod,
+//                         cell_fluctuation *
+//                             float(rnd = (rnd * rnd_step) % rnd_mod) /
+//                             rnd_mod,
+//                         cell_fluctuation *
+//                             float(rnd = (rnd * rnd_step) % rnd_mod) /
+//                             rnd_mod));
 
-          ;
-          app->mat_color = g_mat_sh_1;
-          // TODO: fix cube mesh usage
-          // app_render_mat_color_cube(app, &app->cube_mesh,
-          // &app->lighting_shader,
-          // model, camera, &app->p_light[0]);
-        }
-      }
-    }
-  }
-}
+//           ;
+//           app->mat_color = g_mat_sh_1;
+//           // TODO: fix cube mesh usage
+//           // app_render_mat_color_cube(app, &app->cube_mesh,
+//           // &app->lighting_shader,
+//           // model, camera, &app->p_light[0]);
+//         }
+//       }
+//     }
+//   }
+// }
 
 internal void draw_ramp1(Scene *app, Camera *camera) {
   glm::mat4 model = glm::mat4(1.0f);
@@ -246,27 +265,50 @@ internal void app_render_mat_color_cube(Scene *app, mesh_s *mesh, shader_s *sh,
   MeshDraw(mesh, sh);
 }
 
-internal void SceneLampDraw(Scene *scene) {
-  for (int i = 0; i < GOSize; i++) {
-    if (scene->go[i].instance != LampInstance) {
-      continue;
-    }
+internal void sceneRenderMatColor(Scene *scn, GameObject *obj) {
+  Camera *cam = &scn->camera;
+  shader_s *sh = obj->shader;
+  light_s *light = obj->light;
 
-    GameObject *lamp = &scene->go[i];
-    light_s *light = lamp->light;
-    shader_s *shader = lamp->shader;
-
-    lamp->transform = mat4(1.0f);
-    lamp->transform = translate(lamp->transform, light->position);
-    lamp->transform = scale(lamp->transform, glm::vec3(.2f));
-
-    shader_use(shader);
-    shader_set_lightsrc(shader, light->specular);
-    shader_set_transform(shader, lamp->transform, camViewMat(&scene->camera),
-                         camProjMat(&scene->camera));
-
-    MeshDraw(lamp->mesh, shader);
+  shader_use(sh);
+  if (obj->mat_color != NULL) {
+    mat_color_apply(*obj->mat_color, sh);
+  } else {
+    // mat_tex_apply(scn->mat_tex, object->shader);
   }
+
+  // TODO: actually bad thing
+  obj->light->direction = camViewDirection(cam);
+
+  shader_set_dirlight(sh, &scn->dir_light);
+
+  for (int i = 0; i < 4; i++) {
+    scn->p_light[i].position = vec3(vec4(scn->p_light[i].position, 1.0f));
+    shader_set_pointlight(sh, camViewMat(cam), &scn->p_light[i], i);
+  }
+
+  shader_set_spotlight(sh, &scn->sp_light);
+
+  shader_set_light(sh, light);
+  shader_set_transform_and_viewpos(sh, obj->transform, camViewMat(cam),
+                                   camProjMat(cam), camViewPosition(cam));
+  MeshDraw(obj->mesh, sh);
+}
+
+internal void sceneLampDraw(Scene *scene, GameObject *lamp) {
+  light_s *light = lamp->light;
+  shader_s *shader = lamp->shader;
+
+  lamp->transform = mat4(1.0f);
+  lamp->transform = translate(lamp->transform, light->position);
+  lamp->transform = scale(lamp->transform, glm::vec3(.2f));
+
+  shader_use(shader);
+  shader_set_lightsrc(shader, light->specular);
+  shader_set_transform(shader, lamp->transform, camViewMat(&scene->camera),
+                       camProjMat(&scene->camera));
+
+  MeshDraw(lamp->mesh, shader);
 }
 
 internal void draw_material_preview(Scene *app, Camera *camera) {

@@ -21,9 +21,12 @@
 #include "example/ramp_mesh.h"
 #include "light_shader.h"
 
-
-const int GOSize = 4;
+const int g_maze_size = 10;
+const int g_maze_objects = g_maze_size * g_maze_size * 3;
+const int GOSize = 4 + 1 + g_maze_objects;
 const int LampInstance = 12;
+const int BoxInstance = 13;
+const int MazeInstance = 14;
 
 struct Scene {
   // glm::vec3 position;
@@ -75,18 +78,17 @@ internal void app_render_mat_color_cube(Scene *app, mesh_s *cube, shader_s *sh,
 internal void app_update_dirlight(light_s *l, glm::mat4 view);
 internal void update_color_rainbow(light_s *l);
 internal void update_move_zigzag(glm::vec3 *pos);
-internal void draw_cube(Scene *app, Camera *camera);
+internal void sceneDrawCube(Scene *app, Camera *camera);
 internal void draw_maze(Scene *app, Camera *camera);
 internal void draw_ramp1(Scene *app, Camera *camera);
 internal void draw_ramp2(Scene *app, Camera *camera);
 
-internal void SceneLampDraw(Scene *scene);
+internal void sceneLampDraw(Scene *scene, GameObject *lamp);
 internal void draw_material_preview(Scene *app, Camera *camera);
+internal void sceneRenderMatColor(Scene *scn, GameObject *obj);
 
-#define MAZE_SIZE 10
-
-int g_maze[MAZE_SIZE * MAZE_SIZE * 3] = {0};
-int g_maze_size = MAZE_SIZE;
+internal int sceneMazeStart(GameObject *objectArena, mesh_s *mesh,
+                            shader_s *shader, light_s *lightSource);
 
 int rnd = 41241515;
 int rnd_mod = 489414;

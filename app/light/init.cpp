@@ -21,6 +21,15 @@ bool app_init(Scene *app) {
   }
 
   // TODO: need memory allocation
+  static shader_s colorShader;
+  ok = shader_init(&colorShader, "./app/light/light.vert",
+                   "./app/light/light_color.frag");
+  if (!ok) {
+    printf("colorShader initialization failed");
+    return ok;
+  }
+
+  // TODO: need memory allocation
   static mesh_s cubeMesh = {};
   MeshZero(&cubeMesh);
   MeshSetCube(&cubeMesh);
@@ -54,18 +63,6 @@ bool app_init(Scene *app) {
   // g_ramp.vao = app->ramp_vao;
   // g_ramp.vbo = app->ramp_vbo;
   // g_ramp.num_triangles = 24;
-
-  for (int l = 0; l < 3; l++) {
-
-    for (int i = 0; i < g_maze_size; i++) {
-      for (int j = 0; j < g_maze_size; j++) {
-        g_maze[l * g_maze_size * g_maze_size + i * g_maze_size + j] =
-            (rnd > 60 ? 1 : 0);
-
-        rnd = (rnd * rnd_step) % rnd_mod;
-      }
-    }
-  }
 
   app->mat_tex = {
       .tex_diffuse = 0,
@@ -148,13 +145,112 @@ bool app_init(Scene *app) {
     return ok;
   }
 
-  for (int i = 0; i < 4; i++) {
-    app->go[i].instance = LampInstance;
-    app->go[i].transform = mat4(1.0f);
-    app->go[i].mesh = &cubeMesh;
-    app->go[i].shader = &app->lamp_shader;
-    app->go[i].light = &app->p_light[i];
+  int idx = 0;
+  int light_i = 0;
+  for (; idx < 4; idx++) {
+    GameObject *obj = &app->go[idx];
+    obj->instance = LampInstance;
+    obj->transform = mat4(1.0f);
+    obj->mesh = &cubeMesh;
+    obj->shader = &app->lamp_shader;
+    obj->light = &app->p_light[light_i];
+    obj->mat_color = NULL;
+    light_i++;
+  }
+
+  {
+    GameObject *obj = &app->go[idx];
+    obj->instance = BoxInstance;
+    obj->transform = glm::mat4(1.0f);
+    obj->mesh = &app->texture_cube_mesh;
+    obj->shader = &colorShader;
+    // TODO: make dynamic light detection
+    obj->light = &app->p_light[0];
+    obj->mat_color = &g_mat_sh_0;
+  }
+
+  {
+    idx += sceneMazeStart(&app->go[idx], &cubeMesh, &app->lighting_shader,
+                          &app->p_light[0]);
   }
 
   return ok;
 }
+
+internal int sceneMazeStart(GameObject *objectArena, mesh_s *mesh,
+                            shader_s *lightingShader, light_s *lightSource) {
+  const int blockMaskX = 10;
+  const int blockMaskZ = 10;
+  const int blockMaskY = 3;
+
+  int blockMask[blockMaskX * blockMaskZ * blockMaskY] = {0};
+  {
+    for (int l = 0; l < blockMaskY; l++) {
+      for (int i = 0; i < blockMaskX; i++) {
+        for (int j = 0; j < blockMaskZ; j++) {
+          int idx = l * blockMaskX * blockMaskZ + i * blockMaskZ + j;
+          printf("idx: %d\n", idx);
+          blockMask[idx] = (rnd > 60 ? 1 : 0);
+
+          rnd = (rnd * rnd_step) % rnd_mod;
+        }
+      }
+    }
+  }
+  const float cell_width = 2.0f;
+  const float cell_height = 4.3f;
+  const float cell_depth = 2.3f;
+
+  const float cell_fluctuation = 0.5f;
+  static int save_rnd = rnd;
+  rnd = save_rnd;
+
+  int objectIdx = 0;
+
+  for (int l = 0; l < blockMaskY; l++) {
+    for (int i = 0; i < blockMaskX; i++) {
+      for (int j = 0; j < blockMaskZ; j++) {
+        if (blockMask[l * blockMaskX * blockMaskZ + i * blockMaskZ + j] == 1) {
+
+          glm::mat4 transform = glm::mat4(1.0f);
+          transform = glm::translate(transform, glm::vec3(2.0f, -2.0f, 2.0f));
+          transform = glm::translate(
+              transform,
+              glm::vec3(i * cell_width - blockMaskX / 2.0f, l * cell_height,
+                        j * cell_depth - blockMaskZ / 2.0f));
+
+          transform =
+              glm::scale(transform, glm::vec3(cell_width - cell_fluctuation,
+                                              cell_height - cell_fluctuation,
+                                              cell_depth - cell_fluctuation));
+
+          transform = glm::translate(
+              transform,
+              glm::vec3(cell_fluctuation *
+                            float(rnd = (rnd * rnd_step) % rnd_mod) / rnd_mod,
+                        cell_fluctuation *
+                            float(rnd = (rnd * rnd_step) % rnd_mod) / rnd_mod,
+                        cell_fluctuation *
+                            float(rnd = (rnd * rnd_step) % rnd_mod) / rnd_mod));
+
+          ;
+
+          GameObject *obj = &objectArena[objectIdx];
+
+          obj->instance = MazeInstance;
+          obj->transform = transform;
+          obj->mesh = mesh;
+          obj->shader = lightingShader;
+          obj->light = lightSource;
+          obj->mat_color = &g_mat_sh_0;
+
+          objectIdx++;
+        }
+      }
+    }
+  }
+
+  return objectIdx;
+}
+
+void AppClean(Scene *scn) {}

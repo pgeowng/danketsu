@@ -22,6 +22,9 @@ struct GameObject {
 
   // Light tells that GameObject emits light.
   light_s *light;
+
+  // MaterialColor stores parameters for color shader rendering.
+  mat_color_s *mat_color;
 };
 
 #endif
