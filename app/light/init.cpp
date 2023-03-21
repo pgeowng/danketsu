@@ -69,80 +69,75 @@ bool app_init(Scene *app) {
   // g_ramp.vbo = app->ramp_vbo;
   // g_ramp.num_triangles = 24;
 
-  app->mat_tex = {
-      .tex_diffuse = 0,
-      .tex_specular = 0,
-      .tex_emission = 0,
-      .tex_diffuse_unit = GL_TEXTURE1,
-      .tex_specular_unit = GL_TEXTURE2,
-      .tex_emission_unit = GL_TEXTURE3,
-      .tex_diffuse_unit_idx = 1,
-      .tex_specular_unit_idx = 2,
-      .tex_emission_unit_idx = 3,
-      .shininess = 32.0f,
-  };
+  {
+    MaterialTextureSlot diffuse, specular, emission;
 
-  ok = tex_load(&app->mat_tex.tex_diffuse, "assets/container2.png");
-  if (!ok) {
-    return ok;
+    {
+      diffuse = NewMaterialTextureSlot(GL_TEXTURE1, 1);
+      ok = tex_load(&diffuse.tex, "assets/container2.png");
+      if (!ok) {
+        return ok;
+      }
+
+      // TODO: error prone
+      glActiveTexture(diffuse.unit);
+      glBindTexture(GL_TEXTURE_2D, diffuse.tex);
+    }
+
+    {
+      specular = NewMaterialTextureSlot(GL_TEXTURE2, 2);
+      ok = tex_load(&specular.tex, "assets/container2_specular2.png");
+      if (!ok) {
+        return ok;
+      }
+    }
+
+    {
+      emission = NewMaterialTextureSlot(GL_TEXTURE3, 3);
+      ok = tex_load(&emission.tex, "assets/matrix.jpg");
+      if (!ok) {
+        return ok;
+      }
+
+      glActiveTexture(emission.unit);
+      glBindTexture(GL_TEXTURE_2D, emission.tex);
+    }
+
+    app->mat_tex = NewMaterialTexture(diffuse, specular, emission);
   }
 
-  glActiveTexture(app->mat_tex.tex_diffuse_unit);
-  glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_diffuse);
+  app->dir_light = NewDirLight(vec3(.1f), vec3(.5f), vec3(1.f));
 
-  ok = tex_load(&app->mat_tex.tex_specular, "assets/container2_specular2.png");
-  if (!ok) {
-    return ok;
+  {
+    vec3 white(1.f, 1.f, 1.f);
+    vec3 purple(255.0f / 255.0f, 115.0f / 255.0f, 253.0f / 255.0f);
+    vec3 yellow(255.0f / 255.0f, 215.0f / 255.0f, 0.0f);
+    vec3 blue(23.0f / 255.0f, 159.0f / 255.0f, 255.0f / 255.0f);
+    vec3 colors[4] = {
+        white,
+        purple,
+        yellow,
+        blue,
+    };
+
+    // pointlight
+    for (int i = 0; i < 4; i++) {
+      vec3 c = colors[i];
+      app->p_light[i] = NewPointLight(c * .1f, c * .5f, c, 1.0f, .09f, .032f);
+    }
   }
-
-  ok = tex_load(&app->mat_tex.tex_emission, "assets/matrix.jpg");
-  if (!ok) {
-    return ok;
-  }
-
-  glActiveTexture(app->mat_tex.tex_specular_unit);
-  glBindTexture(GL_TEXTURE_2D, app->mat_tex.tex_specular);
-
-  printf("mat tex: %f %d %d %d %d", app->mat_tex.shininess,
-         app->mat_tex.tex_diffuse, app->mat_tex.tex_diffuse_unit,
-         app->mat_tex.tex_specular, app->mat_tex.tex_specular_unit);
-
-  // dirlight
-  app->dir_light.ambient = glm::vec3(0.1f);
-  app->dir_light.diffuse = glm::vec3(0.5f);
-  app->dir_light.specular = glm::vec3(1.0f);
-
-  // pointlight
-  for (int i = 0; i < 4; i++) {
-    app->p_light[i].constant = 1.0f;
-    app->p_light[i].linear = 0.09f;
-    app->p_light[i].quadratic = 0.032f;
-  }
-
-  glm::vec3 purple(255.0f / 255.0f, 115.0f / 255.0f, 253.0f / 255.0f);
-  app->p_light[1].specular = purple;
-  app->p_light[1].diffuse = purple * 0.5f;
-  app->p_light[1].ambient = purple * 0.1f;
-
-  glm::vec3 yellow(255.0f / 255.0f, 215.0f / 255.0f, 0.0f);
-  app->p_light[2].specular = yellow;
-  app->p_light[2].diffuse = yellow * 0.5f;
-  app->p_light[2].ambient = yellow * 0.1f;
-
-  glm::vec3 blue(23.0f / 255.0f, 159.0f / 255.0f, 255.0f / 255.0f);
-  app->p_light[3].specular = blue;
-  app->p_light[3].diffuse = blue * 0.5f;
-  app->p_light[3].ambient = blue * 0.1f;
 
   // spotlight
-  glm::vec3 orange(1.0f, 85.0f / 255.0f, 0.0f);
-  app->sp_light.specular = orange;
-  app->sp_light.diffuse = orange * 0.5f;
-  app->sp_light.ambient = orange * 0.1f;
-  app->sp_light.position = glm::vec3(0.0f);
-  app->sp_light.direction = glm::vec3(0.0f, 0.0f, -1.0f);
-  app->sp_light.cutOff = glm::cos(glm::radians(12.5f));
-  app->sp_light.outerCutOff = glm::cos(glm::radians(15.5f));
+  {
+    glm::vec3 orange(1.0f, 85.0f / 255.0f, 0.0f);
+    app->sp_light = NewSpotLight(orange * .1f, orange * .5f, orange,
+                                 glm::cos(glm::radians(12.5f)),
+                                 glm::cos(glm::radians(15.5f)));
+  }
+
+  // TODO: light should know it's position
+  // app->sp_light.position = glm::vec3(0.0f);
+  // app->sp_light.direction = glm::vec3(0.0f, 0.0f, -1.0f);
 
   ok = text_init(&app->text_renderer);
   if (!ok) {
@@ -152,11 +147,14 @@ bool app_init(Scene *app) {
 
   int idx = 0;
   int light_i = 0;
-  for (; idx < 4; idx++) {
-    GameObjectConstruct(&app->go[idx], LampInstance, mat4(1.0), &cubeMesh,
-                        &app->lamp_shader, &app->p_light[light_i], NULL);
-    light_i++;
-  }
+  GameObjectConstruct(&app->go[idx++], Lamp1Instance, mat4(1.0), &cubeMesh,
+                      &app->lamp_shader, &app->p_light[light_i++], NULL);
+  GameObjectConstruct(&app->go[idx++], Lamp2Instance, mat4(1.0), &cubeMesh,
+                      &app->lamp_shader, &app->p_light[light_i++], NULL);
+  GameObjectConstruct(&app->go[idx++], Lamp3Instance, mat4(1.0), &cubeMesh,
+                      &app->lamp_shader, &app->p_light[light_i++], NULL);
+  GameObjectConstruct(&app->go[idx++], Lamp4Instance, mat4(1.0), &cubeMesh,
+                      &app->lamp_shader, &app->p_light[light_i++], NULL);
 
   {
     // TODO: make dynamic light detection

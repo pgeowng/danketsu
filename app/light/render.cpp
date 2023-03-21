@@ -8,23 +8,7 @@ void app_scene_mat_view_render(Scene *app, float dt) {
 
   glm::mat4 model = glm::mat4(1.0f);
 
-  glm::vec3 light_pos(0.0f);
-  update_move_zigzag(&light_pos);
-  app->p_light[0].position = light_pos;
-
   update_color_rainbow(&app->p_light[0]);
-
-  app->p_light[1].position =
-      glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
-
-  app->p_light[2].position = glm::vec3(glm::vec4(1.0f,
-                                                 1.2f, // + cos(time),
-                                                 2.0f, // + sin(time) * 1.1f,
-                                                 1.0f));
-
-  app->p_light[3].position = glm::vec3(glm::vec4(1.2f, // + cos(time) * .98f,
-                                                 2.0f, // + sin(time) * 2.3,
-                                                 1.0f, 1.0f));
 
   // glm::vec3 light_view_pos = glm::vec3(view * glm::vec4(light_pos, 1.0f));
   // g_light.position = light_view_pos;
@@ -38,17 +22,31 @@ void app_scene_mat_view_render(Scene *app, float dt) {
 
   draw_material_preview(app, &app->camera);
 
-  // if (app->enable_maze) {
-  // draw_maze(app, camera);
-  // draw_ramp1(app, camera);
-  // draw_ramp2(app, camera);
-  // }
-
   for (int i = 0; i < GOSize; i++) {
     GameObject *obj = &app->go[i];
     switch (obj->instance) {
-    case LampInstance: {
-      sceneLampDraw(app, obj);
+    case Lamp1Instance: {
+      glm::vec3 light_pos(0.0f);
+      update_move_zigzag(&light_pos);
+      obj->light->position = light_pos;
+      break;
+    }
+    case Lamp2Instance: {
+      obj->light->position =
+          glm::vec3(glm::vec4(1.2f + cos(time), 1.0f, 2.0f + sin(time), 1.0f));
+      break;
+    }
+    case Lamp3Instance: {
+      obj->light->position = glm::vec3(glm::vec4(1.0f,
+                                                 1.2f, // + cos(time),
+                                                 2.0f, // + sin(time) * 1.1f,
+                                                 1.0f));
+      break;
+    }
+    case Lamp4Instance: {
+      obj->light->position = glm::vec3(glm::vec4(1.2f, // + cos(time) * .98f,
+                                                 2.0f, // + sin(time) * 2.3,
+                                                 1.0f, 1.0f));
       break;
     }
     case BoxInstance: {
@@ -57,8 +55,6 @@ void app_scene_mat_view_render(Scene *app, float dt) {
     }
     case MazeInstance: {
       // sceneRenderMatColor(app, obj);
-      // draw_ramp1(app, camera);
-      // draw_ramp2(app, camera);
       break;
     }
 
@@ -81,9 +77,37 @@ void app_scene_mat_view_render(Scene *app, float dt) {
       break;
     }
 
+    case Ramp2Instance: {
+      float time = SDL_GetTicks() / 1000.0f;
+
+      glm::mat4 transform = glm::mat4(1.0f);
+      transform = glm::translate(transform, glm::vec3(-2.0f, 0.0f, 2.0f));
+      float animation_duration = 3.0f;
+      // forward and reverse mode
+      float animation_period = animation_duration * 2.0f;
+
+      float animation_time = fmod(time, animation_period) / animation_duration;
+
+      // reverse mode
+      if (animation_time > 1.0f) {
+        animation_time = 2.0f - animation_time;
+      }
+
+      transform = glm::rotate(transform, glm::radians(3.1415f * animation_time),
+                              glm::vec3(0.0f, 1.0f, 0.0f));
+
+      sceneRenderMatColor(app, obj);
+      break;
+    }
+
     default: {
       break;
     }
+    }
+
+    // TODO: implements groups or something
+    if (IsLampGroup(obj->instance)) {
+      sceneLampDraw(app, obj);
     }
   }
 
@@ -103,29 +127,6 @@ internal void app_update(Scene *app, float dt) {
   app_scene_mat_view_render(app, dt);
 }
 
-internal void draw_ramp2(Scene *app, Camera *camera) {
-  float time = SDL_GetTicks() / 1000.0f;
-
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(-2.0f, 0.0f, 2.0f));
-  float animation_duration = 3.0f;
-  // forward and reverse mode
-  float animation_period = animation_duration * 2.0f;
-
-  float animation_time = fmod(time, animation_period) / animation_duration;
-
-  // reverse mode
-  if (animation_time > 1.0f) {
-    animation_time = 2.0f - animation_time;
-  }
-
-  model = glm::rotate(model, glm::radians(3.1415f * animation_time),
-                      glm::vec3(0.0f, 1.0f, 0.0f));
-
-  app->mat_color = g_mat_sh_2;
-  app_render_mat_color_cube(app, &app->ramp_mesh, &app->lighting_shader, model,
-                            camera);
-}
 internal void update_move_zigzag(glm::vec3 *pos) {
   float time = SDL_GetTicks() / 1000.0f;
 
@@ -184,7 +185,7 @@ internal void app_render_mat_color_cube(Scene *app, mesh_s *mesh, shader_s *sh,
   // if (app->enable_mat_color) {
   // mat_color_apply(app->mat_color, sh);
   // } else {
-  mat_tex_apply(app->mat_tex, sh);
+  ShaderApplyMaterialTexture(sh, app->mat_tex);
   // }
   light_s *light = sceneDefaultLight(app);
   light->direction = camViewDirection(camera);
@@ -214,11 +215,13 @@ internal void sceneRenderMatColor(Scene *scn, GameObject *obj) {
   if (obj->mat_color != NULL) {
     mat_color_apply(*obj->mat_color, sh);
   } else {
-    // mat_tex_apply(scn->mat_tex, object->shader);
+    // ShaderApplyTexMaterial(scn->mat_tex, object->shader);
   }
 
   // TODO: actually bad thing
-  // obj->light->direction = camViewDirection(cam);
+  if (obj->light != NULL) {
+    obj->light->direction = camViewDirection(cam);
+  }
 
   shader_set_dirlight(sh, &scn->dir_light);
 

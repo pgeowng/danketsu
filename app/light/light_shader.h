@@ -5,6 +5,12 @@
 
 #include "shader.h"
 
+enum LightKind {
+  Dir = 0,
+  Point = 10,
+  Spot = 20,
+};
+
 struct light_s {
   // coords and directions must be in view space
   vec3 position; // not used by directional light
@@ -13,6 +19,8 @@ struct light_s {
   vec3 ambient;
   vec3 diffuse;
   vec3 specular;
+
+  LightKind kind = LightKind::Dir;
 
   // used by pointlight
   float constant = 1.0f;
@@ -116,5 +124,73 @@ void shader_set_transform_and_viewpos(shader_s *sh, mat4 model, mat4 view,
   shader_mat4fv(sh, "model", glm::value_ptr(model));
   shader_mat4fv(sh, "view", glm::value_ptr(view));
   shader_mat4fv(sh, "projection", glm::value_ptr(proj));
+}
+
+internal light_s NewDirLight(vec3 ambient, vec3 diffuse, vec3 specular) {
+  light_s result = {};
+
+  result.kind = LightKind::Dir;
+
+  result.ambient = ambient;
+  result.diffuse = diffuse;
+  result.specular = specular;
+
+  result.constant = 0;
+  result.linear = 0;
+  result.quadratic = 0;
+
+  result.cutOff = 0;
+  result.outerCutOff = 0;
+
+  result.position = vec3(0.f);
+  result.direction = vec3(0.f);
+
+  return result;
+}
+
+internal light_s NewPointLight(vec3 ambient, vec3 diffuse, vec3 specular,
+                               float constant, float linear, float quadratic) {
+  light_s result = {};
+
+  result.kind = LightKind::Point;
+
+  result.ambient = ambient;
+  result.diffuse = diffuse;
+  result.specular = specular;
+
+  result.constant = constant;
+  result.linear = linear;
+  result.quadratic = quadratic;
+
+  result.cutOff = 0;
+  result.outerCutOff = 0;
+
+  result.position = vec3(0.f);
+  result.direction = vec3(0.f);
+
+  return result;
+}
+
+internal light_s NewSpotLight(vec3 ambient, vec3 diffuse, vec3 specular,
+                              float cutOff, float outerCutOff) {
+  light_s result = {};
+
+  result.kind = LightKind::Spot;
+
+  result.ambient = ambient;
+  result.diffuse = diffuse;
+  result.specular = specular;
+
+  result.constant = 0;
+  result.linear = 0;
+  result.quadratic = 0;
+
+  result.cutOff = cutOff;
+  result.outerCutOff = outerCutOff;
+
+  result.position = vec3(0.f);
+  result.direction = vec3(0.f);
+
+  return result;
 }
 #endif

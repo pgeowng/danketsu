@@ -1,10 +1,15 @@
 #version 330 core
 
 struct Material {
-    sampler2D diffuse1;
-    sampler2D specular1;
-    vec3 emission_color;
-    sampler2D emission1;
+    vec3 ambientColor;
+    vec3 diffuseColor;
+    vec3 specularColor;
+    vec3 emissionColor;
+
+    sampler2D diffuseTex1;
+    sampler2D specularTex1;
+    sampler2D emissionTex1;
+
     float shininess;
 };
 
@@ -49,15 +54,15 @@ struct DirLight {
 uniform DirLight dirLight;
 
 vec3 GetDiffuseColor(vec2 TexCoords) {
-    return vec3(texture(material.diffuse1, TexCoords));
+    return vec3(texture(material.diffuseTex1, TexCoords));
 }
 
 vec3 GetSpecularColor(vec2 TexCoords) {
-    return vec3(texture(material.specular1, TexCoords));
+    return vec3(texture(material.specularTex1, TexCoords));
 }
 
 vec3 GetEmissionColor(vec2 TexCoords) {
-    return vec3(texture(material.emission1, TexCoords));
+    return vec3(texture(material.emissionTex1, TexCoords));
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir) {

@@ -19,7 +19,6 @@
 #include "text.h"
 #include "texture.h"
 
-
 #include "example/cube_mesh.h"
 #include "example/cube_tex_mesh.h"
 #include "example/ramp_mesh.h"
@@ -28,11 +27,19 @@
 const int g_maze_size = 10;
 const int g_maze_objects = g_maze_size * g_maze_size * 3;
 const int GOSize = 4 + 1 + g_maze_objects + 1 + 1;
-const int LampInstance = 12;
 const int BoxInstance = 13;
 const int MazeInstance = 14;
 const int Ramp1Instance = 15;
 const int Ramp2Instance = 16;
+const int Lamp1Instance = 20;
+const int Lamp2Instance = 21;
+const int Lamp3Instance = 22;
+const int Lamp4Instance = 23;
+
+internal bool IsLampGroup(int instance) {
+  return instance == Lamp1Instance || instance == Lamp2Instance ||
+         instance == Lamp3Instance || instance == Lamp4Instance;
+}
 
 struct Scene {
   // glm::vec3 position;
@@ -57,7 +64,7 @@ struct Scene {
   bool enable_mat_color = false;
 
   mat_color_s mat_color;
-  mat_tex_s mat_tex = {0};
+  MaterialTexture mat_tex = {0};
 
   Camera camera = {};
   shader_s lighting_shader = {};
