@@ -47,10 +47,10 @@
 using glm::mat4;
 using glm::scale;
 using glm::translate;
+using glm::vec2;
 using glm::vec3;
 using glm::vec4;
-using glm::vec2;
 
-typedef unsigned int uint;
+#include "base_types.h"
 
 #endif

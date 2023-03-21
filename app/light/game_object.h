@@ -4,6 +4,7 @@
 #define GAME_OBJECT_H
 
 #include "light_shader.h"
+#include "mat_color.cpp"
 #include "mesh.h"
 #include "shader.h"
 
@@ -27,4 +28,8 @@ struct GameObject {
   mat_color_s *mat_color;
 };
 
+internal void GameObjectConstruct(GameObject *obj, uint16_t instance,
+                                  mat4 transform, mesh_s *mesh,
+                                  shader_s *shader, light_s *light,
+                                  mat_color_s *mat_color);
 #endif

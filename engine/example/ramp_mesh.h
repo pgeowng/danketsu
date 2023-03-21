@@ -4,7 +4,7 @@
 #include "alloc.h"
 #include "mesh.h"
 
-void mesh_init_ramp(mesh_s *m) {
+void MeshSetRamp(mesh_s *m) {
   assert(m->vao == 0);
   assert(m->vbo == 0);
   assert(m->ebo == 0);

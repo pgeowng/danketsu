@@ -4,6 +4,15 @@ int gScreenWidth = 1000;
 int gScreenHeight = 1000;
 
 bool app_init(Scene *app) {
+  // TODO: Dependency Injecition.
+  app->arena = MArenaMake(MMallocBaseMemory());
+
+  U64 objectCount = 10;
+  GameObject *objs =
+      (GameObject *)MArenaPush(&app->arena, sizeof(GameObject) * objectCount);
+
+  GameObject *obj2 = PushArray(&app->arena, GameObject, objectCount);
+
   bool ok = false;
   flycamera_init(&app->camera, false, 60.0f, gScreenWidth / gScreenHeight);
   ok = shader_init(&app->lighting_shader, "./app/light/light.vert",
@@ -39,10 +48,6 @@ bool app_init(Scene *app) {
   // mesh_read_obj(&app->cube_mesh, "assets/icosphere.obj");
   // mesh_add_texture(&app->cube_mesh, "assets/buddy_tex1.png",
   // "material.diffuse"); MeshInitialize(&app->cube_mesh);
-
-  // MeshZero(&app->ramp_mesh);
-  // mesh_init_ramp(&app->ramp_mesh);
-  // MeshInitialize(&app->ramp_mesh);
 
   MeshZero(&app->texture_cube_mesh);
   mesh_read_obj(&app->texture_cube_mesh, "assets/checker_cube.obj");
@@ -148,30 +153,34 @@ bool app_init(Scene *app) {
   int idx = 0;
   int light_i = 0;
   for (; idx < 4; idx++) {
-    GameObject *obj = &app->go[idx];
-    obj->instance = LampInstance;
-    obj->transform = mat4(1.0f);
-    obj->mesh = &cubeMesh;
-    obj->shader = &app->lamp_shader;
-    obj->light = &app->p_light[light_i];
-    obj->mat_color = NULL;
+    GameObjectConstruct(&app->go[idx], LampInstance, mat4(1.0), &cubeMesh,
+                        &app->lamp_shader, &app->p_light[light_i], NULL);
     light_i++;
   }
 
   {
-    GameObject *obj = &app->go[idx];
-    obj->instance = BoxInstance;
-    obj->transform = glm::mat4(1.0f);
-    obj->mesh = &app->texture_cube_mesh;
-    obj->shader = &colorShader;
     // TODO: make dynamic light detection
-    obj->light = &app->p_light[0];
-    obj->mat_color = &g_mat_sh_0;
+    GameObjectConstruct(&app->go[idx++], BoxInstance, mat4(1.0f),
+                        &app->texture_cube_mesh, &colorShader, &app->p_light[0],
+                        &g_mat_sh_0);
   }
 
   {
     idx += sceneMazeStart(&app->go[idx], &cubeMesh, &app->lighting_shader,
-                          &app->p_light[0]);
+                          &app->p_light[1]);
+  }
+
+  {
+    mesh_s *rampMesh = PushArray(&app->arena, mesh_s, 1);
+    MeshZero(rampMesh);
+    MeshSetRamp(rampMesh);
+    MeshInitialize(rampMesh);
+
+    GameObjectConstruct(&app->go[idx++], Ramp1Instance, mat4(1.0f), rampMesh,
+                        &app->lighting_shader, NULL, &g_mat_sh_2);
+
+    GameObjectConstruct(&app->go[idx++], Ramp2Instance, mat4(1.0f), rampMesh,
+                        &app->lighting_shader, NULL, &g_mat_sh_2);
   }
 
   return ok;
@@ -189,7 +198,6 @@ internal int sceneMazeStart(GameObject *objectArena, mesh_s *mesh,
       for (int i = 0; i < blockMaskX; i++) {
         for (int j = 0; j < blockMaskZ; j++) {
           int idx = l * blockMaskX * blockMaskZ + i * blockMaskZ + j;
-          printf("idx: %d\n", idx);
           blockMask[idx] = (rnd > 60 ? 1 : 0);
 
           rnd = (rnd * rnd_step) % rnd_mod;
@@ -235,16 +243,9 @@ internal int sceneMazeStart(GameObject *objectArena, mesh_s *mesh,
 
           ;
 
-          GameObject *obj = &objectArena[objectIdx];
-
-          obj->instance = MazeInstance;
-          obj->transform = transform;
-          obj->mesh = mesh;
-          obj->shader = lightingShader;
-          obj->light = lightSource;
-          obj->mat_color = &g_mat_sh_0;
-
-          objectIdx++;
+          GameObjectConstruct(&objectArena[objectIdx++], MazeInstance,
+                              transform, mesh, lightingShader, lightSource,
+                              &g_mat_sh_0);
         }
       }
     }
