@@ -14,6 +14,7 @@
 #include "memory/base_memory_malloc.cpp"
 #include "mesh.cpp"
 #include "mesh.h"
+#include "obj/obj_reader.cpp"
 #include "raycast.h"
 #include "shader.h"
 #include "text.h"
@@ -64,7 +65,7 @@ struct Scene {
   bool enable_mat_color = false;
 
   mat_color_s mat_color;
-  MaterialTexture mat_tex = {0};
+  MaterialTexture mat_tex = {};
 
   Camera camera = {};
   shader_s lighting_shader = {};

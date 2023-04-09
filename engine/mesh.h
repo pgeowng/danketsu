@@ -3,8 +3,10 @@
 
 #include "alloc.h"
 #include "log.h"
+#include "memory/base_memory.h"
 #include "shader.h"
 #include "texture.h"
+
 
 #include "unity.h"
 
@@ -40,7 +42,7 @@ struct mesh_s {
 };
 
 void MeshZero(mesh_s *m);
-bool mesh_read_obj(mesh_s *m, const char *filename);
+bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename);
 bool MeshInitialize(mesh_s *m);
 bool MeshClean(mesh_s *m);
 void MeshDraw(mesh_s *m, shader_s *sh);

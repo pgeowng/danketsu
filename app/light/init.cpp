@@ -50,13 +50,14 @@ bool app_init(Scene *app) {
   // "material.diffuse"); MeshInitialize(&app->cube_mesh);
 
   MeshZero(&app->texture_cube_mesh);
-  mesh_read_obj(&app->texture_cube_mesh, "assets/checker_cube.obj");
+  mesh_read_obj(&app->texture_cube_mesh, &app->arena,
+                "assets/checker_cube.obj");
   mesh_add_texture(&app->texture_cube_mesh, "assets/checker.png",
                    "material.diffuse");
   MeshInitialize(&app->texture_cube_mesh);
 
   MeshZero(&app->debug_sphere);
-  mesh_read_obj(&app->debug_sphere, "assets/sphere.obj");
+  mesh_read_obj(&app->debug_sphere, &app->arena, "assets/sphere.obj");
   MeshInitialize(&app->debug_sphere);
 
   // g_cube.shader = &app->lighting_shader;
@@ -73,7 +74,8 @@ bool app_init(Scene *app) {
     MaterialTextureSlot diffuse, specular, emission;
 
     {
-      diffuse = NewMaterialTextureSlot(GL_TEXTURE1, 1);
+      diffuse = NewMaterialTextureSlot(MaterialTextureSlotKind::Diffuse,
+                                       GL_TEXTURE1, 1);
       ok = tex_load(&diffuse.tex, "assets/container2.png");
       if (!ok) {
         return ok;
@@ -85,7 +87,8 @@ bool app_init(Scene *app) {
     }
 
     {
-      specular = NewMaterialTextureSlot(GL_TEXTURE2, 2);
+      specular = NewMaterialTextureSlot(MaterialTextureSlotKind::Specular,
+                                        GL_TEXTURE2, 2);
       ok = tex_load(&specular.tex, "assets/container2_specular2.png");
       if (!ok) {
         return ok;
@@ -93,7 +96,8 @@ bool app_init(Scene *app) {
     }
 
     {
-      emission = NewMaterialTextureSlot(GL_TEXTURE3, 3);
+      emission = NewMaterialTextureSlot(MaterialTextureSlotKind::Emission,
+                                        GL_TEXTURE3, 3);
       ok = tex_load(&emission.tex, "assets/matrix.jpg");
       if (!ok) {
         return ok;

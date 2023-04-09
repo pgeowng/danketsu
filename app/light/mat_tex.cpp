@@ -4,16 +4,26 @@
 #include "shader.h"
 #include "unity.h"
 
+enum MaterialTextureSlotKind {
+  None = 0,
+  Diffuse = 10,
+  Specular = 20,
+  Emission = 30
+};
+
 struct MaterialTextureSlot {
+  MaterialTextureSlotKind kind = MaterialTextureSlotKind::None;
   GLuint tex;
   GLenum unit;
   int idx;
 };
 
-internal MaterialTextureSlot NewMaterialTextureSlot(GLenum unit, int idx) {
+internal MaterialTextureSlot
+NewMaterialTextureSlot(MaterialTextureSlotKind kind, GLenum unit, int idx) {
   MaterialTextureSlot result = {};
 
   result.tex = 0;
+  result.kind = kind;
   result.unit = unit;
   result.idx = idx;
 
@@ -21,13 +31,7 @@ internal MaterialTextureSlot NewMaterialTextureSlot(GLenum unit, int idx) {
 }
 
 struct MaterialTexture {
-  // GLuint tex_diffuse, tex_specular, tex_emission;
-  // GLenum tex_diffuse_unit, tex_specular_unit, tex_emission_unit;
-  // int tex_diffuse_unit_idx, tex_specular_unit_idx, tex_emission_unit_idx;
-
-  MaterialTextureSlot diffuse;
-  MaterialTextureSlot specular;
-  MaterialTextureSlot emission;
+  MaterialTextureSlot slots[3];
 };
 
 internal MaterialTexture NewMaterialTexture(MaterialTextureSlot diffuse,
@@ -35,9 +39,9 @@ internal MaterialTexture NewMaterialTexture(MaterialTextureSlot diffuse,
                                             MaterialTextureSlot emission) {
   MaterialTexture result = {};
 
-  result.diffuse = diffuse;
-  result.specular = specular;
-  result.emission = emission;
+  result.slots[0] = diffuse;
+  result.slots[1] = specular;
+  result.slots[2] = emission;
 
   return result;
 }
@@ -46,24 +50,24 @@ void ShaderApplyMaterialTexture(shader_s *shader, MaterialTexture mat) {
   shader_use(shader);
 
   {
-    MaterialTextureSlot tex = mat.diffuse;
+    MaterialTextureSlot tex = mat.slots[0];
     glActiveTexture(tex.unit);
     glBindTexture(GL_TEXTURE_2D, tex.tex);
-    shader_1i(shader, "material.diffuse", tex.idx);
+    shader_1i(shader, "material.diffuseTex1", tex.idx);
   }
 
   {
-    MaterialTextureSlot tex = mat.specular;
+    MaterialTextureSlot tex = mat.slots[1];
     glActiveTexture(tex.unit);
     glBindTexture(GL_TEXTURE_2D, tex.tex);
-    shader_1i(shader, "material.specular", tex.idx);
+    shader_1i(shader, "material.specularTex1", tex.idx);
   }
 
   {
-    MaterialTextureSlot tex = mat.emission;
+    MaterialTextureSlot tex = mat.slots[2];
     glActiveTexture(tex.unit);
     glBindTexture(GL_TEXTURE_2D, tex.tex);
-    shader_1i(shader, "material.emission", tex.idx);
+    shader_1i(shader, "material.emissionTex1", tex.idx);
   }
 
   // TODO: dispose

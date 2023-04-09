@@ -1,6 +1,9 @@
 #include "base_memory.h"
 #include "unity.h"
 
+#ifndef BASE_MEMORY_MALLOC_CPP
+#define BASE_MEMORY_MALLOC_CPP
+
 internal void *MMallocReserve(void *ctx, U64 size) { return malloc(size); }
 
 internal void MMallocRelease(void *ctx, void *ptr, U64 size) { free(ptr); }
@@ -119,3 +122,5 @@ MTempBlock::MTempBlock(MArena *arena) { this->temp = MTempBegin(arena); }
 MTempBlock::~MTempBlock() { MTempEnd(this->temp); }
 
 void MTempBlock::reset() { MTempEnd(this->temp); }
+
+#endif
