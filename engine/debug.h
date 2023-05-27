@@ -3,11 +3,6 @@
 
 #include "unity.h"
 
-#define ASSERT(x)                                                              \
-  if (!(x)) {                                                                  \
-    printf("ASSERTION FAILED: %s", #x);                                        \
-    __debugbreak();                                                            \
-  }
 
 void print_mat4(glm::mat4 mat) {
   const float* result = (const float*)glm::value_ptr(mat);
