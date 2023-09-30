@@ -1,0 +1,7 @@
+{
+  "verbose": true,
+  "ignore": [],
+  "execMap": {
+    "run": "bash build.sh"
+  }
+}

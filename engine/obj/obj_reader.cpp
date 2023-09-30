@@ -7,18 +7,20 @@
 #include "obj/mtl_reader.cpp"
 
 bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
-  FILE *file = fopen(filename, "r");
+  FILE *file = nuOpenFile(filename, "r");
   if (file == NULL) {
     printf("Failed to open file\n");
     return false;
   }
 
-  char *matPath = 0;
+  char matPathBuffer[100];
+  int matPathBufferCap = 100;
+  char *matPath = (char *)&matPathBuffer;
 
   printf("File opened\n");
 
   int i = 0;
-  char ch;
+  int ch = 0;
 
   vec3 *vertices = (vec3 *)alloc_make(16 * sizeof(vec3));
   int vertices_cap = 16;
@@ -36,8 +38,8 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
 
   while (ch != EOF) {
     char buf[16];
-    int n = fscanf(file, "%s", &buf);
-    if (n == EOF) {
+    int nc = nuReadString(file, "%s", (char *)&buf, 16);
+    if (nc == EOF) {
       printf("fscanf EOF exiting....\n");
       break;
     }
@@ -53,19 +55,19 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
       MTemp mem = MTempBegin(arena);
       char *matFilename = PushArray(mem.arena, char, 32);
 
-      int n = fscanf(file, "%s", matFilename);
-      if (n == EOF) {
+      int np = nuReadString(file, "%s", matFilename, 32);
+      if (np == EOF) {
         printf("read mtlib next token failed\n");
         break;
       }
 
-      strcpy(matPath, buf);
+      nuStrcpy(matPath, matPathBufferCap, buf);
       printf("material file: %s\n", matPath);
       printf("filename: %s\n", filename);
 
       char *folderName = PushArray(mem.arena, char, 32);
       {
-        bool ok = FSDirname(folderName, filename);
+        bool ok = FSDirname(folderName, 32, filename);
         if (!ok) {
           printf("WaveObjReadOBJ failed: can't get dir name for %s\n",
                  filename);
@@ -106,7 +108,7 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
               (vec3 *)alloc_resize(vertices, vertices_cap * sizeof(vec3));
         }
         vec3 *v = &vertices[vertices_size++];
-        fscanf(file, "%f %f %f", &v->x, &v->y, &v->z);
+        myfscanf(file, "%f %f %f", &v->x, &v->y, &v->z);
         printf("v: %f %f %f\n", v->x, v->y, v->z);
         next_line = true;
       } else if (buf[1] == 't') {
@@ -117,7 +119,7 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
         }
 
         vec2 *n = &texcoords[texcoords_size++];
-        fscanf(file, "%f %f", &n->x, &n->y);
+        myfscanf(file, "%f %f", &n->x, &n->y);
         printf("vt: %f %f\n", n->x, n->y);
 
         next_line = true;
@@ -128,7 +130,7 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
         }
 
         vec3 *n = &normals[normals_size++];
-        fscanf(file, "%f %f %f", &n->x, &n->y, &n->z);
+        myfscanf(file, "%f %f %f", &n->x, &n->y, &n->z);
         printf("vn: %f %f %f\n", n->x, n->y, n->z);
         next_line = true;
       }
@@ -139,19 +141,19 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
       uint v2, vt2, vn2;
       uint v3, vt3, vn3;
 
-      n = fscanf(file, "%d/%d/%d", &v1, &vt1, &vn1);
+      n = myfscanf(file, "%d/%d/%d", &v1, &vt1, &vn1);
       if (n != 3) {
         LOG_ERROR("mesh_read_obj: failed to read first pair of the face");
         break;
       }
 
-      n = fscanf(file, "%d/%d/%d", &v2, &vt2, &vn2);
+      n = myfscanf(file, "%d/%d/%d", &v2, &vt2, &vn2);
       if (n != 3) {
         LOG_ERROR("mesh_read_obj: failed to read second pair of the face");
         break;
       }
 
-      n = fscanf(file, "%d/%d/%d", &v3, &vt3, &vn3);
+      n = myfscanf(file, "%d/%d/%d", &v3, &vt3, &vn3);
       if (n != 3) {
         LOG_ERROR("mesh_read_obj: failed to read third pair of the face");
         break;
@@ -179,7 +181,7 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
         vt2 = vt3;
         vn2 = vn3;
 
-        n = fscanf(file, "%d/%d/%d", &v3, &vt3, &vn3);
+        n = myfscanf(file, "%d/%d/%d", &v3, &vt3, &vn3);
         if (n != 3) {
           LOG_ERROR("mesh_read_obj: failed to read new pair of the face");
         }
@@ -196,7 +198,7 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
     }
 
     if (next_line) {
-      while ((ch = fgetc(file)) != '\n') {
+      while ((char)(ch = fgetc(file)) != '\n') {
         printf("skipping char: '%c'\n", ch);
         if (ch == EOF) {
           LOG_DEBUG("mesh_read_obj: EOF\n");
@@ -229,7 +231,7 @@ bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename) {
   return true;
 }
 
-internal bool FSDirname(char *dst, const char *fpath) {
+internal bool FSDirname(char *dst, int dstCap, const char *fpath) {
   if (fpath == NULL || dst == NULL) {
     return false;
   }
@@ -245,7 +247,7 @@ internal bool FSDirname(char *dst, const char *fpath) {
 
   // NOTE: passed just filename: hello.h -> ./
   if (sepChar == NULL) {
-    strcpy(dst, "./");
+    nuStrcpy(dst, dstCap, "./");
     return true;
   }
 

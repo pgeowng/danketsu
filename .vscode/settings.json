@@ -11,7 +11,9 @@
     "light.h": "c",
     "functional": "cpp",
     "utility": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "istream": "cpp",
+    "ostream": "cpp"
   },
   "C_Cpp.errorSquiggles": "EnabledIfIncludesResolve"
 }

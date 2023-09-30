@@ -59,7 +59,6 @@ void app_scene_mat_view_render(Scene *app, float dt) {
     }
 
     case Ramp1Instance: {
-      float time = SDL_GetTicks() / 1000.0f;
 
       glm::mat4 tr = glm::mat4(1.0f);
       tr = glm::translate(tr, glm::vec3(2.0f, 0.0f, 2.0f));
@@ -78,7 +77,6 @@ void app_scene_mat_view_render(Scene *app, float dt) {
     }
 
     case Ramp2Instance: {
-      float time = SDL_GetTicks() / 1000.0f;
 
       glm::mat4 transform = glm::mat4(1.0f);
       transform = glm::translate(transform, glm::vec3(-2.0f, 0.0f, 2.0f));
@@ -116,8 +114,8 @@ void app_scene_mat_view_render(Scene *app, float dt) {
   text_y += 32;
   char buf[50];
   for (int i = 0; i < 4; i++) {
-    sprintf(buf, "[%.2f; %.2f; %.2f]", app->p_light[i].position.x,
-            app->p_light[i].position.y, app->p_light[i].position.z);
+    mysprintf(buf, "[%.2f; %.2f; %.2f]", app->p_light[i].position.x,
+              app->p_light[i].position.y, app->p_light[i].position.z);
     text_draw(&app->text_renderer, 10, text_y, buf);
     text_y += 32;
   }
@@ -277,7 +275,7 @@ internal void draw_material_preview(Scene *app, Camera *camera) {
     if (colliding) {
       glm::mat4 sphere_view = glm::mat4(1.0f);
       sphere_view = glm::translate(sphere_view, rayIntersection);
-      sphere_view = glm::scale(sphere_view, glm::vec3(0.2));
+      sphere_view = glm::scale(sphere_view, glm::vec3(0.2f));
       printf("colliding (%.2f %.2f %.2f)\n", rayIntersection.x,
              rayIntersection.y, rayIntersection.z);
       app_render_mat_color_cube(app, &app->debug_sphere, &app->lighting_shader,

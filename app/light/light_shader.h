@@ -32,6 +32,23 @@ struct light_s {
   float outerCutOff = glm::cos(glm::radians(15.5f));
 };
 
+light_s newLight(vec3 position, vec3 direction, vec3 ambient, vec3 diffuse,
+                 vec3 specular, float constant, float linear, float quadratic,
+                 float cutOff, float outerCutOff) {
+  light_s l;
+  l.position = position;
+  l.direction = direction;
+  l.ambient = ambient;
+  l.diffuse = diffuse;
+  l.specular = specular;
+  l.constant = constant;
+  l.linear = linear;
+  l.quadratic = quadratic;
+  l.cutOff = glm::cos(glm::radians(cutOff));
+  l.outerCutOff = glm::cos(glm::radians(outerCutOff));
+  return l;
+}
+
 void shader_set_light(shader_s *sh, light_s *light) {
   shader_use(sh);
 
@@ -66,26 +83,26 @@ void shader_set_pointlight(shader_s *sh, mat4 view, light_s *l, int l_idx) {
   char key[50];
   shader_use(sh);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "position");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "position");
   vec3 position = vec3(view * vec4(l->position, 1.0f));
   shader_3f(sh, key, position.x, position.y, position.z);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "ambient");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "ambient");
   shader_3f(sh, key, l->ambient.x, l->ambient.y, l->ambient.z);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "diffuse");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "diffuse");
   shader_3f(sh, key, l->diffuse.x, l->diffuse.y, l->diffuse.z);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "specular");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "specular");
   shader_3f(sh, key, l->specular.x, l->specular.y, l->specular.z);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "constant");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "constant");
   shader_1f(sh, key, l->constant);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "linear");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "linear");
   shader_1f(sh, key, l->linear);
 
-  sprintf(key, "pointLights[%d].%s", l_idx, "quadratic");
+  mysprintf(key, "pointLights[%d].%s", l_idx, "quadratic");
   shader_1f(sh, key, l->quadratic);
 }
 

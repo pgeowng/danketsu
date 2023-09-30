@@ -97,10 +97,22 @@ void MeshSetCubeTextured(mesh_s *m) {
   m->verts = (vertex_s *)alloc_make(sizeof(vertex_s) * m->verts_cap);
 
   for (int i = 0; i < m->verts_size; i++) {
-    m->verts[i].pos = (vec3){cube[i * 8 + 0], cube[i * 8 + 1], cube[i * 8 + 2]};
-    m->verts[i].normal =
-        (vec3){cube[i * 8 + 3], cube[i * 8 + 4], cube[i * 8 + 5]};
-    m->verts[i].texcoord = (vec2){cube[i * 8 + 6], cube[i * 8 + 7]};
+    vec3 pos;
+    pos.x = cube[i * 8 + 0];
+    pos.y = cube[i * 8 + 1];
+    pos.z = cube[i * 8 + 2];
+    m->verts[i].pos = pos;
+
+    vec3 normal;
+    normal.x = cube[i * 8 + 3];
+    normal.y = cube[i * 8 + 4];
+    normal.z = cube[i * 8 + 5];
+    m->verts[i].normal = normal;
+
+    vec2 texcoord;
+    texcoord.x = cube[i * 8 + 6];
+    texcoord.y = cube[i * 8 + 7];
+    m->verts[i].texcoord = texcoord;
   }
 
   assert(m->indices == NULL);

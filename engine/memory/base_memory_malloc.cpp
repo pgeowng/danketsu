@@ -36,10 +36,10 @@ internal MArena MArenaMake(MBaseMemory *base) {
   return result;
 }
 
-internal void MArenaRelease(MArena *arena) {
-  MBaseMemory *base = arena->base;
-  base->release(base->ctx, arena->memory, arena->cap);
-}
+// internal void MArenaRelease(MArena *arena) {
+//   MBaseMemory *base = arena->base;
+//   base->release(base->ctx, arena->memory, arena->cap);
+// }
 
 internal void *MArenaPush(MArena *arena, U64 size) {
   void *result = 0;
@@ -82,29 +82,29 @@ internal void MArenaPopTo(MArena *arena, U64 setPos) {
   }
 }
 
-internal void *MArenaPushZero(MArena *arena, U64 size) {
-  void *result = MArenaPush(arena, size);
-  MemoryZero(result, size);
-  return result;
-}
+// internal void *MArenaPushZero(MArena *arena, U64 size) {
+//   void *result = MArenaPush(arena, size);
+//   MemoryZero(result, size);
+//   return result;
+// }
 
-internal void MArenaAlign(MArena *arena, U64 pow2Align) {
-  U64 pos = arena->pos;
-  U64 posAligned = AlignUpPow2(pos, pow2Align);
-  U64 z = posAligned - pos;
-  if (z > 0) {
-    MArenaPush(arena, z);
-  }
-}
+// internal void MArenaAlign(MArena *arena, U64 pow2Align) {
+//   U64 pos = arena->pos;
+//   U64 posAligned = AlignUpPow2(pos, pow2Align);
+//   U64 z = posAligned - pos;
+//   if (z > 0) {
+//     MArenaPush(arena, z);
+//   }
+// }
 
-internal void MArenaAlignZero(MArena *arena, U64 pow2Align) {
-  U64 pos = arena->pos;
-  U64 posAligned = AlignUpPow2(pos, pow2Align);
-  U64 z = posAligned - pos;
-  if (z > 0) {
-    MArenaPushZero(arena, z);
-  }
-}
+// internal void MArenaAlignZero(MArena *arena, U64 pow2Align) {
+//   U64 pos = arena->pos;
+//   U64 posAligned = AlignUpPow2(pos, pow2Align);
+//   U64 z = posAligned - pos;
+//   if (z > 0) {
+//     MArenaPushZero(arena, z);
+//   }
+// }
 
 // MTemp
 

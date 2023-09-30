@@ -91,8 +91,7 @@ Uint32 timeLeft() {
   }
 }
 
-int main(int argc, char *argv[]) {
-
+int run() {
   bool ok = init();
   if (!ok) {
     printf("init failed\n");

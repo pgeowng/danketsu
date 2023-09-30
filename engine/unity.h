@@ -25,8 +25,8 @@
 
 #include <GL/glew.h>
 #include <GL/glu.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
 #include <cmath>
 #include <stdio.h>
 
@@ -52,5 +52,29 @@ using glm::vec3;
 using glm::vec4;
 
 #include "base_types.h"
+
+// TODO: temp solution for not overwritting sprint function. Because there is a
+//       warning C4996. And _s function handles some parameters errors.
+//       The proper way would be my own implementation of string function
+//       wrappers.
+#define mysprintf sprintf_s
+#define myfscanf fscanf_s
+#define myfopen fopen_s
+
+static int nuReadString(FILE *stream, const char *format, char *buffer,
+                        int bufferSize) {
+  return fscanf_s(stream, format, buffer, bufferSize);
+}
+
+static FILE *nuOpenFile(const char *filename, const char *mode) {
+  FILE *f = NULL;
+  fopen_s(&f, filename, mode);
+  return f;
+}
+
+static char *nuStrcpy(char *dest, int destCap, const char *src) {
+  strcpy_s(dest, destCap, src);
+  return dest;
+}
 
 #endif

@@ -75,13 +75,13 @@ internal void app_input(Scene *app, SDL_Event e) {
   }
 
   case SDL_MOUSEMOTION: {
-    flycamera_process_mouse_movement(&app->camera, e.motion.xrel,
-                                     e.motion.yrel);
+    flycamera_process_mouse_movement(&app->camera, (float)(e.motion.xrel),
+                                     (float)(e.motion.yrel));
     break;
   }
 
   case SDL_MOUSEWHEEL: {
-    flycamera_process_mouse_scroll(&app->camera, e.wheel.y);
+    flycamera_process_mouse_scroll(&app->camera, (float)(e.wheel.y));
     break;
   }
   }

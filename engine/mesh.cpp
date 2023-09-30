@@ -114,7 +114,7 @@ void MeshDraw(mesh_s *m, shader_s *sh) {
     }
 
     char name[50];
-    sprintf(name, "%s%d", m->textures[i].type, slot);
+    mysprintf(name, "%s%d", m->textures[i].type, slot);
     shader_1i(sh, name, i);
     glBindTexture(GL_TEXTURE_2D, m->textures[i].id);
   }

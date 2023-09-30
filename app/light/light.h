@@ -109,16 +109,16 @@ int rnd = 41241515;
 int rnd_mod = 489414;
 int rnd_step = 12345;
 
-internal light_s sceneMissingLight = {
-    .position = vec3(0, 0, 0),
-    .direction = vec3(1, 0, 0),
-    .ambient = vec3(247 / 255 / 3, 161 / 255 / 3, 188 / 255 / 3),
-    .diffuse = vec3(247 / 255 / 2, 161 / 255 / 2, 188 / 255 / 2),
-    .specular = vec3(247 / 255 / 1, 161 / 255 / 1, 188 / 255 / 1),
-    .constant = 1.0f,
-    .linear = 0.9f,
-    .quadratic = 0.032f,
+internal light_s sceneMissingLight = newLight(
+    vec3(0, 0, 0),
+    vec3(1, 0, 0),
+    vec3(247 / 255 / 3, 161 / 255 / 3, 188 / 255 / 3),
+    vec3(247 / 255 / 2, 161 / 255 / 2, 188 / 255 / 2),
+    vec3(247 / 255 / 1, 161 / 255 / 1, 188 / 255 / 1),
+    1.0f,
+    0.9f,
+    0.032f,
 
-    .cutOff = glm::cos(glm::radians(12.5f)),
-    .outerCutOff = glm::cos(glm::radians(15.5f))};
+    12.5f,
+    15.5f);
 #endif

@@ -129,7 +129,7 @@ global_variable mat_color_s g_yellow_rubber =
     newMatColor(glm::vec3(0.05f, 0.05f, 0.0f), glm::vec3(0.5f, 0.5f, 0.4f),
                 glm::vec3(0.7f, 0.7f, 0.04f), 0.078125f * 128.0f);
 
-global_variable mat_color_s g_mat_color_materials[] = {g_mat_sh_0}
+global_variable mat_color_s g_mat_color_materials[] = {g_mat_sh_0};
 // global_variable mat_color_s g_mat_color_materials[] = {
 //   g_mat_sh_0,       g_mat_sh_1,      g_mat_sh_2,      g_emerald,
 //   g_jade,           g_obsidian,      g_pearl,         g_ruby,
@@ -140,8 +140,7 @@ global_variable mat_color_s g_mat_color_materials[] = {g_mat_sh_0}
 //   g_red_rubber,     g_white_rubber,  g_yellow_rubber,
 // };
 
-internal void
-mat_color_apply(mat_color_s mat, shader_s *shader) {
+internal void mat_color_apply(mat_color_s mat, shader_s *shader) {
   shader_3f(shader, "material.ambient", mat.ambient.r, mat.ambient.g,
             mat.ambient.b);
   shader_3f(shader, "material.diffuse", mat.diffuse.r, mat.diffuse.g,
