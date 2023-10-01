@@ -34,9 +34,18 @@ struct Camera {
 };
 
 void flycamera_init(Camera *camera, bool fps = true, float fov = 45.0f,
-                    float aspect = 16.0 / 9.0, float z_near = 0.1f,
+                    float aspect = 1.0f, float z_near = 0.1f,
                     float z_far = 100.0f) {
   camera->fps = fps;
+  camera->fov = fov;
+  camera->aspect = aspect;
+  camera->z_near = z_near;
+  camera->z_far = z_far;
+}
+
+void nuCameraInit(Camera *camera, float fov = 45.0f, float aspect = 16.0f / 9.0,
+                  float z_near = 0.1f, float z_far = 100.0f) {
+  camera->fps = false;
   camera->fov = fov;
   camera->aspect = aspect;
   camera->z_near = z_near;

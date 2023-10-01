@@ -77,4 +77,6 @@ static char *nuStrcpy(char *dest, int destCap, const char *src) {
   return dest;
 }
 
+#define nuArraySize(array) (sizeof(array) / sizeof(array[0]))
+
 #endif

@@ -11,3 +11,4 @@ internal void sdl_audio_callback(void *userdata, Uint8 *stream, int len);
 internal void app_input(Scene *app, SDL_Event e);
 
 #endif
+#endif

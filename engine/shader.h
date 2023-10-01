@@ -25,7 +25,7 @@ void printProgramLog(GLuint program) {
 
   glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
-  char* infoLog = new char[maxLength];
+  char *infoLog = new char[maxLength];
   glGetProgramInfoLog(program, maxLength, &infoLogLength, infoLog);
   if (infoLogLength > 0) {
     printf("%s\n", infoLog);
@@ -45,7 +45,7 @@ void printShaderLog(GLuint shader) {
 
   glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
 
-  char* infoLog = new char[maxLength];
+  char *infoLog = new char[maxLength];
   glGetShaderInfoLog(shader, maxLength, &infoLogLength, infoLog);
   if (infoLogLength > 0) {
     printf("%s\n", infoLog);
@@ -54,15 +54,19 @@ void printShaderLog(GLuint shader) {
   delete[] infoLog;
 }
 
-bool shader_init(shader_s* shader_s, const char* vertexFilename,
-                 const char* fragmentFilename) {
+bool shader_init(shader_s *shader_s, const char *vertexFilename,
+                 const char *fragmentFilename) {
   GLint ok = GL_FALSE;
   GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
 
   {
-    void* vertexFile = SDL_LoadFile(vertexFilename, NULL);
+    void *vertexFile = SDL_LoadFile(vertexFilename, NULL);
+    if (vertexFile == NULL) {
+      printf("failed to read vertex shader file\n");
+      return false;
+    }
     {
-      glShaderSource(vertexShader, 1, (const char* const*)&vertexFile, NULL);
+      glShaderSource(vertexShader, 1, (const char *const *)&vertexFile, NULL);
       glCompileShader(vertexShader);
 
       glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &ok);
@@ -86,15 +90,16 @@ bool shader_init(shader_s* shader_s, const char* vertexFilename,
   GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
   {
-    void* fragmentFile = SDL_LoadFile(fragmentFilename, NULL);
+    void *fragmentFile = SDL_LoadFile(fragmentFilename, NULL);
     {
-      glShaderSource(fragmentShader, 1, (const char* const*)&fragmentFile,
+      glShaderSource(fragmentShader, 1, (const char *const *)&fragmentFile,
                      NULL);
       glCompileShader(fragmentShader);
 
       glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &ok);
       if (ok != GL_TRUE) {
-        printf("%s:%d: compile fragment shader failed %s: %d\n", __FILE__, __LINE__, fragmentFilename, fragmentShader);
+        printf("%s:%d: compile fragment shader failed %s: %d\n", __FILE__,
+               __LINE__, fragmentFilename, fragmentShader);
         printShaderLog(fragmentShader);
 
         // error defer
@@ -140,33 +145,33 @@ bool shader_init(shader_s* shader_s, const char* vertexFilename,
   return true;
 }
 
-void shader_clean(shader_s* shader_s) { glDeleteProgram(shader_s->program); }
+void shader_clean(shader_s *shader_s) { glDeleteProgram(shader_s->program); }
 
-void shader_use(shader_s* shader) { glUseProgram(shader->program); }
+void shader_use(shader_s *shader) { glUseProgram(shader->program); }
 
-void shader_4f(shader_s* shader_s, const char* name, float x, float y, float z,
+void shader_4f(shader_s *shader_s, const char *name, float x, float y, float z,
                float w) {
   GLint location = glGetUniformLocation(shader_s->program, name);
   glUniform4f(location, x, y, z, w);
 }
 
-void shader_3f(shader_s* shader_s, const char* name, float x, float y,
+void shader_3f(shader_s *shader_s, const char *name, float x, float y,
                float z) {
   GLint location = glGetUniformLocation(shader_s->program, name);
   glUniform3f(location, x, y, z);
 }
 
-void shader_1i(shader_s* shader_s, const char* name, int x) {
+void shader_1i(shader_s *shader_s, const char *name, int x) {
   GLint location = glGetUniformLocation(shader_s->program, name);
   glUniform1i(location, x);
 }
 
-void shader_1f(shader_s* shader_s, const char* name, float x) {
+void shader_1f(shader_s *shader_s, const char *name, float x) {
   GLint location = glGetUniformLocation(shader_s->program, name);
   glUniform1f(location, x);
 }
 
-void shader_mat4fv(shader_s* shader_s, const char* name, const float* matrix) {
+void shader_mat4fv(shader_s *shader_s, const char *name, const float *matrix) {
   GLint location = glGetUniformLocation(shader_s->program, name);
   glUniformMatrix4fv(location, 1, GL_FALSE, matrix);
 }
