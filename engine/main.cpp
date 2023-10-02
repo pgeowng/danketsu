@@ -10,7 +10,8 @@
 // #include "../app/light/input.cpp"
 // #include "../app/light/render.cpp"
 
-#include "../app/match3/match3.cpp"
+// #include "../app/match3/match3.cpp"
+#include "../app/test_renderer/test_renderer.cpp"
 
 int g_screenWidth = 1000;
 int g_screenHeight = 1000;

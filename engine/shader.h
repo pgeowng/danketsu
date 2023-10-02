@@ -1,7 +1,9 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#include "renderer.h"
 #include "unity.h"
+
 
 struct shader_s {
   // char name[MAX_QPATH];
@@ -13,46 +15,6 @@ struct shader_s {
   // GLint uniforms[UNIFORM_MAX];
   // struct shader_s *next;
 };
-
-void printProgramLog(GLuint program) {
-  if (!glIsProgram(program)) {
-    printf("print program log failed: %d isn't program\n", program);
-    return;
-  }
-
-  int infoLogLength = 0;
-  int maxLength = infoLogLength;
-
-  glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-
-  char *infoLog = new char[maxLength];
-  glGetProgramInfoLog(program, maxLength, &infoLogLength, infoLog);
-  if (infoLogLength > 0) {
-    printf("%s\n", infoLog);
-  }
-
-  delete[] infoLog;
-}
-
-void printShaderLog(GLuint shader) {
-  if (!glIsShader(shader)) {
-    printf("print shader log failed: %d isn't shader\n", shader);
-    return;
-  }
-
-  int infoLogLength = 0;
-  int maxLength = infoLogLength;
-
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-
-  char *infoLog = new char[maxLength];
-  glGetShaderInfoLog(shader, maxLength, &infoLogLength, infoLog);
-  if (infoLogLength > 0) {
-    printf("%s\n", infoLog);
-  }
-
-  delete[] infoLog;
-}
 
 bool shader_init(shader_s *shader_s, const char *vertexFilename,
                  const char *fragmentFilename) {
