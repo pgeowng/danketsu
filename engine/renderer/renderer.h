@@ -1,12 +1,16 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "texture.h"
+
 #define MAX_TRIANGLES 2048
 #define MAX_VERTICES MAX_TRIANGLES * 3
 
 typedef struct RenderVertex {
   f32 pos[2];
   f32 color[4];
+  f32 uv[2];
+  f32 texIndex;
 } RenderVertex;
 
 typedef struct Renderer {
@@ -21,6 +25,10 @@ typedef struct Renderer {
   // Tightly packed triangle data. This is a cpu side mirror of the buffer
   RenderVertex triangleBuffer[MAX_VERTICES];
   u32 triangleLen;
+
+  // Texture stuff
+  u32 texture[8];
+  u32 textureLen;
 } Renderer;
 
 void RenderInit(Renderer *r);
@@ -31,7 +39,7 @@ void RenderBeginFrame(Renderer *r);
 void RenderEndFrame(Renderer *r);
 
 void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
-                        v4 cColor);
+                        v4 cColor, v2 aUV, v2 bUV, v2 cUV, u32 texture);
 
 #include "renderer.cpp"
 #endif

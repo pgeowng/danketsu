@@ -2,9 +2,11 @@
 #define TEST_RENDERER_H
 
 #include "renderer.h"
+#include "renderer_helper.h"
 
 typedef struct Scene {
-  Renderer r;
+  RendererEx r;
+  Texture textures[8];
 } Scene;
 
 static bool app_init(Scene *app);

@@ -5,6 +5,8 @@ external/SDL2-2.24.2
 external/assimp
 external/SDL-release-2.24.2.zip
 build/engine.exe
+build_win/.vs
+build_win/
 imgui.ini
 
 *.exe

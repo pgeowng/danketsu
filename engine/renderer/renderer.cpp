@@ -1,15 +1,17 @@
+
 void RenderInit(Renderer *r) {
   glGenVertexArrays(1, &r->vao);
-  glBindVertexArray(r->vao);
-
   glGenBuffers(1, &r->vbo);
+
+  glBindVertexArray(r->vao);
   glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
   glBufferData(GL_ARRAY_BUFFER, MAX_VERTICES * sizeof(RenderVertex), nullptr,
                GL_DYNAMIC_DRAW);
 
   r->projection = r->_pj;
+  // TODO: adopt to different resolutions
   r->projection =
-      m4Ortho(r->projection, 0.0f, 1080.0f, 720.0f, 0.0f, -0.01f, 1.0f);
+      m4Ortho(r->projection, 0.0f, 1000.0f, 1000.0f, 0.0f, -0.01f, 1.0f);
 
   r->shader = glCreateProgram();
   u32 vertModule = glCreateShader(GL_VERTEX_SHADER);
@@ -73,8 +75,28 @@ void RenderInit(Renderer *r) {
 
   glUseProgram(r->shader);
   u32 projectionLocation = glGetUniformLocation(r->shader, "u_proj");
-
   glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, r->projection);
+
+  u32 textureLocation = glGetUniformLocation(r->shader, "u_tex");
+  i32 textures[8] = {0, 1, 2, 3, 4, 5, 6, 7};
+  glUniform1iv(textureLocation, 8, textures);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex),
+                        (void *)0);
+
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(RenderVertex),
+                        (void *)offsetof(RenderVertex, color));
+
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(RenderVertex),
+                        (void *)offsetof(RenderVertex, uv));
+
+  glEnableVertexAttribArray(3);
+  glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(RenderVertex),
+                        (void *)offsetof(RenderVertex, texIndex));
+  glBindVertexArray(0);
 }
 
 void printShaderLog(u32 shader) {
@@ -121,8 +143,19 @@ void RenderFree(Renderer *r) {
   glDeleteProgram(r->shader);
 }
 
-void RenderBeginFrame(Renderer *r) { r->triangleLen = 0; }
+void RenderBeginFrame(Renderer *r) {
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  r->triangleLen = 0;
+  r->textureLen = 0;
+}
+
 void RenderEndFrame(Renderer *r) {
+  for (u32 i = 0; i < r->textureLen; i++) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    glBindTexture(GL_TEXTURE_2D, r->texture[i]);
+  }
+
   glBindBuffer(GL_ARRAY_BUFFER, r->vbo);
   glBufferSubData(GL_ARRAY_BUFFER, 0, r->triangleLen * 3 * sizeof(RenderVertex),
                   r->triangleBuffer);
@@ -133,9 +166,23 @@ void RenderEndFrame(Renderer *r) {
 }
 
 void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
-                        v4 cColor) {
+                        v4 cColor, v2 aUV, v2 bUV, v2 cUV, u32 texture) {
+  u32 texIndex = 1248;
+  for (u32 i = 0; i < r->textureLen; i++) {
+    if (r->texture[i] == texture) {
+      texIndex = i;
+      break;
+    }
+  }
+
+  if (texIndex == 1248 && r->textureLen < 8) {
+    r->texture[r->textureLen] = texture;
+    texIndex = r->textureLen;
+    r->textureLen += 1;
+  }
+
   // Flush the batch if it is full. We don't like segfaults on this channel.
-  if (r->triangleLen == MAX_TRIANGLES) {
+  if (r->triangleLen == MAX_TRIANGLES || texIndex == 1248) {
     RenderEndFrame(r);
     RenderBeginFrame(r);
   }
@@ -146,17 +193,26 @@ void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
   r->triangleBuffer[r->triangleLen * 3 + 0].color[1] = aColor[1];
   r->triangleBuffer[r->triangleLen * 3 + 0].color[2] = aColor[2];
   r->triangleBuffer[r->triangleLen * 3 + 0].color[3] = aColor[3];
+  r->triangleBuffer[r->triangleLen * 3 + 0].uv[0] = aUV[0];
+  r->triangleBuffer[r->triangleLen * 3 + 0].uv[1] = aUV[1];
+  r->triangleBuffer[r->triangleLen * 3 + 0].texIndex = (f32)texIndex;
   r->triangleBuffer[r->triangleLen * 3 + 1].pos[0] = b[0];
   r->triangleBuffer[r->triangleLen * 3 + 1].pos[1] = b[1];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[0] = bColor[0];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[1] = bColor[1];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[2] = bColor[2];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[3] = bColor[3];
+  r->triangleBuffer[r->triangleLen * 3 + 1].uv[0] = bUV[0];
+  r->triangleBuffer[r->triangleLen * 3 + 1].uv[1] = bUV[1];
+  r->triangleBuffer[r->triangleLen * 3 + 1].texIndex = (f32)texIndex;
   r->triangleBuffer[r->triangleLen * 3 + 2].pos[0] = c[0];
   r->triangleBuffer[r->triangleLen * 3 + 2].pos[1] = c[1];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[0] = cColor[0];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[1] = cColor[1];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[2] = cColor[2];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[3] = cColor[3];
+  r->triangleBuffer[r->triangleLen * 3 + 2].uv[0] = cUV[0];
+  r->triangleBuffer[r->triangleLen * 3 + 2].uv[1] = cUV[1];
+  r->triangleBuffer[r->triangleLen * 3 + 2].texIndex = (f32)texIndex;
   r->triangleLen++;
 }
