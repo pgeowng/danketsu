@@ -3,12 +3,12 @@ rem call "B:\Visual Studio\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 set CommonCompilerFlags=-MT -nologo -Gm- -GR- -EHa- -Oi -WX -W4 -wd4201 -wd4100 -wd4189 -wd4505 -DHANDMADE_INTERNAL=1 -DHANDMADE_SLOW=1 -FC -Z7 -Fmtest_danketsu.map
 set CommonLinkerFlags=-opt:ref user32.lib gdi32.lib SDL2.lib SDL2main.lib glew32.lib OpenGL32.lib GLu32.lib
-set HeaderLinkFlags=-I..\..\external\glew-2.1.0\include -I..\..\external\SDL2-2.28.3-VC\include -I..\../external/stb -I..\../external/glm -I..\../engine -I..\../engine/renderer
+set HeaderLinkFlags=-I..\..\external\glew-2.1.0\include -I..\..\external\SDL2-2.28.3-VC\include -I..\../external/stb -I..\../external/glm -I..\../engine -I..\../engine/renderer -I../app/test_renderer/
 set LibraryPaths=/LIBPATH:..\..\external\SDL2-2.28.3-VC\lib\x64 /LIBPATH:..\..\external\glew-2.1.0\lib\Release\x64
 
 mkdir ..\build_win
 pushd ..\build_win
-cl.exe %CommonCompilerFlags%  "../test/test_rect_overlap.cpp"  %HeaderLinkFlags% /link %LibraryPaths% %CommonLinkerFlags% /out:test_run.exe
+cl.exe %CommonCompilerFlags%  "../test/test_main.cpp"  %HeaderLinkFlags% /link %LibraryPaths% %CommonLinkerFlags% /out:test_run.exe
 popd
 
 

@@ -1,11 +1,3 @@
-#include "stdint.h"
-#include "stdio.h"
-
-#include "unity.h"
-
-#include "main.cpp"
-#include <windows.h>
-
 typedef struct testCase {
   f32 a[4];
   f32 b[4];
@@ -67,9 +59,3 @@ void runTest() {
     runCase(a, b, expected);
   }
 }
-
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
-            int nShowCmd) {
-  runTest();
-  return 0;
-};

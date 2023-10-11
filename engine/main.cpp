@@ -58,7 +58,7 @@ internal bool init() {
     return false;
   }
 
-  glEnable(GL_DEPTH_TEST);
+  // glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -111,7 +111,23 @@ int run() {
 
   SDL_Event e;
   bool windowShouldClose = false;
+
+  // Performance Metrics
+  u32 lastTime = SDL_GetTicks();
+  int nbFrames = 0;
+
   while (!windowShouldClose) {
+
+    {
+      u32 currentTime = SDL_GetTicks();
+      nbFrames++;
+      if (currentTime - lastTime >= 1000) {
+        LogInfo("%f ms/frame", 1000.0 / float(nbFrames));
+        nbFrames = 0;
+        lastTime += 1000;
+      }
+    }
+
     while (SDL_PollEvent(&e) != 0) {
       switch (e.type) {
       case SDL_QUIT:
@@ -132,7 +148,7 @@ int run() {
     float delta = timeValue - prevTime;
     prevTime = timeValue;
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     app_update(&g_app, delta);

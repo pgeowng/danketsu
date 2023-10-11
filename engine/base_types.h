@@ -58,34 +58,68 @@ typedef struct logEvent {
   int level;
 } logEvent;
 
+// https://github.com/rxi/log.c/blob/master/src/log.c
 static logEvent newLogEvent(const char *fmt, const char *file, int line,
                             int level) {
   logEvent ev = {};
   ev.fmt = fmt;
   ev.file = file;
   ev.line = line;
-  ev.level = ev.level;
+  ev.level = level;
   return ev;
 }
 
 enum { LOG_TRACE, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL };
+
+static const char *levelStrings[] = {
+    "TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL",
+};
+
 void LogLog(int level, const char *file, int line, const char *fmt, ...);
 
 // https://c-faq.com/varargs/handoff.html
 void vlog(logEvent *ev) {
-  fprintf(stderr, "%d: %s:%d: ", ev->level, ev->file, ev->line);
+  fprintf(stderr, "%s: %s:%d: ", levelStrings[ev->level], ev->file, ev->line);
   vfprintf(stderr, ev->fmt, ev->ap);
   fprintf(stderr, "\n");
   fflush(stderr);
 }
 
+extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(
+    const char *lpOutputString);
+
+void __cdecl vlog_ms(logEvent *ev) {
+  char buf[128];
+  buf[127] = '\0';
+  char *pl = &buf[127];
+  char *p = buf;
+
+  snprintf(buf, sizeof(buf) - 3, "%s: %s:%d: ", levelStrings[ev->level],
+           ev->file, ev->line);
+  while (*p != '\0')
+    p++;
+
+  u32 avail = u32(pl - p - 3);
+  _vsnprintf_s(p, avail, avail, ev->fmt, ev->ap); // -3 for cr/lf,null
+
+  while (*p != '\0')
+    p++;
+
+  *p++ = '\r';
+  *p++ = '\n';
+  *p++ = '\0';
+
+  OutputDebugStringA(buf);
+}
+
 void LogLog(int level, const char *file, int line, const char *fmt, ...) {
   logEvent ev = newLogEvent(fmt, file, line, level);
   va_start(ev.ap, fmt);
-  vlog(&ev);
+  vlog_ms(&ev);
   va_end(ev.ap);
 }
 
+#define LogInfo(...) LogLog(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define LogError(...) LogLog(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
 
 v2 v2Clamp(v2 v, rect r) {
@@ -105,6 +139,22 @@ v2 v2Clamp(v2 v, rect r) {
     v[1] = r[1] + r[3];
   }
 
+  return v;
+}
+
+v4 v4Set(v4 v, f32 x, f32 y, f32 z, f32 w) {
+  v[0] = x;
+  v[1] = y;
+  v[2] = z;
+  v[3] = w;
+  return v;
+}
+
+v4 v4Copy(v4 v, v4 other) {
+  v[0] = other[0];
+  v[1] = other[1];
+  v[2] = other[2];
+  v[3] = other[3];
   return v;
 }
 
