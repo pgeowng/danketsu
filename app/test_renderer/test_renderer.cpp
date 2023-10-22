@@ -69,8 +69,8 @@ static bool app_init(Scene *app) {
   app->enemySlimeCap = 64;
   app->lastSpawnTime = 0;
 
-  app->projectileCap = 48;
-  app->projectileIdx = 0;
+  app->proj = &app->_projectilePool;
+  ProjectilePoolInit(app->proj);
 
   return true;
 }
@@ -165,11 +165,10 @@ static void app_update(Scene *app, float delta) {
   }
 
   // NOTE: moving projectiles toward enemies.
-  for (u32 i = 0; i < app->projectileIdx; i++) {
-    Projectile *pr = &app->proj[i];
+  for (u32 i = 0; i < app->proj->occ; i++) {
+    Projectile *pr = &app->proj->pool[i];
 
-    // NOTE: projectile should be alive.
-    if (!pr->enable) {
+    if (!pr->alive) {
       continue;
     }
 
@@ -188,7 +187,7 @@ static void app_update(Scene *app, float delta) {
     if (v2DistanceSquare2(pr->lastTargetKnownPosition, pr->position) <
         pr->speed * pr->speed) {
       // TODO: collide check success. apply damage to the enemy.
-      pr->enable = 0;
+      ProjectilePoolFree(app->proj, pr);
     }
 
     v2Add(pr->position, velocity);
@@ -217,26 +216,9 @@ static void app_update(Scene *app, float delta) {
         }
       }
 
-      if (enemyFound && app->projectileIdx < app->projectileCap) {
-        // NOTE: Find empty projectile slot.
+      if (enemyFound && ProjectilePoolCanAlloc(app->proj)) {
+        Projectile *p = ProjectilePoolAlloc(app->proj);
 
-        b8 emptyProjectileIndexFound = 0;
-        u32 emptyProjectileIndex = 0;
-
-        for (u32 offset = 1; offset < app->projectileCap; offset++) {
-          u32 testIndex =
-              app->lastCreatedProjectileIndex + offset % app->projectileCap;
-
-          if (app->proj[testIndex].enable) {
-            continue;
-          }
-
-          break;
-        }
-        u32 pi = app->projectileIdx;
-        Projectile *p = &app->proj[pi];
-
-        p->enable = 1;
         p->position[0] = t->position[0];
         p->position[1] = t->position[1];
         p->position[2] = 16;
@@ -247,8 +229,6 @@ static void app_update(Scene *app, float delta) {
         p->entityTarget = enemyIndex;
         v2Copy(p->lastTargetKnownPosition,
                app->enemySlime[enemyIndex].position);
-
-        app->projectileIdx++;
 
         t->lastShootTick = nowTicks;
       }
@@ -371,21 +351,36 @@ static void app_update(Scene *app, float delta) {
                          colorWhite);
   }
 
-  for (u32 i = 0; i < app->projectileIdx; i++) {
-    Projectile *pr = &app->proj[i];
+  for (u32 i = 0; i < app->proj->occ; i++) {
+    Projectile *pr = &app->proj->pool[i];
 
-    if (!pr->enable) {
+    if (!pr->alive) {
       continue;
     }
 
     RenderPushQuadColor(rx, pr->position, colorWhite);
   }
 
-  f32 textPos[4] = {0.0f, 0.0f, 100.0f, 32.0f};
-  char buf[20];
-  sprintf_s(buf, "pos: %.2f %.2f", app->enemySlime[0].position[0],
-            app->enemySlime[0].position[1]);
-  RenderPushString(rx, textPos, buf, &app->font, colorWhite);
+  {
+    f32 textPos[4] = {0.0f, 0.0f, 100.0f, 32.0f};
+    char buf[20];
+    sprintf_s(buf, "pos: %.2f %.2f", app->enemySlime[0].position[0],
+              app->enemySlime[0].position[1]);
+    RenderPushString(rx, textPos, buf, &app->font, colorWhite);
+  }
+
+  {
+    f32 textPos[4] = {0.0f, 32.0f, 100.0f, 32.0f};
+    char buf[24];
+    u32 count = 0;
+    for (u32 i = 0; i < app->proj->occ; i++) {
+      if (app->proj->pool[i].alive) {
+        count++;
+      }
+    }
+    sprintf_s(buf, "pj: %d %d", app->proj->occ, count);
+    RenderPushString(rx, textPos, buf, &app->font, colorWhite);
+  }
 
   RenderEndFrame(r);
 }

@@ -8,7 +8,6 @@
 #include "projectile.h"
 #include "tower.h"
 
-
 typedef struct EnemySlime {
   b8 enable;
 
@@ -38,10 +37,8 @@ typedef struct Scene {
   u32 towersIdx;
   Tower towers[128];
 
-  u32 projectileIdx;
-  u32 projectileCap;
-  Projectile proj[48];
-  u32 lastCreatedProjectileIndex;
+  ProjectilePool _projectilePool;
+  ProjectilePool *proj;
 
   u32 enemySlimeLen;
   u32 enemySlimeCap;

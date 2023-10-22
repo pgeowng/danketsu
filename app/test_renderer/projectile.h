@@ -3,7 +3,6 @@
 struct Projectile;
 
 typedef struct Projectile {
-  b8 enable;
 
   f32 position[4];
   u32 speed;
@@ -14,58 +13,76 @@ typedef struct Projectile {
   // _projectilePoolNextFree is next free projectile object. Field is required
   // by ProjectilePool.
   Projectile *_projectilePoolNextFree;
+
+  // _projectilePoolHasNextFree is indicator that is next ptr is presented.
   b8 _projectilePoolHasNextFree;
+  b8 alive;
 } Projectile;
 
 typedef struct ProjectilePool {
-  u32 projectileIdx;
-  u32 cap;
-  Projectile proj[48];
-  u32 lastCreatedProjectileIndex;
+  // occ is how many slots are occupied by allocations already. i.e. max(pool)
+  u32 occ;
 
+  // cap is how many slots are available until memory overflow.
+  u32 cap;
+
+  // pool is allocated on stack chunk of memory.
+  Projectile pool[48];
+
+  // head is ptr at first free element.
   Projectile *head;
-  b8 firstFree;
 
 } ProjectilePool;
 
 void ProjectilePoolInit(ProjectilePool *pool) {
+  pool->occ = 0;
   pool->cap = 48;
-  pool->firstFree = 0;
-  pool->head = pool->proj;
+  pool->head = pool->pool;
 
   for (u32 i = 0; i < pool->cap; i++) {
     if (i + 1 == pool->cap) {
-      pool->proj[i]._projectilePoolHasNextFree = 0;
-      pool->proj[i]._projectilePoolNextFree = NULL;
+      pool->pool[i]._projectilePoolHasNextFree = 0;
+      pool->pool[i]._projectilePoolNextFree = NULL;
       continue;
     }
 
-    pool->proj[i]._projectilePoolHasNextFree = 1;
-    pool->proj[i]._projectilePoolNextFree = &pool->proj[i + 1];
+    pool->pool[i]._projectilePoolHasNextFree = 1;
+    pool->pool[i]._projectilePoolNextFree = &pool->pool[i + 1];
   }
 }
 
 Projectile *ProjectilePoolAlloc(ProjectilePool *pool) {
-  Projectile *ptr = pool->head;
+  Projectile *p = pool->head;
+
+  u32 newOcc = (u32)(p - pool->pool) + 1;
+  if (pool->occ < newOcc) {
+    pool->occ = newOcc;
+  }
 
   // NOTE: Always has space for next allocation.
-  assert(pool->head->_projectilePoolHasNextFree);
+  assert(pool->head != NULL);
 
   pool->head = pool->head->_projectilePoolNextFree;
-  ptr->_projectilePoolHasNextFree = 0;
-  ptr->_projectilePoolNextFree = NULL;
+  p->_projectilePoolHasNextFree = 0;
+  p->_projectilePoolNextFree = NULL;
+  p->alive = 1;
 
-  return ptr;
+  return p;
 }
 
 void ProjectilePoolFree(ProjectilePool *pool, Projectile *p) {
   // NOTE: assert that pointer is inside pools range.
-  assert(p > pool->proj && p < pool->proj + pool->cap);
+  assert(p >= pool->pool && p < pool->pool + pool->cap);
   // NOTE: doesn't have next free. aka wasn't deallocated before.
   assert(!p->_projectilePoolHasNextFree);
 
   p->_projectilePoolNextFree = pool->head;
   p->_projectilePoolHasNextFree = 1;
+  p->alive = 0;
+
   pool->head = p;
 }
+
+b8 ProjectilePoolCanAlloc(ProjectilePool *pool) { return pool->head != NULL; }
+
 #endif
