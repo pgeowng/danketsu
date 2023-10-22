@@ -15,6 +15,8 @@ void TileMapLoadCSV(TileMap *m, const char *path, Texture *texture,
   m->texture = texture;
   m->tileWidth = tileWidth;
   m->tileHeight = tileHeight;
+  m->offsetStepX = tileWidth;
+  m->offsetStepY = tileHeight;
 }
 
 void Read2DMap(const char *buffer, u32 bufferLen, i32 *map, u32 mapRowCap,
@@ -74,4 +76,11 @@ void Read2DMap(const char *buffer, u32 bufferLen, i32 *map, u32 mapRowCap,
   if (mapColLen != nullptr) {
     *mapColLen = colLen;
   }
+}
+
+static i32 TileMapTileByPosition(TileMap *m, v2 position) {
+  i32 i = (i32)(position[0] / m->tileWidth);
+  i32 j = (i32)(position[1] / m->tileHeight);
+  i32 tile = m->map[j][i];
+  return tile;
 }

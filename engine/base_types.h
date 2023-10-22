@@ -216,4 +216,40 @@ rect rectUVCull(rect uv, rect quad, rect cullUV) {
   return uv;
 }
 
+static void v2Copy(v2 a, v2 other) {
+  a[0] = other[0];
+  a[1] = other[1];
+}
+
+static b8 f32Equal(f32 a, f32 b) { return 0.01f > (a - b) && (a - b) > -0.01f; }
+
+static f32 v2DistanceSquare(v2 f) { return f[0] * f[0] + f[1] * f[1]; }
+static f32 v2DistanceSquare2(v2 to, v2 from) {
+  return (to[0] - from[0]) * (to[0] - from[0]) +
+         (to[1] - from[1]) * (to[1] - from[1]);
+}
+
+static void v2Add(v2 a, v2 other) {
+  a[0] = a[0] + other[0];
+  a[1] = a[1] + other[1];
+}
+
+static void v2Subtract(v2 a, v2 other) {
+  a[0] = a[0] - other[0];
+  a[1] = a[1] - other[1];
+}
+
+static void v2Mult(v2 a, f32 other) {
+  a[0] = a[0] * other;
+  a[1] = a[1] * other;
+}
+
+static f32 v2Distance(v2 f) { return sqrt(f[0] * f[0] + f[1] * f[1]); }
+
+static void v2Normalize(v2 a) {
+  f32 dst = v2Distance(a);
+  a[0] = a[0] / dst;
+  a[1] = a[1] / dst;
+}
+
 #endif

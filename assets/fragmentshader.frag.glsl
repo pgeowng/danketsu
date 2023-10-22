@@ -22,6 +22,7 @@ void main() {
     default: discard;
   }
 
+
   if (a_color.a < 0.05) discard;
   f_color = a_color;
 }

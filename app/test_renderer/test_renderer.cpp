@@ -1,7 +1,10 @@
 #include "test_renderer.h"
 
 #define CURSOR_TEXTURE_ID 16
-#define TOWER_ARROW_IDX 0
+
+#define GRASS_TILE_ID 1
+#define ROAD_TILE_ID 4
+#define WATER_TILE_ID 5
 
 static bool app_init(Scene *app) {
   RenderExInit(&app->r);
@@ -21,10 +24,59 @@ static bool app_init(Scene *app) {
   TileMapLoadCSV(&app->shadows, "assets/map1_shadows.csv", &app->textures[1],
                  tileWidth, tileHeight);
 
+  RenderTextureLoad(&app->textures[2], "assets/NSimSun1.bmp");
+  TileMapInit(&app->font, &app->textures[2], 14, 32, 32, 32);
+
+  PathPoint *path = app->path;
+  path[0].position[0] = 3.0f;
+  path[0].position[1] = 2.0f;
+  path[1].position[0] = 3.0f;
+  path[1].position[1] = 12.0f;
+  path[2].position[0] = 4.0f;
+  path[2].position[1] = 13.0f;
+  path[3].position[0] = 6.0f;
+  path[3].position[1] = 13.0f;
+  path[4].position[0] = 7.0f;
+  path[4].position[1] = 12.0f;
+  path[5].position[0] = 7.0f;
+  path[5].position[1] = 4.0f;
+  path[6].position[0] = 8.0f;
+  path[6].position[1] = 3.0f;
+  path[7].position[0] = 12.0f;
+  path[7].position[1] = 3.0f;
+  path[8].position[0] = 13.0f;
+  path[8].position[1] = 4.0f;
+  path[9].position[0] = 13.0f;
+  path[9].position[1] = 7.0f;
+  path[10].position[0] = 11.0f;
+  path[10].position[1] = 9.0f;
+  path[11].position[0] = 11.0f;
+  path[11].position[1] = 12.0f;
+  path[12].position[0] = 12.0f;
+  path[12].position[1] = 13.0f;
+  path[13].position[0] = 15.0f;
+  path[13].position[1] = 13.0f;
+
+  app->pathLen = 14;
+
+  for (u32 i = 0; i < app->pathLen; i++) {
+    path[i].position[0] *= tileWidth;
+    path[i].position[0] -= tileWidth / 2;
+    path[i].position[1] *= tileHeight;
+    path[i].position[1] -= tileHeight / 2;
+  }
+
+  app->enemySlimeCap = 64;
+  app->lastSpawnTime = 0;
+
+  app->projectileCap = 48;
+  app->projectileIdx = 0;
+
   return true;
 }
 
 static void app_update(Scene *app, float delta) {
+  u32 nowTicks = SDL_GetTicks();
 
   f32 tileWidth = 64.0f;
   f32 tileHeight = 64.0f;
@@ -43,13 +95,164 @@ static void app_update(Scene *app, float delta) {
   f32 cursorUV[4] = {0.0f};
   TileMapUVByIdx(cursorUV, &app->background, CURSOR_TEXTURE_ID);
 
-  if (mouseLeftActive && !mouseLeftPrev) {
-    LogInfo("create tower event");
-    Tower *instance = &app->towers[app->towersIdx];
-    instance->enable = 1;
-    v4Copy(instance->position, cursorPosition);
-    instance->tileIdx = TOWER_ARROW_IDX;
+  b8 hoveringTower = 0;
+  u32 hoveringTowerIndex = 0;
+  // NOTE: cursor is red when there is already a tower.
+  for (u32 i = 0; i < app->towersIdx; i++) {
+    Tower *t = &app->towers[i];
+    if (t->enable && f32Equal(t->position[0], cursorPosition[0]) &&
+        f32Equal(t->position[1], cursorPosition[1])) {
+      hoveringTower = 1;
+      hoveringTowerIndex = i;
+      // cursorColor = colorRed;
+      break;
+    }
+  }
+
+  b8 isValidFloorForTower = 1;
+  i32 tile = TileMapTileByPosition(&app->background, cursorPosition);
+  if (tile == WATER_TILE_ID || tile == ROAD_TILE_ID) {
+    isValidFloorForTower = 0;
+  }
+
+  if (!hoveringTower && isValidFloorForTower && mouseLeftActive &&
+      !mouseLeftPrev) {
+
+    // TODO: how to deal with static array if fully used
+    Tower *t = &app->towers[app->towersIdx];
+    towerNew(t, cursorPosition);
     app->towersIdx++;
+  }
+
+  if (nowTicks - app->lastSpawnTime > 1000 &&
+      app->enemySlimeLen < app->enemySlimeCap) {
+    u32 i = app->enemySlimeLen;
+
+    app->enemySlime[i].enable = 1;
+    v4Set(app->enemySlime[i].position, 0.0f, 0.0f, 64.0f, 64.0f);
+    app->enemySlime[i].bodyTextureIndex = 17;
+    app->enemySlime[i].eyeTextureIndex = 18;
+    app->enemySlime[i].speed = 20.0f;
+    app->enemySlime[i].pathPointToFollow = 0;
+
+    app->enemySlimeLen++;
+    app->lastSpawnTime = SDL_GetTicks();
+  }
+
+  for (u32 i = 0; i < app->enemySlimeLen; i++) {
+    EnemySlime *e = &app->enemySlime[i];
+    PathPoint *p = &app->path[e->pathPointToFollow];
+
+    f32 velocity[2] = {p->position[0], p->position[1]};
+
+    v2Subtract(velocity, e->position);
+
+    f32 dist = v2DistanceSquare(velocity);
+    LogInfo("distance: %f", dist);
+    if (dist < 100.0f && e->pathPointToFollow + 1 < app->pathLen) {
+      e->pathPointToFollow += 1;
+    }
+
+    v2Normalize(velocity);
+    v2Mult(velocity, e->speed * delta);
+    v2Add((v2)&e->position, velocity);
+  }
+
+  b8 cursorShown = isValidFloorForTower;
+  f32 *cursorColor = colorWhite;
+  if (hoveringTower) {
+    cursorColor = colorRed;
+  }
+
+  // NOTE: moving projectiles toward enemies.
+  for (u32 i = 0; i < app->projectileIdx; i++) {
+    Projectile *pr = &app->proj[i];
+
+    // NOTE: projectile should be alive.
+    if (!pr->enable) {
+      continue;
+    }
+
+    EnemySlime *e = &app->enemySlime[pr->entityTarget];
+
+    if (e->enable) {
+      v2Copy(pr->lastTargetKnownPosition, e->position);
+    }
+
+    f32 velocity[2];
+    v2Copy(velocity, pr->lastTargetKnownPosition);
+    v2Subtract(velocity, pr->position);
+    v2Normalize(velocity);
+    v2Mult(velocity, pr->speed * delta);
+
+    if (v2DistanceSquare2(pr->lastTargetKnownPosition, pr->position) <
+        pr->speed * pr->speed) {
+      // TODO: collide check success. apply damage to the enemy.
+      pr->enable = 0;
+    }
+
+    v2Add(pr->position, velocity);
+  }
+
+  for (u32 i = 0; i < app->towersIdx; i++) {
+    Tower *t = &app->towers[i];
+
+    if (nowTicks > t->lastShootTick + t->shootCooldown) {
+      b8 enemyFound = 0;
+      u32 enemyIndex = 0;
+
+      // NOTE: looking for enemy
+      for (u32 e = 0; e < app->enemySlimeLen; e++) {
+        if (!app->enemySlime[e].enable) {
+          continue;
+        }
+
+        f32 distance =
+            v2DistanceSquare2(app->enemySlime[e].position, t->position);
+
+        if (distance < t->detectRangeSquared) {
+          enemyFound = 1;
+          enemyIndex = e;
+          break;
+        }
+      }
+
+      if (enemyFound && app->projectileIdx < app->projectileCap) {
+        // NOTE: Find empty projectile slot.
+
+        b8 emptyProjectileIndexFound = 0;
+        u32 emptyProjectileIndex = 0;
+
+        for (u32 offset = 1; offset < app->projectileCap; offset++) {
+          u32 testIndex =
+              app->lastCreatedProjectileIndex + offset % app->projectileCap;
+
+          if (app->proj[testIndex].enable) {
+            continue;
+          }
+
+          break;
+        }
+        u32 pi = app->projectileIdx;
+        Projectile *p = &app->proj[pi];
+
+        p->enable = 1;
+        p->position[0] = t->position[0];
+        p->position[1] = t->position[1];
+        p->position[2] = 16;
+        p->position[3] = 16;
+
+        p->speed = 50;
+
+        p->entityTarget = enemyIndex;
+        v2Copy(p->lastTargetKnownPosition,
+               app->enemySlime[enemyIndex].position);
+
+        app->projectileIdx++;
+
+        t->lastShootTick = nowTicks;
+      }
+    }
   }
 
   // update defer
@@ -57,6 +260,7 @@ static void app_update(Scene *app, float delta) {
   app->mouseLeftPrev = mouseLeftActive;
 
   // draw
+
   Texture *cursorTexture = &app->textures[1];
 
   RendererEx *rx = &app->r;
@@ -95,15 +299,48 @@ static void app_update(Scene *app, float delta) {
   DrawTileMapLayer(rx, &app->shadows);
 
   Texture *towerTexture = &app->textures[1];
-  f32 towerPosition[4] = {128.0f, 128.0f, 64.0f, 64.0f};
-  f32 towerUVs[4] = {0.0f, 0.0f, 64.0f / (towerTexture->width),
-                     64.0f / (towerTexture->height)};
-  RenderPushQuadSubTex(rx, towerPosition, towerUVs, towerTexture->texture,
-                       colorWhite);
+  Texture *hoverRangeTexture = towerTexture;
+
+  if (hoveringTower) {
+    Tower *t = &app->towers[hoveringTowerIndex];
+
+    f32 range = (f32)(t->detectRange) / 2;
+    f32 leftX = (f32)(t->position[0] + t->spawnPosition[0]) - range;
+    f32 topY = (f32)(t->position[1] + t->spawnPosition[1]) - range;
+    f32 rangePosition[4] = {leftX, topY, range, range};
+
+    f32 uv[4] = {0.0f};
+    TileMapUVByIdx(uv, &app->background, 20);
+
+    RenderPushQuadSubTex(rx, rangePosition, uv, hoverRangeTexture->texture,
+                         colorWhite);
+
+    // NOTE: top right tile
+    rangePosition[0] = leftX + range;
+    TileMapUVByIdx(uv, &app->background, 21);
+    RenderPushQuadSubTex(rx, rangePosition, uv, hoverRangeTexture->texture,
+                         colorWhite);
+
+    // NOTE: bottom left tile
+    rangePosition[0] = leftX;
+    rangePosition[1] = topY + range;
+    TileMapUVByIdx(uv, &app->background, 22);
+    RenderPushQuadSubTex(rx, rangePosition, uv, hoverRangeTexture->texture,
+                         colorWhite);
+
+    // NOTE: bottom right tile
+    rangePosition[0] = leftX + range;
+    rangePosition[1] = topY + range;
+    TileMapUVByIdx(uv, &app->background, 23);
+    RenderPushQuadSubTex(rx, rangePosition, uv, hoverRangeTexture->texture,
+                         colorWhite);
+  }
 
   // draw cursor
-  RenderPushQuadSubTex(rx, cursorPosition, cursorUV, cursorTexture->texture,
-                       colorWhite);
+  if (cursorShown) {
+    RenderPushQuadSubTex(rx, cursorPosition, cursorUV, cursorTexture->texture,
+                         cursorColor);
+  }
 
   for (u32 i = 0; i < ArrayCount(app->towers); i++) {
     Tower *t = &app->towers[i];
@@ -117,8 +354,42 @@ static void app_update(Scene *app, float delta) {
                          colorWhite);
   }
 
+  for (u32 j = 0; j < app->enemySlimeLen; j++) {
+    u32 i = app->enemySlimeLen - 1 - j;
+    EnemySlime *e = &app->enemySlime[i];
+    if (!e->enable) {
+      continue;
+    }
+    f32 bodyUV[4] = {0.0f};
+    TileMapUVByIdx(bodyUV, &app->background, e->bodyTextureIndex);
+    RenderPushQuadSubTex(rx, e->position, bodyUV, cursorTexture->texture,
+                         colorRed);
+
+    f32 eyeUV[4] = {0.0f};
+    TileMapUVByIdx(eyeUV, &app->background, e->eyeTextureIndex);
+    RenderPushQuadSubTex(rx, e->position, eyeUV, cursorTexture->texture,
+                         colorWhite);
+  }
+
+  for (u32 i = 0; i < app->projectileIdx; i++) {
+    Projectile *pr = &app->proj[i];
+
+    if (!pr->enable) {
+      continue;
+    }
+
+    RenderPushQuadColor(rx, pr->position, colorWhite);
+  }
+
+  f32 textPos[4] = {0.0f, 0.0f, 100.0f, 32.0f};
+  char buf[20];
+  sprintf_s(buf, "pos: %.2f %.2f", app->enemySlime[0].position[0],
+            app->enemySlime[0].position[1]);
+  RenderPushString(rx, textPos, buf, &app->font, colorWhite);
+
   RenderEndFrame(r);
 }
+
 static void app_input(Scene *app, SDL_Event e) {
   // switch (e.type) {
   // case SDL_MOUSEMOTION:
@@ -128,17 +399,6 @@ static void app_input(Scene *app, SDL_Event e) {
   // }
 }
 static void AppClean(Scene *app) { RenderFree(&app->r.r); }
-
-static void TileMapUVByIdx(v4 uvOut, TileMap *tm, i32 idx) {
-  f32 tileWidth = (f32)(tm->tileWidth);
-  f32 tileHeight = (f32)(tm->tileHeight);
-  u32 maxX = (u32)(tm->texture->width / tileWidth);
-
-  uvOut[0] = idx % maxX * tileWidth / tm->texture->width;
-  uvOut[1] = idx / maxX * tileHeight / tm->texture->height;
-  uvOut[2] = tileWidth / tm->texture->width;
-  uvOut[3] = tileHeight / tm->texture->height;
-}
 
 static void DrawTileMapLayer(RendererEx *rx, TileMap *tm) {
   f32 tileWidth = (f32)(tm->tileWidth);

@@ -35,7 +35,6 @@ void RenderExFree(RendererEx *r) {
 }
 
 void RenderPushQuadColor(RendererEx *r, rect quad, v4 color) {
-
   u32 texture = RenderWhiteTexture();
   f32 a[2] = {quad[0], quad[1]};
   f32 aUV[2] = {0, 0};
@@ -95,4 +94,28 @@ void RenderPushQuadSubTex(RendererEx *r, rect quad, rect uvQuad, u32 texture,
   RenderPushTriangle(&r->r, v2Clamp(b, r->cullingQuad),
                      v2Clamp(d, r->cullingQuad), v2Clamp(c, r->cullingQuad),
                      color, color, color, bUV, dUV, cUV, texture);
+}
+
+// NOTE: from left to right, from up to bottom.
+void RenderPushAtlasTile(RendererEx *r, rect position, TileMap *tm, u32 index,
+                         v4 color) {
+
+  f32 uvQuad[4] = {0.0f};
+  TileMapUVByIdx(uvQuad, tm, index);
+
+  RenderPushQuadSubTex(r, position, uvQuad, tm->texture->texture, color);
+}
+
+void RenderPushString(RendererEx *r, rect position, const char *s, TileMap *tm,
+                      v4 color) {
+  f32 glyphWidth = position[3] / tm->tileHeight * tm->tileWidth;
+  f32 pos[4] = {position[0], position[1], glyphWidth, position[3]};
+
+  for (u32 i = 0; s[i] != '\0'; i++) {
+    char c = s[i];
+    u32 index = c - 32;
+
+    RenderPushAtlasTile(r, pos, tm, index, color);
+    pos[0] += glyphWidth;
+  }
 }

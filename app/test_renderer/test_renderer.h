@@ -5,13 +5,27 @@
 #include "renderer.h"
 #include "renderer_helper.h"
 
-typedef struct Tower {
+#include "projectile.h"
+#include "tower.h"
+
+
+typedef struct EnemySlime {
   b8 enable;
 
   f32 position[4];
-  i32 tileIdx;
+  i32 bodyTextureIndex;
 
-} Tower;
+  i32 eyeTextureIndex;
+
+  u32 pathPointToFollow;
+
+  f32 speed;
+
+} EnemySlime;
+
+typedef struct PathPoint {
+  f32 position[2];
+} PathPoint;
 
 typedef struct Scene {
   RendererEx r;
@@ -19,8 +33,23 @@ typedef struct Scene {
   TileMap background;
   TileMap shadows;
 
+  TileMap font;
+
   u32 towersIdx;
-  Tower towers[16];
+  Tower towers[128];
+
+  u32 projectileIdx;
+  u32 projectileCap;
+  Projectile proj[48];
+  u32 lastCreatedProjectileIndex;
+
+  u32 enemySlimeLen;
+  u32 enemySlimeCap;
+  EnemySlime enemySlime[64];
+  u32 lastSpawnTime;
+
+  u32 pathLen;
+  PathPoint path[20];
 
   b8 mouseLeftPrev;
 
