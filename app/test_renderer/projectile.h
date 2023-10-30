@@ -8,6 +8,9 @@ typedef struct Projectile {
   u32 speed;
   u32 entityTarget;
 
+  // rotation is a rotation of sprite that is being dispayed.
+  f32 rotation;
+
   f32 lastTargetKnownPosition[2];
 
   // _projectilePoolNextFree is next free projectile object. Field is required
@@ -27,7 +30,7 @@ typedef struct ProjectilePool {
   u32 cap;
 
   // pool is allocated on stack chunk of memory.
-  Projectile pool[48];
+  Projectile pool[128];
 
   // head is ptr at first free element.
   Projectile *head;
@@ -36,7 +39,7 @@ typedef struct ProjectilePool {
 
 void ProjectilePoolInit(ProjectilePool *pool) {
   pool->occ = 0;
-  pool->cap = 48;
+  pool->cap = 128;
   pool->head = pool->pool;
 
   for (u32 i = 0; i < pool->cap; i++) {

@@ -119,3 +119,55 @@ void RenderPushString(RendererEx *r, rect position, const char *s, TileMap *tm,
     pos[0] += glyphWidth;
   }
 }
+
+void RenderPushQuadSubTexOrigRot(RendererEx *r, rect quad, rect uvQuad,
+                                 u32 texture, v4 color, v2 origin,
+                                 f32 rotation) {
+
+  f32 uv[4] = {uvQuad[0], uvQuad[1], uvQuad[2], uvQuad[3]};
+  rectUVCull(uv, quad, r->cullingQuad);
+
+  f32 a[2] = {quad[0], quad[1]};
+  f32 aUV[2] = {uv[0], uv[1]};
+  f32 b[2] = {quad[0] + quad[2], quad[1]};
+  f32 bUV[2] = {uv[0] + uv[2], uv[1]};
+  f32 c[2] = {quad[0], quad[1] + quad[3]};
+  f32 cUV[2] = {uv[0], uv[1] + uv[3]};
+  f32 d[2] = {quad[0] + quad[2], quad[1] + quad[3]};
+  f32 dUV[2] = {uv[0] + uv[2], uv[1] + uv[3]};
+
+  f32 rot[4] = {0.0f};
+  m2Rotate(rot, rotation);
+
+  v2Subtract(a, quad);
+  v2Subtract(b, quad);
+  v2Subtract(c, quad);
+  v2Subtract(d, quad);
+
+  v2Subtract(a, origin);
+  v2Subtract(b, origin);
+  v2Subtract(c, origin);
+  v2Subtract(d, origin);
+
+  m2MultiplyPoint(rot, a);
+  m2MultiplyPoint(rot, b);
+  m2MultiplyPoint(rot, c);
+  m2MultiplyPoint(rot, d);
+
+  v2Add(a, origin);
+  v2Add(b, origin);
+  v2Add(c, origin);
+  v2Add(d, origin);
+
+  v2Add(a, quad);
+  v2Add(b, quad);
+  v2Add(c, quad);
+  v2Add(d, quad);
+
+  RenderPushTriangle(&r->r, v2Clamp(a, r->cullingQuad),
+                     v2Clamp(b, r->cullingQuad), v2Clamp(c, r->cullingQuad),
+                     color, color, color, aUV, bUV, cUV, texture);
+  RenderPushTriangle(&r->r, v2Clamp(b, r->cullingQuad),
+                     v2Clamp(d, r->cullingQuad), v2Clamp(c, r->cullingQuad),
+                     color, color, color, bUV, dUV, cUV, texture);
+}

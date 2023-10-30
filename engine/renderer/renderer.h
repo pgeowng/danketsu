@@ -43,6 +43,7 @@ void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
 
 f32 colorWhite[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 f32 colorRed[4] = {1.0f, 0.2f, 0.2f, 1.0f};
+f32 colorBlue[4] = {52.0f / 255.0f, 101.0f / 255.0f, 164.0f / 255.0f, 1.0f};
 
 #include "renderer.cpp"
 #endif

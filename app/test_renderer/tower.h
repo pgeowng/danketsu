@@ -14,7 +14,7 @@ typedef struct Tower {
 
   // Positions from which all projectiles are created. Offset relative to
   // top-left corner.
-  u32 spawnPosition[2];
+  f32 spawnPosition[2];
   // That distance from spawnPosition is used for creating projectiles toward
   // enemies.
   u32 spawnRange;

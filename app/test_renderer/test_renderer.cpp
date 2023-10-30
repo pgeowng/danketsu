@@ -6,6 +6,8 @@
 #define ROAD_TILE_ID 4
 #define WATER_TILE_ID 5
 
+#define ARROW_TILE_ID 24
+
 static bool app_init(Scene *app) {
   RenderExInit(&app->r);
   RenderTextureLoad(&app->textures[0], "assets/sprite1.png");
@@ -76,6 +78,19 @@ static bool app_init(Scene *app) {
 }
 
 static void app_update(Scene *app, float delta) {
+
+  if (app->haltNextFrame) {
+    DebugBreak();
+    app->haltNextFrame = 0;
+  }
+
+  RendererEx *rx = &app->r;
+  Renderer *r = &rx->r;
+  RenderBeginFrame(r);
+  DrawTileMapLayer(rx, &app->background);
+  DrawTileMapLayer(rx, &app->shadows);
+
+  // delta = delta / 2.0f;
   u32 nowTicks = SDL_GetTicks();
 
   f32 tileWidth = 64.0f;
@@ -148,7 +163,7 @@ static void app_update(Scene *app, float delta) {
     v2Subtract(velocity, e->position);
 
     f32 dist = v2DistanceSquare(velocity);
-    LogInfo("distance: %f", dist);
+    // LogInfo("distance: %f", dist);
     if (dist < 100.0f && e->pathPointToFollow + 1 < app->pathLen) {
       e->pathPointToFollow += 1;
     }
@@ -166,31 +181,39 @@ static void app_update(Scene *app, float delta) {
 
   // NOTE: moving projectiles toward enemies.
   for (u32 i = 0; i < app->proj->occ; i++) {
-    Projectile *pr = &app->proj->pool[i];
+    Projectile *p = &app->proj->pool[i];
 
-    if (!pr->alive) {
+    if (!p->alive) {
       continue;
     }
 
-    EnemySlime *e = &app->enemySlime[pr->entityTarget];
+    EnemySlime *e = &app->enemySlime[p->entityTarget];
 
     if (e->enable) {
-      v2Copy(pr->lastTargetKnownPosition, e->position);
+      v2Copy(p->lastTargetKnownPosition, e->position);
     }
 
     f32 velocity[2];
-    v2Copy(velocity, pr->lastTargetKnownPosition);
-    v2Subtract(velocity, pr->position);
+    v2Copy(velocity, p->lastTargetKnownPosition);
+    v2Subtract(velocity, p->position);
     v2Normalize(velocity);
-    v2Mult(velocity, pr->speed * delta);
+    v2Mult(velocity, p->speed * delta);
 
-    if (v2DistanceSquare2(pr->lastTargetKnownPosition, pr->position) <
-        pr->speed * pr->speed) {
-      // TODO: collide check success. apply damage to the enemy.
-      ProjectilePoolFree(app->proj, pr);
+    {
+      // NOTE: rotate projectile toward enemy.
+      f32 lookDirection[2] = {0.0f};
+      v2Copy(lookDirection, p->lastTargetKnownPosition);
+      v2Subtract(lookDirection, p->position);
+      p->rotation = -mathAtan2(-lookDirection[1], lookDirection[0]);
     }
 
-    v2Add(pr->position, velocity);
+    if (v2DistanceSquare2(p->lastTargetKnownPosition, p->position) <
+        p->speed * p->speed) {
+      // TODO: collide check success. apply damage to the enemy.
+      ProjectilePoolFree(app->proj, p);
+    }
+
+    v2Add(p->position, velocity);
   }
 
   for (u32 i = 0; i < app->towersIdx; i++) {
@@ -218,17 +241,36 @@ static void app_update(Scene *app, float delta) {
 
       if (enemyFound && ProjectilePoolCanAlloc(app->proj)) {
         Projectile *p = ProjectilePoolAlloc(app->proj);
+        EnemySlime *e = &app->enemySlime[enemyIndex];
 
-        p->position[0] = t->position[0];
-        p->position[1] = t->position[1];
-        p->position[2] = 16;
-        p->position[3] = 16;
+        p->position[0] = t->position[0] + t->spawnPosition[0];
+        p->position[1] = t->position[1] + t->spawnPosition[1];
+        p->position[2] = 64;
+        p->position[3] = 64;
+
+        RenderPushQuadColor(rx, p->position, colorBlue);
+        app->haltNextFrame = 1;
+
+        f32 direction[2] = {e->position[0], e->position[1]};
+        v2Subtract(direction, p->position);
+        v2Normalize(direction);
+        v2Mult(direction, (f32)(t->spawnRange));
+
+        v2Add(p->position, direction);
 
         p->speed = 50;
 
         p->entityTarget = enemyIndex;
         v2Copy(p->lastTargetKnownPosition,
                app->enemySlime[enemyIndex].position);
+
+        {
+          // NOTE: rotate projectile toward enemy.
+          f32 lookDirection[2] = {0.0f};
+          v2Copy(lookDirection, p->lastTargetKnownPosition);
+          v2Subtract(lookDirection, p->position);
+          p->rotation = -mathAtan2(-lookDirection[1], lookDirection[0]);
+        }
 
         t->lastShootTick = nowTicks;
       }
@@ -242,10 +284,6 @@ static void app_update(Scene *app, float delta) {
   // draw
 
   Texture *cursorTexture = &app->textures[1];
-
-  RendererEx *rx = &app->r;
-  Renderer *r = &rx->r;
-  RenderBeginFrame(r);
 
   u32 spriteWidth = 113;
   u32 spriteHeight = 128;
@@ -274,9 +312,6 @@ static void app_update(Scene *app, float delta) {
   // f32 uvx[4] = {0.0f, 0.0f, (f32)(spriteWidth) / (app->textures[0].width),
   //               (f32)(spriteHeight) / (app->textures[0].height)};
   // RenderPushQuadSubTex(rx, posx, uvx, app->textures[0].texture, white);
-
-  DrawTileMapLayer(rx, &app->background);
-  DrawTileMapLayer(rx, &app->shadows);
 
   Texture *towerTexture = &app->textures[1];
   Texture *hoverRangeTexture = towerTexture;
@@ -351,14 +386,23 @@ static void app_update(Scene *app, float delta) {
                          colorWhite);
   }
 
-  for (u32 i = 0; i < app->proj->occ; i++) {
-    Projectile *pr = &app->proj->pool[i];
+  if (0) {
+    // NOTE: draw arrows
+    for (u32 i = 0; i < app->proj->occ; i++) {
+      Projectile *p = &app->proj->pool[i];
 
-    if (!pr->alive) {
-      continue;
+      if (!p->alive) {
+        continue;
+      }
+
+      // RenderPushQuadColor(rx, p->position, colorWhite);
+      f32 uv[4] = {0.0f};
+      f32 pivot[2] = {32.0f, 32.0f};
+      // f32 rot = mathPI / 2.0f; // 0.0f; //(f32)(SDL_GetTicks()) / 1000.0f
+      TileMapUVByIdx(uv, &app->background, ARROW_TILE_ID);
+      RenderPushQuadSubTexOrigRot(rx, p->position, uv, cursorTexture->texture,
+                                  colorWhite, pivot, p->rotation);
     }
-
-    RenderPushQuadColor(rx, pr->position, colorWhite);
   }
 
   {

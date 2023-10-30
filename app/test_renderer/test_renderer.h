@@ -27,6 +27,9 @@ typedef struct PathPoint {
 } PathPoint;
 
 typedef struct Scene {
+
+  b8 haltNextFrame;
+
   RendererEx r;
   Texture textures[8];
   TileMap background;

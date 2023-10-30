@@ -36,14 +36,14 @@ typedef int8_t b8;
 typedef f32 *v2;
 typedef f32 *v3;
 typedef f32 *v4;
+typedef f32 *m2;
 typedef f32 *m4;
 typedef f32 *rect;
 
 // static inline v2Init
 
-m4 m4Ortho(m4 m, f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
-  const f32 *expect =
-      glm::value_ptr(glm::ortho(left, right, bottom, top, near, far));
+m4 m4Ortho(m4 m, f32 ll, f32 rr, f32 bb, f32 tt, f32 nn, f32 ff) {
+  const f32 *expect = glm::value_ptr(glm::ortho(ll, rr, bb, tt, nn, ff));
   for (i32 i = 0; i < 16; i++) {
     m[i] = expect[i];
   }
@@ -250,6 +250,39 @@ static void v2Normalize(v2 a) {
   f32 dst = v2Distance(a);
   a[0] = a[0] / dst;
   a[1] = a[1] / dst;
+}
+
+// m2 - column based storage
+static void m2Rotate(m2 m, f32 rad) {
+  f32 c = cos(rad);
+  f32 s = sin(rad);
+  m[0] = c;
+  m[1] = s;
+  m[2] = -s;
+  m[3] = c;
+}
+
+// static void m2Translate(m2 m, v2 v) {
+
+// }
+
+static void m2MultiplyPoint(m2 m, v2 v) {
+  f32 px = v[0];
+  v[0] = m[0] * px + m[2] * v[1];
+  v[1] = m[1] * px + m[3] * v[1];
+}
+
+#define mathPI 3.141592653589f
+
+static f32 mathAtan2(f32 y, f32 x) {
+  return atan2(y, x);
+  // if (x < 0.01f && x > -0.01f) {
+  //   if (y > 0.0f) {
+  //     return mathPI / 2.0f;
+  //   } else {
+  //     return -mathPi / 2.0f;
+  //   }
+  // }
 }
 
 #endif
