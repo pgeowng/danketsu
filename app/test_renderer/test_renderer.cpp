@@ -8,7 +8,8 @@
 
 #define ARROW_TILE_ID 24
 
-static bool app_init(Scene *app) {
+static bool app_init(Scene *app)
+{
   RenderExInit(&app->r);
   RenderTextureLoad(&app->textures[0], "assets/sprite1.png");
   // jsmn_parser parser;
@@ -28,6 +29,8 @@ static bool app_init(Scene *app) {
 
   RenderTextureLoad(&app->textures[2], "assets/NSimSun1.bmp");
   TileMapInit(&app->font, &app->textures[2], 14, 32, 32, 32);
+
+  RenderSetTileFont(&app->r, &app->font);
 
   PathPoint *path = app->path;
   path[0].position[0] = 3.0f;
@@ -61,7 +64,8 @@ static bool app_init(Scene *app) {
 
   app->pathLen = 14;
 
-  for (u32 i = 0; i < app->pathLen; i++) {
+  for (u32 i = 0; i < app->pathLen; i++)
+  {
     path[i].position[0] *= tileWidth;
     path[i].position[0] -= tileWidth / 2;
     path[i].position[1] *= tileHeight;
@@ -77,9 +81,11 @@ static bool app_init(Scene *app) {
   return true;
 }
 
-static void app_update(Scene *app, float delta) {
+static void app_update(Scene *app, float delta)
+{
 
-  if (app->haltNextFrame) {
+  if (app->haltNextFrame)
+  {
     DebugBreak();
     app->haltNextFrame = 0;
   }
@@ -113,10 +119,12 @@ static void app_update(Scene *app, float delta) {
   b8 hoveringTower = 0;
   u32 hoveringTowerIndex = 0;
   // NOTE: cursor is red when there is already a tower.
-  for (u32 i = 0; i < app->towersIdx; i++) {
+  for (u32 i = 0; i < app->towersIdx; i++)
+  {
     Tower *t = &app->towers[i];
     if (t->enable && f32Equal(t->position[0], cursorPosition[0]) &&
-        f32Equal(t->position[1], cursorPosition[1])) {
+        f32Equal(t->position[1], cursorPosition[1]))
+    {
       hoveringTower = 1;
       hoveringTowerIndex = i;
       // cursorColor = colorRed;
@@ -126,12 +134,14 @@ static void app_update(Scene *app, float delta) {
 
   b8 isValidFloorForTower = 1;
   i32 tile = TileMapTileByPosition(&app->background, cursorPosition);
-  if (tile == WATER_TILE_ID || tile == ROAD_TILE_ID) {
+  if (tile == WATER_TILE_ID || tile == ROAD_TILE_ID)
+  {
     isValidFloorForTower = 0;
   }
 
   if (!hoveringTower && isValidFloorForTower && mouseLeftActive &&
-      !mouseLeftPrev) {
+      !mouseLeftPrev)
+  {
 
     // TODO: how to deal with static array if fully used
     Tower *t = &app->towers[app->towersIdx];
@@ -140,7 +150,8 @@ static void app_update(Scene *app, float delta) {
   }
 
   if (nowTicks - app->lastSpawnTime > 1000 &&
-      app->enemySlimeLen < app->enemySlimeCap) {
+      app->enemySlimeLen < app->enemySlimeCap)
+  {
     u32 i = app->enemySlimeLen;
 
     app->enemySlime[i].enable = 1;
@@ -154,7 +165,8 @@ static void app_update(Scene *app, float delta) {
     app->lastSpawnTime = SDL_GetTicks();
   }
 
-  for (u32 i = 0; i < app->enemySlimeLen; i++) {
+  for (u32 i = 0; i < app->enemySlimeLen; i++)
+  {
     EnemySlime *e = &app->enemySlime[i];
     PathPoint *p = &app->path[e->pathPointToFollow];
 
@@ -164,7 +176,8 @@ static void app_update(Scene *app, float delta) {
 
     f32 dist = v2DistanceSquare(velocity);
     // LogInfo("distance: %f", dist);
-    if (dist < 100.0f && e->pathPointToFollow + 1 < app->pathLen) {
+    if (dist < 100.0f && e->pathPointToFollow + 1 < app->pathLen)
+    {
       e->pathPointToFollow += 1;
     }
 
@@ -175,21 +188,25 @@ static void app_update(Scene *app, float delta) {
 
   b8 cursorShown = isValidFloorForTower;
   f32 *cursorColor = colorWhite;
-  if (hoveringTower) {
+  if (hoveringTower)
+  {
     cursorColor = colorRed;
   }
 
   // NOTE: moving projectiles toward enemies.
-  for (u32 i = 0; i < app->proj->occ; i++) {
+  for (u32 i = 0; i < app->proj->occ; i++)
+  {
     Projectile *p = &app->proj->pool[i];
 
-    if (!p->alive) {
+    if (!p->alive)
+    {
       continue;
     }
 
     EnemySlime *e = &app->enemySlime[p->entityTarget];
 
-    if (e->enable) {
+    if (e->enable)
+    {
       v2Copy(p->lastTargetKnownPosition, e->position);
     }
 
@@ -208,38 +225,45 @@ static void app_update(Scene *app, float delta) {
     }
 
     if (v2DistanceSquare2(p->lastTargetKnownPosition, p->position) <
-        p->speed * p->speed) {
-      // TODO: collide check success. apply damage to the enemy.
+        p->speed * p->speed)
+    {
+      // TODO: collide check success. apply damagej to the enemy.
       ProjectilePoolFree(app->proj, p);
     }
 
     v2Add(p->position, velocity);
   }
 
-  for (u32 i = 0; i < app->towersIdx; i++) {
+  for (u32 i = 0; i < app->towersIdx; i++)
+  {
     Tower *t = &app->towers[i];
 
-    if (nowTicks > t->lastShootTick + t->shootCooldown) {
+    if (nowTicks > t->lastShootTick + t->shootCooldown)
+    {
       b8 enemyFound = 0;
       u32 enemyIndex = 0;
 
       // NOTE: looking for enemy
-      for (u32 e = 0; e < app->enemySlimeLen; e++) {
-        if (!app->enemySlime[e].enable) {
+      for (u32 e = 0; e < app->enemySlimeLen; e++)
+      {
+        if (!app->enemySlime[e].enable)
+        {
           continue;
         }
 
         f32 distance =
             v2DistanceSquare2(app->enemySlime[e].position, t->position);
 
-        if (distance < t->detectRangeSquared) {
+        if (distance < t->detectRangeSquared)
+        {
           enemyFound = 1;
           enemyIndex = e;
           break;
         }
       }
 
-      if (enemyFound && ProjectilePoolCanAlloc(app->proj)) {
+      if (enemyFound && ProjectilePoolCanAlloc(app->proj))
+      {
         Projectile *p = ProjectilePoolAlloc(app->proj);
         EnemySlime *e = &app->enemySlime[enemyIndex];
 
@@ -248,8 +272,9 @@ static void app_update(Scene *app, float delta) {
         p->position[2] = 64;
         p->position[3] = 64;
 
-        RenderPushQuadColor(rx, p->position, colorBlue);
-        app->haltNextFrame = 1;
+        RenderPushDebugPoint(rx, p->position, colorBlue);
+        // RenderPushQuadColor(rx, p->position, colorBlue);
+        // app->haltNextFrame = 1;
 
         f32 direction[2] = {e->position[0], e->position[1]};
         v2Subtract(direction, p->position);
@@ -316,7 +341,8 @@ static void app_update(Scene *app, float delta) {
   Texture *towerTexture = &app->textures[1];
   Texture *hoverRangeTexture = towerTexture;
 
-  if (hoveringTower) {
+  if (hoveringTower)
+  {
     Tower *t = &app->towers[hoveringTowerIndex];
 
     f32 range = (f32)(t->detectRange) / 2;
@@ -352,12 +378,14 @@ static void app_update(Scene *app, float delta) {
   }
 
   // draw cursor
-  if (cursorShown) {
+  if (cursorShown)
+  {
     RenderPushQuadSubTex(rx, cursorPosition, cursorUV, cursorTexture->texture,
                          cursorColor);
   }
 
-  for (u32 i = 0; i < ArrayCount(app->towers); i++) {
+  for (u32 i = 0; i < ArrayCount(app->towers); i++)
+  {
     Tower *t = &app->towers[i];
     if (!t->enable)
       continue;
@@ -369,10 +397,12 @@ static void app_update(Scene *app, float delta) {
                          colorWhite);
   }
 
-  for (u32 j = 0; j < app->enemySlimeLen; j++) {
+  for (u32 j = 0; j < app->enemySlimeLen; j++)
+  {
     u32 i = app->enemySlimeLen - 1 - j;
     EnemySlime *e = &app->enemySlime[i];
-    if (!e->enable) {
+    if (!e->enable)
+    {
       continue;
     }
     f32 bodyUV[4] = {0.0f};
@@ -386,50 +416,60 @@ static void app_update(Scene *app, float delta) {
                          colorWhite);
   }
 
-  if (0) {
-    // NOTE: draw arrows
-    for (u32 i = 0; i < app->proj->occ; i++) {
-      Projectile *p = &app->proj->pool[i];
+  // if (0)
+  // {
+  // NOTE: draw arrows
+  for (u32 i = 0; i < app->proj->occ; i++)
+  {
+    Projectile *p = &app->proj->pool[i];
 
-      if (!p->alive) {
-        continue;
-      }
-
-      // RenderPushQuadColor(rx, p->position, colorWhite);
-      f32 uv[4] = {0.0f};
-      f32 pivot[2] = {32.0f, 32.0f};
-      // f32 rot = mathPI / 2.0f; // 0.0f; //(f32)(SDL_GetTicks()) / 1000.0f
-      TileMapUVByIdx(uv, &app->background, ARROW_TILE_ID);
-      RenderPushQuadSubTexOrigRot(rx, p->position, uv, cursorTexture->texture,
-                                  colorWhite, pivot, p->rotation);
+    if (!p->alive)
+    {
+      continue;
     }
+
+    // RenderPushQuadColor(rx, p->position, colorWhite);
+    f32 uv[4] = {0.0f};
+    f32 pivot[2] = {32.0f, 32.0f};
+    // f32 rot = mathPI / 2.0f; // 0.0f; //(f32)(SDL_GetTicks()) / 1000.0f
+    TileMapUVByIdx(uv, &app->background, ARROW_TILE_ID);
+    RenderPushQuadSubTexOrigRot(rx, p->position, uv, cursorTexture->texture,
+                                colorWhite, pivot, p->rotation);
   }
+  // }
 
   {
     f32 textPos[4] = {0.0f, 0.0f, 100.0f, 32.0f};
     char buf[20];
     sprintf_s(buf, "pos: %.2f %.2f", app->enemySlime[0].position[0],
               app->enemySlime[0].position[1]);
-    RenderPushString(rx, textPos, buf, &app->font, colorWhite);
+    RenderPushString(rx, textPos, buf);
+  }
+
+  {
+    RenderDebugPoints(rx);
   }
 
   {
     f32 textPos[4] = {0.0f, 32.0f, 100.0f, 32.0f};
     char buf[24];
     u32 count = 0;
-    for (u32 i = 0; i < app->proj->occ; i++) {
-      if (app->proj->pool[i].alive) {
+    for (u32 i = 0; i < app->proj->occ; i++)
+    {
+      if (app->proj->pool[i].alive)
+      {
         count++;
       }
     }
     sprintf_s(buf, "pj: %d %d", app->proj->occ, count);
-    RenderPushString(rx, textPos, buf, &app->font, colorWhite);
+    RenderPushString(rx, textPos, buf);
   }
 
   RenderEndFrame(r);
 }
 
-static void app_input(Scene *app, SDL_Event e) {
+static void app_input(Scene *app, SDL_Event e)
+{
   // switch (e.type) {
   // case SDL_MOUSEMOTION:
   // i32 x, y;
@@ -439,14 +479,18 @@ static void app_input(Scene *app, SDL_Event e) {
 }
 static void AppClean(Scene *app) { RenderFree(&app->r.r); }
 
-static void DrawTileMapLayer(RendererEx *rx, TileMap *tm) {
+static void DrawTileMapLayer(RendererEx *rx, TileMap *tm)
+{
   f32 tileWidth = (f32)(tm->tileWidth);
   f32 tileHeight = (f32)(tm->tileHeight);
 
-  for (u32 row = 0; row < tm->height; row++) {
-    for (u32 col = 0; col < tm->width; col++) {
+  for (u32 row = 0; row < tm->height; row++)
+  {
+    for (u32 col = 0; col < tm->width; col++)
+    {
       i32 tile = tm->map[row][col];
-      if (tile == -1) {
+      if (tile == -1)
+      {
         continue;
       }
 

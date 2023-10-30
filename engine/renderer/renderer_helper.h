@@ -1,9 +1,13 @@
 #ifndef RENDER_HELP_H
 #define RENDER_HELP_H
 
-typedef struct RendererEx {
+typedef struct RendererEx
+{
   Renderer r;
   f32 cullingQuad[4];
+
+  TileMap *font;
+  f32 defaultColor[4];
 } RendererEx;
 
 void RenderExInit(RendererEx *r);

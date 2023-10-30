@@ -1,5 +1,4 @@
 @echo off
-rem call "B:\Visual Studio\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 set CommonCompilerFlags=-MT -nologo -Gm- -GR- -EHa- -Oi -WX -W4 -wd4201 -wd4100 -wd4189 -wd4505 -DHANDMADE_INTERNAL=1 -DHANDMADE_SLOW=1 -FC -Z7 -Fmdanketsu.map
 set CommonLinkerFlags=-opt:ref user32.lib gdi32.lib SDL2.lib SDL2main.lib glew32.lib OpenGL32.lib GLu32.lib
