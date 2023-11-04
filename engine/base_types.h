@@ -94,16 +94,18 @@ void __cdecl vlog_ms(logEvent *ev) {
   buf[1023] = '\0';
   char *pl = &buf[1023];
   char *p = buf;
+  i32 written = 0;
 
-  snprintf(buf, sizeof(buf) - 3, "%s: %s:%d: ", levelStrings[ev->level],
-           ev->file, ev->line);
+  written =
+      snprintf(buf, sizeof(buf) - 3, "%s: %s:%d: ", levelStrings[ev->level],
+               ev->file, ev->line);
   while (*p != '\0')
     p++;
 
   u32 avail = u32(pl - p - 3);
-  _vsnprintf_s(p, avail, avail, ev->fmt, ev->ap); // -3 for cr/lf,null
+  written = _vsnprintf_s(p, avail, avail, ev->fmt, ev->ap); // -3 for cr/lf,null
 
-  while (*p != '\0')
+  while (p + 2 < pl && *p != '\0')
     p++;
 
   *p++ = '\r';
@@ -122,6 +124,7 @@ void LogLog(int level, const char *file, int line, const char *fmt, ...) {
 
 #define LogInfo(...) LogLog(LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define LogError(...) LogLog(LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define LogErrorw(...) LogLogw(LOG_ERROR, __FILE__, __LINE, __VA_ARGS__)
 
 v2 v2Clamp(v2 v, rect r) {
   if (v[0] < r[0]) {

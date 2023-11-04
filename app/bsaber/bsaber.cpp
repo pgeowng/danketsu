@@ -3,11 +3,6 @@
 static bool appInit(app *p) {
 
   MArena a = MArenaMake(MMallocBaseMemory());
-  // jsmn_parser p;
-  // jsmntok_t t[128];
-  // jsmn_init(&p);
-
-  // r = jsmn_parse(&p, s, strlen(s), t, 128);
 
   str8 readFileNameContent;
   i32 err = emReadFile(&a, str8Lit("./assets/bsaber/read_file_name.txt"),
@@ -26,6 +21,16 @@ static bool appInit(app *p) {
     LogError("ReadInfoDat failed");
     return 0;
   }
+
+  infoDat first;
+
+  err = infoDatUnmarshal(&first, infoDatContent);
+  if (err) {
+    LogError("infoDatUnmarshal failed");
+    return 0;
+  }
+
+  LogError("_version: %s <-", str8AC(&a, first.version));
 
   return 1;
 }

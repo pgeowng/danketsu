@@ -22,7 +22,9 @@ typedef struct str16 {
 } str16;
 
 internal str8 str8New(u8 *str, u64 size, b8 hasNull) {
-  assert(size != 0);
+  if (hasNull) {
+    assert(size != 0);
+  }
   str8 s;
   s.str = str;
   s.size = size;
@@ -31,7 +33,9 @@ internal str8 str8New(u8 *str, u64 size, b8 hasNull) {
 }
 
 internal str32 str32New(u32 *str, u64 size, b8 hasNull) {
-  assert(size != 0);
+  if (hasNull) {
+    assert(size != 0);
+  }
   str32 s;
   s.str = str;
   s.size = size;
@@ -137,6 +141,88 @@ static str16 str32To16(MArena *a, str32 from) {
   result.size = len;
   result.hasNull = 1;
   return result;
+}
+
+static const b8 str8Equal(str8 a, str8 other) {
+  if (a.size != other.size) {
+    return 0;
+  }
+  if (a.size == 0) {
+    return 1;
+  }
+  if (a.str[0] != other.str[0]) {
+    return 0;
+  }
+  for (i32 i = 1; i < a.size; i++) {
+    if (a.str[i] != other.str[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static str8 str8NullTerminate(MArena *a, str8 s) {
+  if (s.hasNull) {
+    return s;
+  }
+
+  u8 *newString = (u8 *)MArenaPush(a, sizeof(u8) * (s.size + 1));
+  u8 *p = newString;
+  for (i32 i = 0; i < s.size; i++) {
+    *p++ = s.str[i];
+  }
+  *p = 0;
+
+  str8 str;
+  str.str = newString;
+  str.size = s.size;
+  str.hasNull = 1;
+  return str;
+}
+
+static const char *str8C(str8 s) { return (const char *)s.str; }
+static const char *str8AC(MArena *a, str8 s) {
+  str8 n = str8NullTerminate(a, s);
+  return (const char *)n.str;
+}
+
+static b8 str8ReadF32(str8 token, f32 *result) {
+  u32 mantissa = 0;
+  i32 exponent = 0;
+  b8 neg = 0;
+  b8 dot = 0;
+  for (i32 i = 0; i < token.size; i++) {
+    u8 ch = token.str[i];
+    if (ch == '-') {
+      neg = 1;
+      continue;
+    }
+
+    if (ch == '.') {
+      if (dot) {
+        goto error;
+      }
+
+      dot = 1;
+      continue;
+    }
+
+    if (ch >= '0' && ch <= '9') {
+      mantissa *= 10;
+      mantissa += (ch - '0');
+    }
+
+    if (dot) {
+      exponent -= 1;
+    }
+  }
+
+  *result = f32(mantissa) * f32(pow(10, f32(exponent)));
+  return 0;
+
+error:
+  LogError("emReadF32: failed to parse f32");
+  return 1;
 }
 
 #endif

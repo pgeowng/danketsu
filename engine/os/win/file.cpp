@@ -104,6 +104,7 @@ static bool emReadFile(MArena *a, str8 name, str8 *resultBuffer) {
   buf[size - 1] = '\0';
   resultBuffer->str = buf;
   resultBuffer->size = size;
+  resultBuffer->hasNull = 1;
 
 defer:
   CloseHandle(hFile);

@@ -12,6 +12,8 @@
 #include "memory/base_memory.h"
 #include "memory/base_memory_malloc.cpp"
 
+#include "info_dat.cpp"
+
 typedef struct app {
 
 } app;

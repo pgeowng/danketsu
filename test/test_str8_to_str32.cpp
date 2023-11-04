@@ -61,4 +61,31 @@ void runTest() {
     assert(b.str[1] == 0xDE4B);
     assert(b.hasNull);
   }
+
+  {
+    const char num[] = "120";
+    str8 n = str8Lit(num);
+    f32 result = 0.0;
+    i32 err = str8ReadF32(n, &result);
+    assert(!err);
+    assert(119.999 <= result && result <= 120.0001);
+  }
+
+  {
+    const char num[] = "0.5";
+    str8 n = str8Lit(num);
+    f32 result = 0.0;
+    i32 err = str8ReadF32(n, &result);
+    assert(!err);
+    assert(0.499 <= result && result <= 0.5001);
+  }
+
+  {
+    const char num[] = "0";
+    str8 n = str8Lit(num);
+    f32 result = 0.0;
+    i32 err = str8ReadF32(n, &result);
+    assert(!err);
+    assert(-0.0001 <= result && result <= 0.0001);
+  }
 }
