@@ -11,7 +11,7 @@
 // #include "../app/light/render.cpp"
 
 // #include "../app/match3/match3.cpp"
-#include "../app/test_renderer/test_renderer.cpp"
+#include "../app/app.h"
 
 int g_screenWidth = 1000;
 int g_screenHeight = 1000;
@@ -19,8 +19,6 @@ SDL_Window *g_window;
 SDL_GLContext g_ctx;
 
 float prevTime = 0;
-
-Scene g_app = {};
 
 internal bool init() {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -62,8 +60,8 @@ internal bool init() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  if (!app_init(&g_app)) {
-    printf("cubes init failed\n");
+  if (!mainInit()) {
+    printf("mainInit failed");
     return false;
   }
 
@@ -76,8 +74,8 @@ internal bool init() {
   return true;
 }
 
-internal void clean(Scene *scn) {
-  AppClean(scn);
+internal void clean() {
+  mainClean();
   SDL_GL_DeleteContext(g_ctx);
   SDL_DestroyWindow(g_window);
   SDL_Quit();
@@ -100,7 +98,7 @@ int run() {
   bool ok = init();
   if (!ok) {
     printf("init failed\n");
-    clean(&g_app);
+    clean();
     return 0;
   }
 
@@ -141,7 +139,8 @@ int run() {
         break;
       }
       }
-      app_input(&g_app, e);
+
+      mainInput(e);
     }
 
     float timeValue = SDL_GetTicks() / 1000.0f;
@@ -151,7 +150,7 @@ int run() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    app_update(&g_app, delta);
+    mainUpdate(delta);
 
     SDL_GL_SwapWindow(g_window);
 
@@ -160,7 +159,7 @@ int run() {
     nextTime += TICK_INTERVAL;
   }
 
-  clean(&g_app);
+  clean();
 
   return 0;
 }

@@ -89,9 +89,10 @@ extern "C" __declspec(dllimport) void __stdcall OutputDebugStringA(
     const char *lpOutputString);
 
 void __cdecl vlog_ms(logEvent *ev) {
-  char buf[128];
-  buf[127] = '\0';
-  char *pl = &buf[127];
+
+  char buf[1024];
+  buf[1023] = '\0';
+  char *pl = &buf[1023];
   char *p = buf;
 
   snprintf(buf, sizeof(buf) - 3, "%s: %s:%d: ", levelStrings[ev->level],

@@ -3,6 +3,11 @@
 #ifndef BASE_MEMORY_H
 #define BASE_MEMORY_H
 
+#include "base_types.h"
+
+typedef u64 U64;
+typedef u8 U8;
+
 typedef void *MReserveFunc(void *ctx, U64 size);
 typedef void MChangeMemoryFunc(void *ctx, void *ptr, U64 size);
 
