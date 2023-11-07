@@ -64,12 +64,12 @@ void app_update(Scene *app, float delta) {
   };
 
   for (int i = 0; i < 3; i++) {
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, positions[i]);
-    model = glm::rotate(model, glm::radians(timeValue * 25 * (i + 1)),
+    glm::mat4 cubeModelTransform = glm::mat4(1.0f);
+    cubeModelTransform = glm::translate(cubeModelTransform, positions[i]);
+    cubeModelTransform = glm::rotate(cubeModelTransform, glm::radians(timeValue * 25 * (i + 1)),
                         positions[i]);
 
-    shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
+    shader_mat4fv(&app->shader, "model", glm::value_ptr(cubeModelTransform));
 
     MeshDraw(&app->cube_mesh, &app->shader);
   }

@@ -7,7 +7,7 @@
 #define MAX_VERTICES MAX_TRIANGLES * 3
 
 typedef struct RenderVertex {
-  f32 pos[2];
+  f32 pos[3];
   f32 color[4];
   f32 uv[2];
   f32 texIndex;
@@ -21,6 +21,7 @@ typedef struct Renderer {
 
   f32 _pj[16];
   m4 projection;
+  u32 projectionLocation;
 
   // Tightly packed triangle data. This is a cpu side mirror of the buffer
   RenderVertex triangleBuffer[MAX_VERTICES];
@@ -40,6 +41,9 @@ void RenderEndFrame(Renderer *r);
 
 void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
                         v4 cColor, v2 aUV, v2 bUV, v2 cUV, u32 texture);
+
+void RenderPushTriangle3D(Renderer *r, v3 a, v3 b, v3 c, v4 aColor, v4 bColor,
+                          v4 cColor, v2 aUV, v2 bUV, v2 cUV, u32 texture);
 
 f32 colorWhite[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 f32 colorRed[4] = {1.0f, 0.2f, 0.2f, 1.0f};

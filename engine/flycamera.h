@@ -62,6 +62,8 @@ void flycamera_process_mouse_movement(Camera *camera, float xoffset,
   if (camera->pitch < -89.0f) {
     camera->pitch = -89.0f;
   }
+
+  LogInfo("Camera: pitch: %f, yaw: %f", camera->pitch, camera->yaw);
 }
 
 void flycamera_process_mouse_scroll(Camera *camera, float yoffset) {
@@ -111,12 +113,26 @@ glm::mat4 camViewMat(Camera *camera) {
                         camera->up);
 }
 
+// m4 camViewM4(Camera *camera, m4 out) {
+//   f32 front[3];
+//   front[0] = cos(mathRadians(camera->yaw)) * cos(mathRadians(camera->pitch));
+//   front[1] = sin(mathRadians(camera->pitch));
+//   front[2] = sin(mathRadians(camera->yaw) * cos(mathRadians(camera->pitch)));
+//   return
+// }
+
 // camProjMat translates object from camera coordinates to the homogeneous
 // coordinates. (perspective, etc.)
 glm::mat4 camProjMat(Camera *camera) {
   return glm::perspective(glm::radians(camera->fov + camera->zoom),
                           camera->aspect, camera->z_near, camera->z_far);
 };
+
+m4 camProjM4(Camera *camera, m4 out) {
+  m4Perspective(out, mathRadians(camera->fov + camera->zoom), camera->aspect,
+                camera->z_near, camera->z_far);
+  return out;
+}
 
 // fast jumping camera rotating around a point with easing
 glm::mat4 flycamera_get_weird_view_matrix(Camera *camera) {

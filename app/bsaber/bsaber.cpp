@@ -1,39 +1,52 @@
 #include "bsaber.h"
 
+static Camera camera = {};
+
 static bool appInit(app *p) {
+  emArenaInit();
+  MArena *a = emArena;
 
-  MArena a = MArenaMake(MMallocBaseMemory());
-
-  str8 readFileNameContent;
-  i32 err = emReadFile(&a, str8Lit("./assets/bsaber/read_file_name.txt"),
-                       &readFileNameContent);
-
+  b8 err = loadStorage(a);
   if (err) {
-    LogError("ReadFileNameContent failed");
-    return 0;
+    LogError("loadStorage failed");
   }
 
-  LogInfo((const char *)readFileNameContent.str);
-
-  str8 infoDatContent;
-  err = emReadFile(&a, readFileNameContent, &infoDatContent);
-  if (err) {
-    LogError("ReadInfoDat failed");
-    return 0;
-  }
-
-  infoDat first;
-
-  err = infoDatUnmarshal(&first, infoDatContent);
-  if (err) {
-    LogError("infoDatUnmarshal failed");
-    return 0;
-  }
-
-  LogError("_version: %s <-", str8AC(&a, first.version));
+  RenderExInit(&p->r);
+  flycamera_init(&camera);
 
   return 1;
 }
-static void appUpdate(app *p, f32 delta) {}
-static void appInput(app *p, SDL_Event e) {}
+static void appUpdate(app *p, f32 delta) {
+  appRealUpdate(p, delta);
+  appDraw3D(p);
+}
+
+static void appInput(app *p, SDL_Event e) {
+  switch (e.type) {
+  case SDL_MOUSEMOTION: {
+    flycamera_process_mouse_movement(&camera, (float)(e.motion.xrel),
+                                     (float)(e.motion.yrel));
+    break;
+  }
+  }
+}
 static void appClean(app *p) {}
+static void appRealUpdate(app *p, f32 delta) {
+  flycamera_update(&camera, delta);
+}
+
+static void appDraw3D(app *p) {
+  RendererEx *rx = &p->r;
+
+  RenderBeginFrame(&rx->r);
+
+  f32 a[3] = {-1.0f, 0.0f, -1.0f};
+  f32 b[3] = {1.0f, 0.0f, -1.0f};
+  f32 c[3] = {-1.0f, 0.0f, 1.0f};
+  f32 d[3] = {1.0f, 0.0f, 1.0f};
+  RenderPush3DQuadColor(rx, a, b, c, d, colorRed);
+
+  camProjM4(&camera, rx->r.projection);
+
+  RenderEndFrame(&rx->r);
+}

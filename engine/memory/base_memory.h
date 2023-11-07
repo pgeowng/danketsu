@@ -60,6 +60,7 @@ internal void MArenaAlign(MArena *arena, U64 pow2Align);
 
 #define PushArray(a, T, c) (T *)MArenaPush((a), sizeof(T) * (c))
 #define PushArrayZero(a, T, c) (T *)MArenaPushZero((a), sizeof(T) * (c))
+#define PushArrayElemSize(a, T, e) (T *)MArenaPush((a), (e))
 
 internal MTemp MTempBegin(MArena *arena);
 internal void MTempEnd(MTemp temp);

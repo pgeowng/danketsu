@@ -28,6 +28,7 @@ typedef int8_t b8;
 
 #include <string.h>
 #define MemoryZero(p, z) memset((p), 0, (z))
+#define FieldPtr(it, T, offset) ((T *)((u8 *)(it) + (offset)))
 
 // typedef struct m4 {
 //   f32 a[4 * 4];
@@ -42,12 +43,28 @@ typedef f32 *rect;
 
 // static inline v2Init
 
-m4 m4Ortho(m4 m, f32 ll, f32 rr, f32 bb, f32 tt, f32 nn, f32 ff) {
+static m4 m4Ortho(m4 m, f32 ll, f32 rr, f32 bb, f32 tt, f32 nn, f32 ff) {
   const f32 *expect = glm::value_ptr(glm::ortho(ll, rr, bb, tt, nn, ff));
   for (i32 i = 0; i < 16; i++) {
     m[i] = expect[i];
   }
   return m;
+}
+
+static m4 m4Perspective(m4 m, f32 fovRadians, f32 aspect, f32 zNear, f32 zFar) {
+  const f32 *expect =
+      glm::value_ptr(glm::perspective(fovRadians, aspect, zNear, zFar));
+  for (i32 i = 0; i < 16; i++) {
+    m[i] = expect[i];
+  }
+  return m;
+}
+
+m4 m4Copy(m4 dest, m4 src) {
+  for (i32 i = 0; i < 16; i++) {
+    dest[i] = src[i];
+  }
+  return dest;
 }
 
 typedef struct logEvent {
@@ -249,11 +266,21 @@ static void v2Mult(v2 a, f32 other) {
 }
 
 static f32 v2Distance(v2 f) { return sqrt(f[0] * f[0] + f[1] * f[1]); }
+static f32 v3Distance(v3 f) {
+  return sqrt(f[0] * f[0] + f[1] * f[1] + f[2] * f[2]);
+}
 
 static void v2Normalize(v2 a) {
   f32 dst = v2Distance(a);
   a[0] = a[0] / dst;
   a[1] = a[1] / dst;
+}
+
+static void v3Normalize(v3 a) {
+  f32 dst = v3Distance(a);
+  a[0] = a[0] / dst;
+  a[1] = a[1] / dst;
+  a[2] = a[2] / dst;
 }
 
 // m2 - column based storage
@@ -287,6 +314,50 @@ static f32 mathAtan2(f32 y, f32 x) {
   //     return -mathPi / 2.0f;
   //   }
   // }
+}
+
+static f32 mathRadians(f32 degrees) { return degrees / 180 * mathPI; }
+
+inline void v3Neg(v3 out) {
+  out[0] = -out[0];
+  out[1] = -out[1];
+  out[2] = -out[2];
+}
+
+static void v3Cross(v3 out, v3 other) {
+  f32 x = out[1] * other[2] - other[1] * out[2];
+  f32 y = out[2] * other[0] - other[2] * out[0];
+  f32 z = out[0] * other[1] - other[0] * out[1];
+  out[0] = x;
+  out[1] = y;
+  out[2] = z;
+}
+
+inline void v3Copy(v3 out, v3 other) {
+  out[0] = other[0];
+  out[1] = other[1];
+  out[2] = other[2];
+}
+
+inline void v3Subtract(v3 out, v3 other) {
+  out[0] -= other[0];
+  out[1] -= other[1];
+  out[2] -= other[2];
+}
+
+inline void m4Translate(m4 out, v3 translate) {
+  out[3] += translate[0];
+  out[4+3] += translate[1];
+  out[8+3] += translate[2];
+}
+
+inline void m4One(m4 out) {
+  for (i32 i = 0; i < 16; i++) {
+    if (i/4 == i%4)
+      out[i] = 1;
+    else
+      out[i] = 0;
+  }
 }
 
 #endif

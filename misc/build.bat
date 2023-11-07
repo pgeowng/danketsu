@@ -5,9 +5,13 @@ set CommonLinkerFlags=-opt:ref user32.lib gdi32.lib SDL2.lib SDL2main.lib glew32
 set HeaderLinkFlags=-I..\external\glew-2.1.0\include -I..\external\SDL2-2.28.3-VC\include -I../external/stb -I../external/glm -I../engine -I../engine/renderer -I../external/jsmn-1.1.0
 set LibraryPaths=/LIBPATH:..\external\SDL2-2.28.3-VC\lib\x64 /LIBPATH:..\external\glew-2.1.0\lib\Release\x64
 
+set PreprocessorFlags=
+@REM set PreprocessorFlags=-E
+@REM set PreprocessorFlags=-P -C
+
 mkdir ..\build_win
 pushd ..\build_win
-cl.exe %CommonCompilerFlags%  "../engine/main_win.cpp" %HeaderLinkFlags% /link %LibraryPaths% %CommonLinkerFlags%
+cl.exe %PreprocessorFlags% %CommonCompilerFlags%  "../engine/main_win.cpp" %HeaderLinkFlags% /link %LibraryPaths% %CommonLinkerFlags%
 popd
 
 

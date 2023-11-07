@@ -1,6 +1,8 @@
 #ifndef BSABER_INFO_DAT_H
 #define BSABER_INFO_DAT_H
 
+#include "emslice.h"
+
 typedef struct infoDat {
   str8 version;
   str8 songName;
@@ -20,12 +22,12 @@ typedef struct infoDat {
   // environmentName
   // colorSchemes
   // customData
-  // difficultyBeatmapSets
+  emArr difficultyBeatmapSets;
 } infoDat;
 
 typedef struct beatmapSet {
   str8 beatmapCharacteristicName;
-  difficultyBeatmaps;
+  emArr difficultyBeatmaps;
 } beatmapSet;
 
 typedef struct beatmap {
@@ -39,5 +41,10 @@ typedef struct beatmap {
   // customData
 
 } beatmap;
+
+static i32 beatmapSetUnmarshal(str8 infoDatContent, jsmntok_t *jsonTokens,
+                               u64 size, emArr *beatmapSets);
+static i32 beatmapUnmarshal(str8 infoDatContent, jsmntok_t *jsonTokens,
+                            u64 size, emArr *beatmaps);
 
 #endif

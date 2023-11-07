@@ -5,6 +5,9 @@
 #define JSON_SKIP_CHILDREN 4245
 #define JSON_EXPECT_ROOT_KEY 0
 #define JSON_EXPECT_ROOT_OBJECT 124
+#define JSON_EXPECT_ROOT_ARRAY 4125
+#define JSON_PARSE_BEATMAP 5515
+#define JSON_PARSE_U32 8941
 
 static b8 infoDatUnmarshal(infoDat *info, str8 infoDatContent) {
   jsmn_parser jp;
@@ -138,7 +141,14 @@ static b8 infoDatUnmarshal(infoDat *info, str8 infoDatContent) {
         continue;
       }
 
-      if (str8Equal(str8Lit("_difficultyBeatmapSets", key))) {
+      if (str8Equal(str8Lit("_difficultyBeatmapSets"), key)) {
+        i32 offset = beatmapSetUnmarshal(infoDatContent, &t[i + 1], r - i - 1,
+                                         &info->difficultyBeatmapSets);
+        if (offset == 0) {
+          LogError("infoDatUnmarshal: expected object");
+          goto error;
+        }
+        i = i + offset - 1;
 
         continue;
       }
@@ -218,4 +228,262 @@ error:
   return 1;
 }
 
-static b8 beatmapSetUnmarshal()
+static i32 beatmapSetUnmarshal(str8 infoDatContent, jsmntok_t *jsonTokens,
+                               u64 size, emArr *beatmapSets) {
+  i32 state = JSON_EXPECT_ROOT_ARRAY;
+  i32 rootSize = 0;
+  i32 keysRemain = 0;
+  u64 beatmapSetIndex = 0;
+  u64 assignOffset = 0;
+  u64 skipRemain = 0;
+  beatmapSet *currentSet = NULL;
+  for (i32 i = 0; i < size; i++) {
+    jsmntok_t tok = jsonTokens[i];
+    switch (state) {
+    case JSON_EXPECT_ROOT_ARRAY: {
+      // expect array at first
+      if (tok.type != JSMN_ARRAY) {
+        LogError("beatmapSetUnmarshal: expected array for key");
+        goto error;
+      }
+
+      *beatmapSets = emArrNewCap(beatmapSet, tok.size);
+
+      skipRemain += tok.size;
+
+      rootSize = tok.size;
+      state = JSON_EXPECT_ROOT_OBJECT;
+      break;
+    }
+    case JSON_EXPECT_ROOT_OBJECT: {
+      // expect object values
+      if (tok.type != JSMN_OBJECT) {
+        LogError("beatmapSetUnmarshal: expected array values to be objects");
+        goto error;
+      }
+
+      rootSize--;
+
+      currentSet = (beatmapSet *)emArrPush(beatmapSets);
+
+      keysRemain = tok.size;
+      state = JSON_EXPECT_ROOT_KEY;
+      break;
+    }
+    case JSON_EXPECT_ROOT_KEY: {
+      if (tok.type != JSMN_STRING && tok.size != 1) {
+        LogError("beatmapSetUnmarshal: expected key value");
+        goto error;
+      }
+
+      keysRemain--;
+
+      str8 key =
+          str8New(&infoDatContent.str[tok.start], tok.end - tok.start, 0);
+      if (str8Equal(str8Lit("_beatmapCharacteristicName"), key)) {
+        state = JSON_PARSE_STR,
+        assignOffset = offsetof(beatmapSet, beatmapCharacteristicName);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_difficultyBeatmaps"), key)) {
+        i32 offset =
+            beatmapUnmarshal(infoDatContent, &jsonTokens[i + 1], size - i - 1,
+                             &currentSet->difficultyBeatmaps);
+
+        if (offset == 0) {
+          LogError("infoDatUnmarshal: expected object");
+          goto error;
+        }
+
+        i = i + offset - 1;
+        continue;
+      }
+
+      break;
+    }
+
+    case JSON_PARSE_STR: {
+      // assign string value to field
+      if (tok.type != JSMN_STRING && tok.size != 0) {
+        LogError("infoDatUnmarshal: expect string value");
+        goto error;
+      }
+
+      str8 lit =
+          str8New(&infoDatContent.str[tok.start], tok.end - tok.start, 0);
+
+      *FieldPtr(currentSet, str8, assignOffset) = lit;
+
+      state = JSON_EXPECT_ROOT_KEY;
+
+      if (keysRemain == 0) {
+        state = JSON_EXPECT_ROOT_OBJECT;
+      }
+
+      break;
+    }
+    }
+  }
+
+  return (i32)size;
+
+error:
+
+  return 0;
+}
+
+static i32 beatmapUnmarshal(str8 infoDatContent, jsmntok_t *jsonTokens,
+                            u64 size, emArr *beatmaps) {
+  i32 state = JSON_EXPECT_ROOT_ARRAY;
+  beatmap *currentSet = NULL;
+  u64 arraySize = 0;
+  u64 keysRemain = 0;
+  u64 assignOffset = 0;
+  for (i32 i = 0; i < size; i++) {
+    jsmntok_t tok = jsonTokens[i];
+    switch (state) {
+    case JSON_EXPECT_ROOT_ARRAY: {
+
+      if (tok.type != JSMN_ARRAY) {
+        LogError("beatmapUnmarshal: expected array");
+        goto error;
+      }
+
+      *beatmaps = emArrNewCap(beatmap, tok.size);
+
+      arraySize = tok.size;
+
+      state = JSON_EXPECT_ROOT_OBJECT;
+
+      break;
+    }
+    case JSON_EXPECT_ROOT_OBJECT: {
+      // expect object values
+      if (tok.type != JSMN_OBJECT) {
+        LogError("beatmapUnmarshal: expected array of objects");
+        goto error;
+      }
+
+      currentSet = (beatmap *)emArrPush(beatmaps);
+      keysRemain = tok.size;
+      state = JSON_EXPECT_ROOT_KEY;
+      break;
+    }
+
+    case JSON_EXPECT_ROOT_KEY: {
+      if (tok.type != JSMN_STRING && tok.size != 1) {
+        LogError("beatmapUnmarshal: expected object key");
+        goto error;
+      }
+
+      keysRemain--;
+
+      str8 key =
+          str8New(&infoDatContent.str[tok.start], tok.end - tok.start, 0);
+      if (str8Equal(str8Lit("_difficulty"), key)) {
+        state = JSON_PARSE_STR;
+        assignOffset = offsetof(beatmap, difficulty);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_beatmapFilename"), key)) {
+        state = JSON_PARSE_STR;
+        assignOffset = offsetof(beatmap, beatmapFilename);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_difficultyRank"), key)) {
+        state = JSON_PARSE_F32;
+        assignOffset = offsetof(beatmap, difficultyRank);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_noteJumpMovementSpeed"), key)) {
+        state = JSON_PARSE_F32;
+        assignOffset = offsetof(beatmap, noteJumpMovementSpeed);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_noteJumpStartBeatOffset"), key)) {
+        state = JSON_PARSE_F32;
+        assignOffset = offsetof(beatmap, noteJumpStartBeatOffset);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_beatmapColorSchemeIdx"), key)) {
+        state = JSON_PARSE_U32;
+        assignOffset = offsetof(beatmap, beatmapColorSchemeIdx);
+        continue;
+      }
+
+      if (str8Equal(str8Lit("_environmentNameIdx"), key)) {
+        state = JSON_PARSE_U32;
+        assignOffset = offsetof(beatmap, environmentNameIdx);
+        continue;
+      }
+
+      break;
+    }
+    case JSON_PARSE_STR: {
+      if (tok.type != JSMN_STRING && tok.size != 0) {
+        LogError("beatmapUnmarshal: expect string value");
+        goto error;
+      }
+
+      str8 lit =
+          str8New(&infoDatContent.str[tok.start], tok.end - tok.start, 0);
+      *FieldPtr(currentSet, str8, assignOffset) = lit;
+
+      state = JSON_EXPECT_ROOT_KEY;
+
+      if (keysRemain == 0) {
+        state = JSON_EXPECT_ROOT_OBJECT;
+      }
+      break;
+    }
+
+    case JSON_PARSE_F32: {
+
+      str8 lit =
+          str8New(&infoDatContent.str[tok.start], tok.end - tok.start, 0);
+      b8 err = str8ReadF32(lit, FieldPtr(currentSet, f32, assignOffset));
+      if (err) {
+        LogError("beatmapUnmarshal: expected float value");
+        goto error;
+      }
+
+      state = JSON_EXPECT_ROOT_KEY;
+
+      if (keysRemain == 0) {
+        state = JSON_EXPECT_ROOT_OBJECT;
+      }
+
+      break;
+    }
+    case JSON_PARSE_U32: {
+
+      str8 lit =
+          str8New(&infoDatContent.str[tok.start], tok.end - tok.start, 0);
+      b8 err = str8ReadU32(lit, FieldPtr(currentSet, u32, assignOffset));
+      if (err) {
+        LogError("beatmapUnmarshal: expected u32");
+        goto error;
+      }
+
+      state = JSON_EXPECT_ROOT_KEY;
+      if (keysRemain == 0) {
+        state = JSON_EXPECT_ROOT_OBJECT;
+      }
+
+      break;
+    }
+    }
+  }
+
+  return (u32)size;
+
+error:
+
+  return 0;
+}

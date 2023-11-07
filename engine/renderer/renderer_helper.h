@@ -1,8 +1,9 @@
 #ifndef RENDER_HELP_H
 #define RENDER_HELP_H
 
-typedef struct RendererEx
-{
+#include "test_renderer/map_loader.h"
+
+typedef struct RendererEx {
   Renderer r;
   f32 cullingQuad[4];
 

@@ -2,6 +2,7 @@
 #define EMSTRING_H
 
 #include "memory/base_memory.h"
+#include "memory/base_memory_malloc.cpp"
 
 typedef struct str8 {
   u8 *str;
@@ -222,6 +223,35 @@ static b8 str8ReadF32(str8 token, f32 *result) {
 
 error:
   LogError("emReadF32: failed to parse f32");
+  return 1;
+}
+
+static b8 str8ReadU32(str8 token, u32 *result) {
+  u32 mantissa = 0;
+  i32 exponent = 0;
+  b8 neg = 0;
+  b8 dot = 0;
+  for (i32 i = 0; i < token.size; i++) {
+    u8 ch = token.str[i];
+    if (ch == '-') {
+      goto error;
+    }
+
+    if (ch == '.') {
+      goto error;
+    }
+
+    if (ch >= '0' && ch <= '9') {
+      mantissa *= 10;
+      mantissa += (ch - '0');
+    }
+  }
+
+  *result = mantissa;
+  return 0;
+
+error:
+  LogError("emReadU32: failed to parse u32");
   return 1;
 }
 

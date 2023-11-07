@@ -1,6 +1,17 @@
 // #include "../app/test_renderer/test_renderer.cpp"
 
-// #include "../app/hello/hello.cpp"
+// Hello App
+#include "../app/hello/hello.cpp"
+
+Scene g_app = {};
+
+static bool mainInit() { return app_init(&g_app); }
+static void mainClean() {  }
+static void mainInput(SDL_Event e) {  }
+static void mainUpdate(f32 delta) { app_update(&g_app, delta); }
+
+
+
 // #include "../app/hello/input.h"
 // #include "../app/audio/audio.cpp"
 // #include "../app/light/init.cpp"
@@ -19,11 +30,13 @@
 // static void mainUpdate(f32 delta) { app_update(&g_app, delta); }
 
 // beat saber app
-#include "bsaber/bsaber.cpp"
+// #include "memory/emarena.cpp"
 
-app g_app = {};
+// #include "bsaber/bsaber.cpp"
 
-static bool mainInit() { return appInit(&g_app); }
-static void mainClean() { appClean(&g_app); }
-static void mainInput(SDL_Event e) { appInput(&g_app, e); }
-static void mainUpdate(f32 delta) { appUpdate(&g_app, delta); }
+// app g_app = {};
+
+// static bool mainInit() { return appInit(&g_app); }
+// static void mainClean() { appClean(&g_app); }
+// static void mainInput(SDL_Event e) { appInput(&g_app, e); }
+// static void mainUpdate(f32 delta) { appUpdate(&g_app, delta); }

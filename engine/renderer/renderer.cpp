@@ -75,6 +75,7 @@ void RenderInit(Renderer *r) {
 
   glUseProgram(r->shader);
   u32 projectionLocation = glGetUniformLocation(r->shader, "u_proj");
+  r->projectionLocation = projectionLocation;
   glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, r->projection);
 
   u32 textureLocation = glGetUniformLocation(r->shader, "u_tex");
@@ -150,7 +151,14 @@ void RenderBeginFrame(Renderer *r) {
   r->textureLen = 0;
 }
 
+void RenderSetProjection(Renderer *r, m4 newProjection) {
+  m4Copy(r->projection, newProjection);
+}
+
 void RenderEndFrame(Renderer *r) {
+  glUseProgram(r->shader);
+  glUniformMatrix4fv(r->projectionLocation, 1, GL_FALSE, r->projection);
+
   for (u32 i = 0; i < r->textureLen; i++) {
     glActiveTexture(GL_TEXTURE0 + i);
     glBindTexture(GL_TEXTURE_2D, r->texture[i]);
@@ -167,6 +175,22 @@ void RenderEndFrame(Renderer *r) {
 
 void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
                         v4 cColor, v2 aUV, v2 bUV, v2 cUV, u32 texture) {
+  f32 a3[3];
+  v2Copy(a3, a);
+  a3[2] = 0;
+  f32 b3[3];
+  v2Copy(b3, a);
+  b3[2] = 0;
+  f32 c3[3];
+  v2Copy(c3, a);
+  c3[2] = 0;
+
+  RenderPushTriangle3D(r, a3, b3, c3, aColor, bColor, cColor, aUV, bUV, cUV,
+                       texture);
+}
+
+void RenderPushTriangle3D(Renderer *r, v3 a, v3 b, v3 c, v4 aColor, v4 bColor,
+                          v4 cColor, v2 aUV, v2 bUV, v2 cUV, u32 texture) {
   u32 texIndex = 1248;
   for (u32 i = 0; i < r->textureLen; i++) {
     if (r->texture[i] == texture) {
@@ -189,6 +213,7 @@ void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
 
   r->triangleBuffer[r->triangleLen * 3 + 0].pos[0] = a[0];
   r->triangleBuffer[r->triangleLen * 3 + 0].pos[1] = a[1];
+  r->triangleBuffer[r->triangleLen * 3 + 0].pos[2] = a[2];
   r->triangleBuffer[r->triangleLen * 3 + 0].color[0] = aColor[0];
   r->triangleBuffer[r->triangleLen * 3 + 0].color[1] = aColor[1];
   r->triangleBuffer[r->triangleLen * 3 + 0].color[2] = aColor[2];
@@ -198,6 +223,7 @@ void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
   r->triangleBuffer[r->triangleLen * 3 + 0].texIndex = (f32)texIndex;
   r->triangleBuffer[r->triangleLen * 3 + 1].pos[0] = b[0];
   r->triangleBuffer[r->triangleLen * 3 + 1].pos[1] = b[1];
+  r->triangleBuffer[r->triangleLen * 3 + 1].pos[2] = b[2];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[0] = bColor[0];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[1] = bColor[1];
   r->triangleBuffer[r->triangleLen * 3 + 1].color[2] = bColor[2];
@@ -207,6 +233,7 @@ void RenderPushTriangle(Renderer *r, v2 a, v2 b, v2 c, v4 aColor, v4 bColor,
   r->triangleBuffer[r->triangleLen * 3 + 1].texIndex = (f32)texIndex;
   r->triangleBuffer[r->triangleLen * 3 + 2].pos[0] = c[0];
   r->triangleBuffer[r->triangleLen * 3 + 2].pos[1] = c[1];
+  r->triangleBuffer[r->triangleLen * 3 + 2].pos[2] = c[2];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[0] = cColor[0];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[1] = cColor[1];
   r->triangleBuffer[r->triangleLen * 3 + 2].color[2] = cColor[2];
