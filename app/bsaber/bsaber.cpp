@@ -12,7 +12,7 @@ static bool appInit(app *p) {
   }
 
   RenderExInit(&p->r);
-  flycamera_init(&camera);
+  cameraInit(&camera, 45.0f, 1.0f, 0.1f, 100.0f, 1);
 
   return 1;
 }

@@ -1,7 +1,7 @@
 #include "match3.h"
 
 static bool app_init(Scene *app) {
-  nuCameraInit(&app->camera);
+  cameraInit(&app->camera, 45.0f, 16.0f/9.0f, 0.1f, 100.0f, 0);
 
   bool ok = false;
   ok = shader_init(&app->shader, "./app/match3/shader.vert",

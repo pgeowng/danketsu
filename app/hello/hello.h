@@ -9,17 +9,23 @@
 #include "shader.h"
 #include "texture.h"
 
+#include "renderer3d.h"
+
 struct Scene {
   GLuint vao;
   GLuint vbo;
   GLuint ebo;
-  Camera camera = {};
-  shader_s shader = {};
+
+  Renderer3D r3;
+
 
   mesh_s cube_mesh = {};
 
   GLuint texWall;
   GLuint texAwesome;
 };
+
+static void appDraw(Scene *app);
+static void appUpd(Scene *app, f32 delta);
 
 #endif

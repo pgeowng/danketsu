@@ -33,23 +33,12 @@ struct Camera {
   bool fps;
 };
 
-void flycamera_init(Camera *camera, bool fps = true, float fov = 45.0f,
-                    float aspect = 1.0f, float z_near = 0.1f,
-                    float z_far = 100.0f) {
-  camera->fps = fps;
-  camera->fov = fov;
-  camera->aspect = aspect;
-  camera->z_near = z_near;
-  camera->z_far = z_far;
-}
-
-void nuCameraInit(Camera *camera, float fov = 45.0f, float aspect = 16.0f / 9.0,
-                  float z_near = 0.1f, float z_far = 100.0f) {
-  camera->fps = false;
-  camera->fov = fov;
-  camera->aspect = aspect;
-  camera->z_near = z_near;
-  camera->z_far = z_far;
+void cameraInit(Camera *c, f32 fov = 45.0f, f32 aspect = 1.0f, f32 z_near = 0.1f, f32 z_far = 100.0f, b8 fps = true) {
+  c->fps = fps;
+  c->fov = fov;
+  c->aspect = aspect;
+  c->z_near = z_near;
+  c->z_far = z_far;
 }
 
 void flycamera_process_mouse_movement(Camera *camera, float xoffset,
@@ -129,7 +118,7 @@ glm::mat4 camProjMat(Camera *camera) {
 };
 
 m4 camProjM4(Camera *camera, m4 out) {
-  m4Perspective(out, mathRadians(camera->fov + camera->zoom), camera->aspect,
+  m4Perspective(out, mRadians(camera->fov + camera->zoom), camera->aspect,
                 camera->z_near, camera->z_far);
   return out;
 }

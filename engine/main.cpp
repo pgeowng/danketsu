@@ -143,9 +143,9 @@ int run() {
       mainInput(e);
     }
 
-    float timeValue = SDL_GetTicks() / 1000.0f;
-    float delta = timeValue - prevTime;
-    prevTime = timeValue;
+    float currentTime = SDL_GetTicks() / 1000.0f;
+    float delta = currentTime - prevTime;
+    prevTime = currentTime;
 
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

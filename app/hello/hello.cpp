@@ -1,12 +1,9 @@
 #include "hello.h"
 
 bool app_init(Scene *app) {
-  bool ok = false;
-  flycamera_init(&app->camera);
-  ok = shader_init(&app->shader, "./app/hello/hello.vert",
-                   "./app/hello/hello.frag");
+  b8 ok = r3Init(&app->r3);
   if (!ok) {
-    printf("shader new failed");
+    printf("init renderer failed");
     return ok;
   }
 
@@ -14,7 +11,6 @@ bool app_init(Scene *app) {
   MeshSetCube(&app->cube_mesh);
   MeshInitialize(&app->cube_mesh);
 
-  shader_use(&app->shader);
 
   ok = tex_load(&app->texWall, "assets/wall.jpg");
   if (!ok) {
@@ -33,44 +29,51 @@ bool app_init(Scene *app) {
   return ok;
 }
 
-void app_update(Scene *app, float delta) {
-  static float timeValue = 0.0f;
+void app_update(Scene *app, f32 delta) {
+  appUpd(app, delta);
+  appDraw(app);
+}
+
+static f32 timeValue = 0.0f;
+static f32 transforms[16 * 5];
+static f32 positions[3 * 4];
+
+static void appUpd(Scene*app, f32 delta) {
+  r3Update(&app->r3, delta);
   timeValue += delta;
 
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::rotate(model, glm::radians(20.0f * timeValue),
-                      glm::vec3(0.0f, 1.0f, 0.0f));
-  model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+  f32 *ttransform = (f32*)&transforms;
+  m4One(ttransform);
+  m4Rotate(ttransform, mRadians(20.0f * timeValue), 0.0f, 1.0f, 0.0f);
+  m4Rotate(ttransform,mRadians(-55.0f), 1.0f, 0.0f, 0.0f);
 
-  flycamera_update(&app->camera, delta);
+  f32 *pposition = (f32*)&positions;
+  v3Set(pposition, 0.2f, -0.2f, 1.0f);
+  pposition+=3;
+  v3Set(pposition,-0.4f, 0.4f, 0.5f),
+  pposition+=3;
+  v3Set(pposition,0.0f, 0.0f, 1.5f),
+  pposition+=3;
+  v3Set(pposition,0.89f, 0.5f, 2.0f);
 
-  shader_use(&app->shader);
-  shader_1i(&app->shader, "tex1", 0);
-  shader_1i(&app->shader, "tex2", 1);
-  shader_mat4fv(&app->shader, "model", glm::value_ptr(model));
-  shader_mat4fv(&app->shader, "view", glm::value_ptr(camViewMat(&app->camera)));
-  // shader_SetMatrix4fv(&app->shader, "view",
-  // glm::value_ptr(flycamera_get_weird_view_matrix(&app->camera)));
-  shader_mat4fv(&app->shader, "projection",
-                glm::value_ptr(camProjMat(&app->camera)));
+  for (int i = 0; i < 4; i++) {
+    ttransform += 16;
+    m4One(ttransform);
+    m4Translate(ttransform, &positions[i]);
+    m4Rotate(ttransform,  mRadians(timeValue * 25 * (i + 1)),
+                        positions[i*3],positions[i*3+1],positions[i*3+2]);
 
-  MeshDraw(&app->cube_mesh, &app->shader);
+  }
+}
 
-  glm::vec3 positions[] = {
-      glm::vec3(0.2f, -0.2f, 1.0f),
-      glm::vec3(-0.4f, 0.4f, 0.5f),
-      glm::vec3(0.0f, 0.0f, 1.5f),
-      glm::vec3(0.89f, 0.5f, 2.0f),
-  };
+static void appDraw(Scene *app) {
+  Renderer3D *r3 = &app->r3;
 
-  for (int i = 0; i < 3; i++) {
-    glm::mat4 cubeModelTransform = glm::mat4(1.0f);
-    cubeModelTransform = glm::translate(cubeModelTransform, positions[i]);
-    cubeModelTransform = glm::rotate(cubeModelTransform, glm::radians(timeValue * 25 * (i + 1)),
-                        positions[i]);
+  f32 *ttransform = (f32*)&transforms;
+  r3DrawMesh(r3, &app->cube_mesh, ttransform);
 
-    shader_mat4fv(&app->shader, "model", glm::value_ptr(cubeModelTransform));
-
-    MeshDraw(&app->cube_mesh, &app->shader);
+  for (int i = 0; i < 4; i++) {
+    ttransform += 16;
+    r3DrawMesh(r3, &app->cube_mesh, transforms);
   }
 }

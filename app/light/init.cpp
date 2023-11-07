@@ -14,8 +14,7 @@ bool app_init(Scene *app) {
   GameObject *obj2 = PushArray(&app->arena, GameObject, objectCount);
 
   bool ok = false;
-  flycamera_init(&app->camera, false, 60.0f,
-                 (float)(gScreenWidth) / gScreenHeight);
+  cameraInit(&app->camera, 60.0f, (float)(gScreenWidth) / gScreenHeight, 0.1f, 100.0f, 0);
   ok = shader_init(&app->lighting_shader, "./app/light/light.vert",
                    "./app/light/light_tex.frag");
   if (!ok) {

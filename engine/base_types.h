@@ -1,6 +1,8 @@
 #ifndef BASE_TYPES_H
 #define BASE_TYPES_H
 
+#define SI
+
 #define AlignUpPow2(x, p) (((x) + (p)-1) & ~((p)-1))
 #define AlignDownPow2(x, p) ((x) & ~((p)-1))
 #define ArrayCount(a) (sizeof(a) / sizeof(*(a)))
@@ -40,6 +42,7 @@ typedef f32 *v4;
 typedef f32 *m2;
 typedef f32 *m4;
 typedef f32 *rect;
+typedef f32 *quat;
 
 // static inline v2Init
 
@@ -316,7 +319,14 @@ static f32 mathAtan2(f32 y, f32 x) {
   // }
 }
 
-static f32 mathRadians(f32 degrees) { return degrees / 180 * mathPI; }
+static f32 mRadians(f32 degrees) { return degrees / 180 * mathPI; }
+
+SI v3 v3Set(v3 out, f32 x, f32 y, f32 z) {
+  out[0] = x;
+  out[1] = y;
+  out[2] = z;
+  return out;
+}
 
 inline void v3Neg(v3 out) {
   out[0] = -out[0];
@@ -351,13 +361,98 @@ inline void m4Translate(m4 out, v3 translate) {
   out[8+3] += translate[2];
 }
 
-inline void m4One(m4 out) {
+SI m4 m4One(m4 out) {
   for (i32 i = 0; i < 16; i++) {
     if (i/4 == i%4)
       out[i] = 1;
     else
       out[i] = 0;
   }
+  return out;
+}
+
+SI void m4Rotate3dX(m4 out, f32 radians) {
+
+}
+
+SI m4 m4Mul(m4 m, m4 n) {
+  f32 m00 = m[0], m01 = m[1], m02 = m[2], m03 = m[3],
+      m10 = m[4], m11 = m[5], m12 = m[6], m13 = m[7],
+      m20 = m[8], m21 = m[9], m22 = m[10], m23 = m[11],
+      m30 = m[12], m31 = m[13], m32 = m[14], m33 = m[15],
+
+      n00 = n[0], n01 = n[1], n02 = n[2], n03 = n[3],
+      n10 = n[4], n11 = n[5], n12 = n[6], n13 = n[7],
+      n20 = n[8], n21 = n[9], n22 = n[10], n23 = n[11],
+      n30 = n[12], n31 = n[13], n32 = n[14], n33 = n[15];
+
+  m[0] = n00 * m00 + n01 * m10 + n02 * m20 + n03 * m30;
+  m[1] = n00 * m01 + n01 * m11 + n02 * m21 + n03 * m31;
+  m[2] = n00 * m02 + n01 * m12 + n02 * m22 + n03 * m32;
+  m[3] = n00 * m03 + n01 * m13 + n02 * m23 + n03 * m33;
+  m[4] = n10 * m00 + n11 * m10 + n12 * m20 + n13 * m30;
+  m[5] = n10 * m01 + n11 * m11 + n12 * m21 + n13 * m31;
+  m[6] = n10 * m02 + n11 * m12 + n12 * m22 + n13 * m32;
+  m[7] = n10 * m03 + n11 * m13 + n12 * m23 + n13 * m33;
+  m[8] = n20 * m00 + n21 * m10 + n22 * m20 + n23 * m30;
+  m[9] = n20 * m01 + n21 * m11 + n22 * m21 + n23 * m31;
+  m[10] = n20 * m02 + n21 * m12 + n22 * m22 + n23 * m32;
+  m[11] = n20 * m03 + n21 * m13 + n22 * m23 + n23 * m33;
+  m[12] = n30 * m00 + n31 * m10 + n32 * m20 + n33 * m30;
+  m[13] = n30 * m01 + n31 * m11 + n32 * m21 + n33 * m31;
+  m[14] = n30 * m02 + n31 * m12 + n32 * m22 + n33 * m32;
+  m[15] = n30 * m03 + n31 * m13 + n32 * m23 + n33 * m33;
+  return m;
+}
+
+SI m4 m4FromQuat(m4 m, quat q) {
+  float x = q[0], y = q[1], z = q[2], w = q[3];
+  m[0] = 1.f - 2.f * y * y - 2.f * z * z;
+  m[1] = 2.f * x * y + 2 * w * z;
+  m[2] = 2.f * x * z - 2.f * w * y;
+  m[3] = 0.f;
+  m[4] = 2.f * x * y - 2.f * w * z;
+  m[5] = 1.f - 2.f * x * x - 2.f * z * z;
+  m[6] = 2.f * y * z + 2.f * w * x;
+  m[7] = 0.f;
+  m[8] = 2.f * x * z + 2.f * w * y;
+  m[9] = 2.f * y * z - 2.f * w * x;
+  m[10] = 1.f - 2.f * x * x - 2.f * y * y;
+  m[11] = 0.f;
+  m[12] = 0.f;
+  m[13] = 0.f;
+  m[14] = 0.f;
+  m[15] = 1.f;
+  return m;
+}
+
+SI m4 m4RotateQuat(m4 m, quat q) {
+  f32 n[16];
+  return m4Mul(m, m4FromQuat(n,q));
+}
+
+SI quat quatSet(quat q, f32 x, f32 y, f32 z, f32 w) {
+  q[0] = x;
+  q[1] = y;
+  q[2] = z;
+  q[3] = w;
+  return q;
+}
+
+SI quat quatFromAngleAxis(quat q, f32 angle, f32 ax, f32 ay, f32 az) {
+  f32 s = sinf(angle * .5f);
+  f32 c = cosf(angle * .5f);
+  f32 length = sqrtf(ax * ax + ay * ay + az * az);
+  if (length > 0.f) {
+    s /= length;
+  }
+  return quatSet(q, s * ax, s * ay, s * az, c);
+}
+
+SI m4 m4Rotate(m4 m, f32 angle, f32 x, f32 y, f32 z) {
+  f32 q[4];
+  quatFromAngleAxis(q, angle, x, y, z);
+  return m4RotateQuat(m, q);
 }
 
 #endif

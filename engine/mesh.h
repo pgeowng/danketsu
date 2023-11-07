@@ -41,10 +41,9 @@ struct mesh_s {
   GLuint ebo;
 };
 
-void MeshZero(mesh_s *m);
+void meshZero(mesh_s *m);
 bool mesh_read_obj(mesh_s *m, MArena *arena, const char *filename);
-bool MeshInitialize(mesh_s *m);
-bool MeshClean(mesh_s *m);
-void MeshDraw(mesh_s *m, shader_s *sh);
+bool meshInit(mesh_s *m);
+bool meshClean(mesh_s *m);
 
 #endif

@@ -99,39 +99,6 @@ bool MeshInitialize(mesh_s *m) {
   return true;
 }
 
-void MeshDraw(mesh_s *m, shader_s *sh) {
-  int diffuse_nr = 1;
-  int specular_nr = 1;
-
-  for (int i = 0; i < m->textures_size; i++) {
-    glActiveTexture(GL_TEXTURE0 + i);
-
-    int slot = 0;
-    if (strcmp(m->textures[i].type, "material.diffuse") == 0) {
-      slot = diffuse_nr++;
-    } else if (strcmp(m->textures[i].type, "material.specular") == 0) {
-      slot = specular_nr++;
-    }
-
-    char name[50];
-    mysprintf(name, "%s%d", m->textures[i].type, slot);
-    shader_1i(sh, name, i);
-    glBindTexture(GL_TEXTURE_2D, m->textures[i].id);
-  }
-
-  glBindVertexArray(m->vao);
-  // printf("MeshDraw: indices_size: %d\n", m->indices_size);
-  // printf("MeshDraw: verts_size: %d\n", m->verts_size);
-  assert(m->verts_size != 0);
-  if (m->indices_size > 0) {
-    glDrawElements(GL_TRIANGLES, m->indices_size, GL_UNSIGNED_INT, 0);
-  } else {
-    glDrawArrays(GL_TRIANGLES, 0, m->verts_size);
-  }
-  glBindVertexArray(0);
-
-  glActiveTexture(GL_TEXTURE0);
-}
 
 bool mesh_add_texture(mesh_s *m, const char *path, const char *type) {
   texture_s tex;
